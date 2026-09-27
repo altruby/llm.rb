@@ -30,20 +30,20 @@ class LLM::Schema
     ##
     # @return [Hash]
     def to_h
-      resolve.to_h
+      resolved_leaf.to_h
     end
 
     ##
     # @param [Hash] options
     # @return [String]
     def to_json(options = {})
-      resolve.to_h.to_json(options)
+      resolved_leaf.to_h.to_json(options)
     end
 
     ##
     # @return [String]
     def to_s
-      resolve.to_s
+      resolved_leaf.to_s
     end
 
     private
@@ -55,7 +55,7 @@ class LLM::Schema
     # The settings live on the placeholder, because they are given
     # before the leaf it stands for exists.
     # @return [LLM::Schema::Leaf]
-    def resolve
+    def resolved_leaf
       leaf = @block.call
       leaf.description(@description) if @description
       leaf.default(@default) unless @default.nil?
