@@ -36,6 +36,29 @@
   one: a tracer that released its resource in `on_exit` lost it in the middle
   of the turn, and the rest of the trace was written without it.
 
+### Schema
+
+* **schema: resolve a parameter type when the schema is serialized** <br>
+  [`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html) and
+  [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) accept a `Proc`
+  as the type of a parameter or a property, and the proc is called when the
+  schema is serialized rather than when the class that declares it is defined.
+  A type that is only known at runtime no longer has to be known at load time:
+  `parameter :kind, proc { Enum[*Article.kinds] }, "The article kind"` asks the
+  model for the values a store holds right now, and the proc runs again on the
+  next request, so it sees the values that are current then. Whatever the proc
+  returns is resolved in turn, so it may be a leaf, a class, or an array of
+  either, and the description, `required`, `default`, and `enum` given with the
+  parameter are applied to it.
+
+* **schema: keep `to_s` working for a deferred type** <br>
+  Fix a bug where a schema with a proc-typed property raised from
+  [`LLM::Schema.to_s`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html#to_s-class_method)
+  (and so from `inspect` and `p`) because the placeholder resolved its leaf
+  through a private method that shadowed the one `LLM::Schema::Leaf#default`
+  uses. Serialization, and therefore the request sent to a provider, was
+  unaffected.
+
 ## v15.4.1
 
 Changes since `v15.4.0`.
