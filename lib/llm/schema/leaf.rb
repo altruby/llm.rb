@@ -12,6 +12,9 @@ class LLM::Schema
     # @return [Integer, nil]
     attr_accessor :index
 
+    ##
+    # Returns a leaf.
+    # @return [LLM::Schema::Leaf]
     def initialize
       @description = nil
       @default = nil
