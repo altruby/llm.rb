@@ -22,8 +22,10 @@ class LLM::Tool
     ##
     # @param name [Symbol]
     #   The name of a parameter
-    # @param type [LLM::Schema::Leaf, Class]
-    #   The parameter type (eg String)
+    # @param type [LLM::Schema::Leaf, Class, Proc]
+    #   The parameter type (eg String). A proc is called for the type
+    #   when the parameters are read, so a type that can only be known
+    #   at runtime does not have to be known when the class is defined.
     # @param description [String]
     #   The description of a property
     # @param options [Hash]

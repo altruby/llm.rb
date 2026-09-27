@@ -36,6 +36,7 @@ class LLM::Schema
   require_relative "schema/parser"
   require_relative "schema/renderer"
   require_relative "schema/leaf"
+  require_relative "schema/deferred"
   require_relative "schema/object"
   require_relative "schema/array"
   require_relative "schema/all_of"
@@ -56,9 +57,21 @@ class LLM::Schema
   module Utils
     extend self
 
+    ##
+    # Resolves a parameter type into a leaf of the schema.
+    #
+    # A proc is called for its type, and whatever it returns is resolved
+    # in turn, so a type that can only be known at runtime - an enum of
+    # the keys a store holds right now - can be declared without being
+    # evaluated when the class that declares it is defined.
+    # @param [LLM::Schema] schema
+    # @param [Object] type
+    # @return [LLM::Schema::Leaf]
     def resolve(schema, type)
       if LLM::Schema::Leaf === type
         type
+      elsif ::Proc === type
+        Deferred.new { resolve(schema, type.call) }
       elsif ::Array === type
         resolve_array(schema, type)
       elsif Class === type && type.respond_to?(:object)
