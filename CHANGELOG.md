@@ -15,6 +15,17 @@
 
 ## What's next
 
+*No unreleased changes yet. Check back after the next release.*
+
+## v15.5.0
+
+Changes since `v15.4.1`.
+
+This release makes the exec-backed tools report how long a command ran, calls a
+tracer's `on_exit` hook once when the last scope ends, and resolves a `Proc`
+parameter type when a schema is serialized. It also fixes `LLM::Schema.to_s`
+for a schema with a deferred type.
+
 ### Tools
 
 * **tools: report how long a command ran** <br>
