@@ -52,9 +52,12 @@ model as an in-band error that allows the model to correct course.
 A lot of care also goes into keeping the tool loop from entering
 an invalid state that would lead to API-level errors. For example,
 when a tool call is interrupted it could leave an unanswered tool
-call that a model will reject on the next turn. The runtime takes
-care of this by pruning orphaned tool calls and ensuring that the
-tool loop always remains valid.
+call that a model will reject on the next turn. The runtime closes
+every tool call that has no return before the next request is sent,
+and each one is answered with an in-band return of its own. The
+conversation a provider sees is therefore always valid, and a
+cancelled call is something the model is told about rather than
+something that quietly disappears.
 
 ```ruby
 require "llm"
@@ -665,8 +668,7 @@ agent = LLM::Agent.new(llm, tools: [LLM::Tool::Exec, ReadFile], guard: PolicyGua
 <br>
 
 It is possible to rewrite outgoing messages before they reach the provider with
-[`LLM::Transformer`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer.html).
-Create a subclass and implement `call(message:)` to scrub sensitive data,
+[`LLM::Transformer`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer.html). Create a subclass and implement `call(message:)` to scrub sensitive data,
 inject context, or normalize content. The transform runs automatically
 on every turn, so you never have to change your prompt code.
 
