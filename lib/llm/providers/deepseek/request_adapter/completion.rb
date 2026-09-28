@@ -34,6 +34,8 @@ module LLM::DeepSeek::RequestAdapter
         adapt_object(content)
       when String
         [{type: :text, text: content.to_s}]
+      when LLM::Response
+        no_files_api!("response")
       when LLM::Message
         adapt_content(content.content)
       when LLM::Function::Return
@@ -54,15 +56,17 @@ module LLM::DeepSeek::RequestAdapter
         [{type: :image_url, image_url: {url: object.value.to_s}}]
       when :local_file
         adapt_local_file(object.value)
+      when :remote_file
+        no_files_api!("remote file")
       else
         prompt_error!(object)
       end
     end
 
     ##
-    # Adapts a local file as a base64 encoded data URI. DeepSeek
-    # has no Files API and its models read text and images only,
-    # so any other local file is rejected.
+    # Adapts a local file as a base64 encoded data URI. DeepSeek's
+    # models read text and images only, so any other local file is
+    # rejected.
     # @param [LLM::File] file
     # @return [Array<Hash>]
     def adapt_local_file(file)
@@ -73,6 +77,20 @@ module LLM::DeepSeek::RequestAdapter
                                 "an image, and therefore not supported by the DeepSeek " \
                                 "chat completions API"
       end
+    end
+
+    ##
+    # Raises for a file that lives on the provider's side. DeepSeek
+    # has no Files API, so a file id that another provider minted
+    # cannot be resolved here.
+    # @param [String] subject
+    #  A description of the rejected content
+    # @raise [LLM::PromptError]
+    # @return [void]
+    def no_files_api!(subject)
+      raise LLM::PromptError, "The given #{subject} is not supported by the DeepSeek " \
+                              "chat completions API: DeepSeek has no Files API, so a " \
+                              "file id cannot be resolved"
     end
 
     def adapt_message

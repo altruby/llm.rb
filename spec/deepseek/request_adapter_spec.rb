@@ -77,7 +77,7 @@ RSpec.describe "LLM::DeepSeek::RequestAdapter::Completion" do
 
       let(:ctx) { LLM::Context.new(provider) }
 
-      it "raises a prompt error" do
+      it "raises a prompt error that says it is not an image" do
         expect { payload }.to raise_error(LLM::PromptError, /is not an image/)
       end
     end
@@ -92,8 +92,22 @@ RSpec.describe "LLM::DeepSeek::RequestAdapter::Completion" do
         LLM::Object.from("file?" => true, "id" => "file_123", "mime_type" => "image/png")
       end
 
-      it "raises a prompt error" do
-        expect { payload }.to raise_error(LLM::PromptError, /remote_file/)
+      it "raises a prompt error that says there is no files api" do
+        expect { payload }.to raise_error(LLM::PromptError, /no Files API/)
+      end
+    end
+
+    context "with response content" do
+      let(:message) do
+        LLM::Message.new("user", [response])
+      end
+
+      let(:response) do
+        response!(choices: [LLM::Message.new("assistant", "hello")])
+      end
+
+      it "raises a prompt error that says there is no files api" do
+        expect { payload }.to raise_error(LLM::PromptError, /no Files API/)
       end
     end
 
