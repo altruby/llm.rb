@@ -14,18 +14,17 @@
 
 Welcome to the canonical llm.rb repository.
 
-llm.rb is an advanced runtime for building agentic AI applications
+llm.rb is a runtime for building agentic AI applications
 on CRuby. It has zero runtime dependencies by default, supports
 concurrent and parallel tool execution and has a single coherent API
 that spans 14+ providers.
 
-It is possible to see llm.rb in action on the
+See llm.rb in action on the
 [the r.uby.dev website](https://r.uby.dev) where
-I am working on building an agentic platform that
-users can use to manage multiple agents that are
-specialized in different areas, and have access to
-different services (eg GitHub, etc). Check it out if
-curious. Still in early development.
+I am building a platform that supports users who have
+personalized agents with access to different services
+(eg GitHub, etc). Check it out if curious.
+**Still in early development.**
 
 ## Install
 
