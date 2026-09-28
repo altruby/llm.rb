@@ -43,12 +43,35 @@ module LLM::DeepSeek::RequestAdapter
       end
     end
 
+    ##
+    # Adapts a tagged prompt object. DeepSeek's vision models take
+    # images as an `image_url` content item.
+    # @param [LLM::Object] object
+    # @return [Array<Hash>]
     def adapt_object(object)
       case object.kind
-      when :image_url, :local_file, :remote_file
-        prompt_error!(object)
+      when :image_url
+        [{type: :image_url, image_url: {url: object.value.to_s}}]
+      when :local_file
+        adapt_local_file(object.value)
       else
         prompt_error!(object)
+      end
+    end
+
+    ##
+    # Adapts a local file as a base64 encoded data URI. DeepSeek
+    # has no Files API and its models read text and images only,
+    # so any other local file is rejected.
+    # @param [LLM::File] file
+    # @return [Array<Hash>]
+    def adapt_local_file(file)
+      if file.image?
+        [{type: :image_url, image_url: {url: file.to_data_uri}}]
+      else
+        raise LLM::PromptError, "The given local file (an instance of #{file.class}) is not " \
+                                "an image, and therefore not supported by the DeepSeek " \
+                                "chat completions API"
       end
     end
 
