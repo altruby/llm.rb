@@ -149,6 +149,31 @@ RSpec.describe LLM::Console::Input do
     end
   end
 
+  describe "#on_char backspace" do
+    before { allow(Curses).to receive(:cols).and_return(149) }
+
+    ##
+    # The backspace key does not arrive as one code everywhere. A
+    # terminal that follows the Linux convention sends DEL, the
+    # OpenBSD console sends ^H, and curses sends its own
+    # KEY_BACKSPACE for a terminal whose terminfo describes the key.
+    [8, 127, Curses::KEY_BACKSPACE].each do |code|
+      it "erases the character before the cursor (code #{code})" do
+        set_buffer("hello")
+        input.instance_variable_set(:@cursor, [0, 5])
+        expect(input.on_char(nil, code, 0)).to eq(:backspace)
+        expect(input.take).to eq("hell")
+      end
+    end
+
+    it "leaves the input alone at the start of the first row" do
+      set_buffer("hello")
+      input.instance_variable_set(:@cursor, [0, 0])
+      input.on_char(nil, 8, 0)
+      expect(input.take).to eq("hello")
+    end
+  end
+
   describe "history recall" do
     before { allow(Curses).to receive(:cols).and_return(149) }
 

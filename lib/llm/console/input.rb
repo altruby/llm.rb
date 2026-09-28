@@ -37,10 +37,20 @@ class LLM::Console
     PGDOWN     = Curses::KEY_NPAGE
     KEY_RESIZE = Curses::KEY_RESIZE
 
-    TAB       = 9
-    ESC       = 27
-    ENTER     = 10
-    BACKSPACE = 127
+    TAB   = 9
+    ESC   = 27
+    ENTER = 10
+
+    ##
+    # The codes that arrive for the backspace key.
+    #
+    # There is not one answer. A terminal that follows the Linux
+    # convention sends DEL (127), and the OpenBSD console sends ^H (8),
+    # because its erase character is still ^H. And because the window
+    # enables keypad, curses answers with its own KEY_BACKSPACE when a
+    # terminal's terminfo describes the key. All three erase, so all
+    # three are accepted.
+    BACKSPACE = [8, 127, Curses::KEY_BACKSPACE].freeze
 
     ##
     # Threshold in seconds. If characters arrive faster than
@@ -136,7 +146,7 @@ class LLM::Console
       elsif char == RIGHT
         move_right
         :right
-      elsif char == BACKSPACE
+      elsif BACKSPACE.include?(char)
         backspace
         :backspace
       elsif char == ENTER
