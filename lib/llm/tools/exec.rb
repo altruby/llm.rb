@@ -73,6 +73,8 @@ class LLM::Tool
 
     private
 
+    ##
+    # @return [Hash]
     attr_reader :env
 
     ##
