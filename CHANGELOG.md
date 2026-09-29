@@ -43,14 +43,14 @@
 
 * **function: deliver an interrupt to the tool, not to whatever is running** <br>
   [`LLM::Function::Window`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Window.html)
-  is the stretch of a call that an interrupt belongs to. The `:fork` and
-  `:ractor` strategies now raise `LLM::Interrupt` on the thread that runs
-  the tool, and only while the tool runs: a cancel that arrives before the
-  tool starts is held until it does, so the tool's own `rescue` can handle
-  it, and one that arrives after the tool has returned is a no-op, which no
-  longer throws the result away. Before this, the interrupt was raised on
-  the child process's or the ractor's main thread wherever that thread had
-  got to.
+  is the stretch of a call that an interrupt belongs to. The `:fork` and `:ractor`
+  strategies now raise
+  [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) on the
+  thread that runs the tool, and only while the tool runs: a cancel that arrives
+  before the tool starts is held until it does, so the tool's own `rescue` can
+  handle it, and one that arrives after the tool has returned is a no-op, which
+  no longer throws the result away. Before this, the interrupt was raised on the
+  child process's or the ractor's main thread wherever that thread had got to.
 
 * **function: answer a ractor-backed task once its ractor has gone** <br>
   A `:ractor` tool's result is handed to a ractor the task holds it in,
@@ -67,6 +67,15 @@
   run raised `Ractor::ClosedError` or never came back, a cancel raised the same
   error, and a group's cancel stopped at the first task that had already
   returned, leaving the calls after it uncancelled.
+
+* **function: tell an `:async` tool it was cancelled** <br>
+  A cancel now raises `LLM::Interrupt` on the fiber the tool runs in, through the
+  reactor's scheduler, so the tool is told and can answer with its own value. A
+  cancel that arrives before the tool started stops it from running, and the
+  reactor is stopped by whoever waits. Before this, the cancel pushed an
+  interrupt sentinel to the task's result queue and left the tool running, its
+  side effects happening and its result written to a queue nobody read, and the
+  reactor thread stayed alive until a group's `wait` stopped it.
 
 ### Provider
 
