@@ -470,12 +470,18 @@ class LLM::Function
   # answers the model with an error rather than raising into the turn.
   # Resolving earlier keeps that promise by producing the return the guard
   # would have produced.
+  #
+  # An interrupt is re-raised rather than answered, which is what
+  # {#call_function} does for the same reason: an interrupt is not a tool's
+  # failure, and the runner is the thing it is aimed at.
   # @param [Symbol] strategy
   # @return [LLM::Function::Return, nil]
   def resolve(strategy)
     return nil unless %i[sequential thread fiber async].include?(strategy)
     runner
     nil
+  rescue LLM::Interrupt
+    raise
   rescue => ex
     Return.new(id, name, {error: true, type: ex.class.name, message: ex.message})
   end

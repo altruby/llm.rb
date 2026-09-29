@@ -378,6 +378,10 @@ RSpec.describe LLM::Function do
         result = function.task(:thread).wait.to_h
         expect(result[:value]).to include(error: true, type: "ArgumentError")
       end
+
+      it "does not raise from interrupt!" do
+        expect { function.interrupt! }.not_to raise_error
+      end
     end
 
     describe "when the tool is supplied as a class" do
