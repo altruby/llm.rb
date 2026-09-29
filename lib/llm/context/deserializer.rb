@@ -40,6 +40,19 @@ class LLM::Context
 
     private
 
+    ##
+    # Rebuilds one message from a payload.
+    #
+    # The fields that describe a message are named here rather than
+    # taken from everything the payload holds, so a field that
+    # {LLM::Message#to_h} writes has to be read here as well - and one
+    # that is not named is dropped on the way in, whatever the payload
+    # carries. `instructions` marks the message an agent injected as its
+    # own, and the agent looks for that mark rather than for a role or a
+    # position when it refreshes the instructions in a restored
+    # conversation.
+    # @param [Hash] payload
+    # @return [LLM::Message]
     def deserialize_message(payload)
       tool_calls = deserialize_tool_calls(payload["tools"])
       returns = deserialize_returns(payload["content"]) if returns.nil?
@@ -47,8 +60,18 @@ class LLM::Context
       usage = payload["usage"]
       reasoning_content = payload["reasoning_content"]
       compaction = payload["compaction"]
+      instructions = payload["instructions"]
       id = payload["id"]
-      extra = {tool_calls:, original_tool_calls:, tools: @params[:tools], usage:, reasoning_content:, compaction:, id:}.compact
+      extra = {
+        tool_calls:,
+        original_tool_calls:,
+        tools: @params[:tools],
+        usage:,
+        reasoning_content:,
+        compaction:,
+        instructions:,
+        id:
+      }.compact
       content = returns.nil? ? deserialize_content(payload["content"]) : returns
       LLM::Message.new(payload["role"], content, extra)
     end
