@@ -48,9 +48,25 @@ class LLM::Function
         in [:alive?, reply]
           reply.send(true)
         in [:interrupt]
-          @tool&.send(:interrupt)
+          interrupt_tool
         end
       end
+    end
+
+    ##
+    # Forwards an interrupt to the tool's ractor.
+    #
+    # A tool whose ractor has gone has nothing left to interrupt, and this
+    # loop is the thing that owes the result to the ractor the task waits
+    # on. A raise here takes the loop with it before the result has been
+    # handed over, so that a forward to a ractor that has gone turns the
+    # failure that used to name it into a wait that never comes back.
+    # @return [nil]
+    def interrupt_tool
+      @tool&.send(:interrupt)
+      nil
+    rescue ::Ractor::ClosedError
+      nil
     end
 
     def spawn

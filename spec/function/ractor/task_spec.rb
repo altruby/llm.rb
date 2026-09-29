@@ -74,7 +74,9 @@ RSpec.describe LLM::Function::Ractor::Task do
       # The tool is quick and the wait is late: by the time it comes, the
       # task's own ractor has answered the round trip it was there for
       # and gone with it. Before this change the wait went to that ractor,
-      # and what it left behind was a hanging job rather than a failure.
+      # and what came back was the refusal `Ractor#send` gives a port that
+      # has closed - or, the race's other outcome, a wait that never came
+      # back at all.
       sleep 0.05
       expect(within { task.wait }.to_h).to eq(
         id: "call_1", name: "quick", value: {ok: true}
