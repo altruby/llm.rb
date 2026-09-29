@@ -430,6 +430,30 @@ RSpec.describe LLM::Function do
         task.wait rescue LLM::Interrupt
         expect(function.runner.told).to eq(function.runner.ran)
       end
+
+      context "when the hook raises" do
+        let(:tool_class) do
+          Class.new(LLM::Tool) do
+            name "reactored"
+
+            attr_reader :ran
+
+            def call
+              @ran = Thread.current.object_id
+              sleep 10
+              {"ok" => true}
+            end
+
+            def on_interrupt
+              raise "hook failed"
+            end
+          end
+        end
+
+        it "answers the caller" do
+          expect { Timeout.timeout(2) { task.wait } }.to raise_error(RuntimeError, "hook failed")
+        end
+      end
     end
 
     describe "when the tool runs in a child process" do
