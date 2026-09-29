@@ -25,13 +25,19 @@ require "setup"
 # is under test, and a ractor of the example's own reaches it with a wait
 # that ends.
 RSpec.describe LLM::Function::Ractor::Mailbox do
-  let(:ractor) { ::Ractor.new { :done } }
-  let(:mailbox) { LLM::Function::Ractor::Mailbox.new(ractor) }
+  ##
+  # The ractor that ran the tool, and the one the result is delivered to.
+  # A mailbox is made of both, and this example only cancels: a cancel
+  # goes to the task's ractor, and the result's is here because a mailbox
+  # has one.
+  let(:task) { ::Ractor.new { :done } }
+  let(:result) { ::Ractor.new { ::Ractor.receive } }
+  let(:mailbox) { LLM::Function::Ractor::Mailbox.new(task, result) }
 
   before do
     ##
     # Takes the value, which blocks until the ractor has terminated.
-    ractor.respond_to?(:take) ? ractor.take : ::Ractor.select(ractor).last
+    task.respond_to?(:take) ? task.take : ::Ractor.select(task).last
   end
 
   it "answers an interrupt for a ractor that has gone with nil" do
