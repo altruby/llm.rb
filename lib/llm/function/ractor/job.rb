@@ -61,8 +61,10 @@ class LLM::Function
         ##
         # Before the watcher exists, because an interrupt can arrive
         # first: it is a message, and it waits in the inbox until the
-        # watcher reads it. The window names the thread the tool runs on,
-        # so it does not depend on what `Thread.main` means in a ractor.
+        # watcher reads it. The thread the interrupt is raised on is
+        # named rather than defaulted, which is what the window asks of
+        # a caller: it is `Thread.current`, the ractor's own main
+        # thread, and the thread the tool runs on.
         window = LLM::Function::Window.new(thread: ::Thread.current)
         ::Thread.new do
           ::Ractor.receive == :interrupt or next
