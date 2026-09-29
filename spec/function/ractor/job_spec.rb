@@ -21,6 +21,13 @@ require "timeout"
 #   cross a ractor boundary, so the answer to an interrupted call is this
 #   strategy's own.
 #
+# **The held case detects the race rather than ordering it.** Nothing in
+# that example orders the interrupt against the ractor reaching
+# `running!`, and the tool cannot say that it got there, because a tool
+# that signals from inside its own call is the first case, not that one.
+# A red run there can mean a scheduler as easily as a broken window; the
+# other two can only mean the window.
+#
 # **"Now" has to cross a ractor boundary.** The window's own spec hands
 # its tool a Queue, because both ends of that handover are threads the
 # example made. Here the example runs on the main ractor and drives a
