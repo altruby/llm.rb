@@ -46,6 +46,16 @@
   [`LLM::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html) objects.
   Every other format, and Sequel, still loads the runtime.
 
+### ActiveRecord
+
+* **activerecord: add `messages!` for the runtime's own messages** <br>
+  [`LLM::ActiveRecord#messages!`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord.html#messages!-instance_method)
+  returns the messages the runtime holds whatever the storage format is, so a
+  jsonb record can still reach them now that its `#messages` answers with the
+  view over the column. It reads what the context holds, including state that
+  has not been saved, where `#messages` reads the column. The Sequel plugin
+  answers to `#messages!` too, where it is the same call as `#messages`.
+
 ### Console
 
 * **console: erase with the backspace key on OpenBSD** <br>
