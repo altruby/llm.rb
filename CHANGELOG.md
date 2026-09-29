@@ -125,6 +125,23 @@
   `respond_to?` with false for an instance method. A hook that raises becomes
   what the caller sees in place of the call's result.
 
+### ORM
+
+* **orm: save a conversation after each request, not once per turn** <br>
+  [`LLM::Step`](https://r.uby.dev/api-docs/llm.rb/LLM/Step.html) is prepended
+  onto every stream by
+  [`LLM::Stream.try`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#try-class_method),
+  so a conversation bound to a record is written down as it goes and a turn
+  that is interrupted can be continued rather than started over. It saves
+  through
+  [`LLM::Context#record`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#record-instance_method),
+  an ActiveRecord model through `LLM::ActiveRecord::Utils.save!` and a Sequel
+  model through `LLM::Sequel::Plugin::Utils.save!`, and the write is best
+  effort, so a failure is swallowed rather than raised inside the request that
+  has just completed. Before this, `talk` and `ask` on both wrappers saved
+  once, when the whole turn had finished, so an interrupted turn persisted
+  nothing.
+
 ### Provider
 
 * **deepseek: support image attachments in chat completions** <br>
@@ -164,6 +181,19 @@
   the range. A `default:` of `false` survives now as well, where the old code
   discarded a false default, and `required: false` marks the parameter optional
   rather than being ignored.
+
+### Stream
+
+* **stream: add `on_step`, called when a request completes** <br>
+  [`LLM::Stream#on_step`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_step-instance_method)
+  is a new callback, emitted from
+  [`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
+  once the prompt and the response are in the conversation. It marks the
+  boundary between one request and the next, which is the point a stream can
+  checkpoint the conversation at, because a provider will accept it again
+  there. It fires once per successful request, so a request retried after a
+  rate limit or a timeout calls it when it lands and not once per attempt, and
+  it fires even when the stream is disabled.
 
 ## v15.5.0
 
