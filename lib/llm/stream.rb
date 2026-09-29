@@ -47,7 +47,8 @@ module LLM
     # an instance of {LLM::Stream LLM::Stream} or a
     # subclass of it.
     #
-    # Acceptable inputs include: {LLM::Stream LLM::Stream} objects, IO objects who implement `#<<`, true, false,
+    # Acceptable inputs include: {LLM::Stream LLM::Stream}
+    # objects, IO objects who implement `#<<`, true, false,
     # and nil. Anything else raises a TypeError.
     #
     # @raise [TypeError]

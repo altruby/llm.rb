@@ -32,6 +32,7 @@ module LLM
   # @see LLM::Agent The recommended high-level interface
   # @see LLM::Buffer Message history (ctx.messages)
   # @see LLM::Message Individual messages in the conversation
+  # @see LLM::Response Response returned by each turn
   class Context
     require_relative "context/serializer"
     require_relative "context/deserializer"
@@ -91,7 +92,8 @@ module LLM
     #  Any parameter the provider supports can be included and
     #  not only those listed here.
     # @option params [Symbol] :mode
-    #   Defaults to `:responses` for OpenAI, otherwise it defaults to `:completions`.
+    #   Defaults to `:responses` for OpenAI, otherwise it defaults
+    #   to `:completions`.
     # @option params [String] :model Defaults to the provider's default model
     # @option params [String] :id
     #   A stable id for the context. Defaults to a UUID.
@@ -237,7 +239,7 @@ module LLM
     # Ask a question and return the content string directly.
     # Accepts `with:` for file attachments and a block for streaming.
     # This interface is compatible with RubyLLM's `ask` method.
-    # @param prompt (see LLM::Provider#complete)
+    # @param [String] prompt
     # @param [Hash] options
     # @option options [String, Array<String>, nil] :with
     #  File path(s) to attach
@@ -443,7 +445,9 @@ module LLM
     ##
     # Recongize an object as a URL to an image
     # @param [String] url
+    #  The URL
     # @return [LLM::Object]
+    #  Returns a tagged object
     def image_url(url)
       LLM::Object.from(value: url, kind: :image_url)
     end
@@ -451,7 +455,9 @@ module LLM
     ##
     # Recongize an object as a local file
     # @param [String] path
+    #  The path
     # @return [LLM::Object]
+    #  Returns a tagged object
     def local_file(path)
       LLM::Object.from(value: LLM.File(path), kind: :local_file)
     end
@@ -459,7 +465,9 @@ module LLM
     ##
     # Reconginize an object as a remote file
     # @param [LLM::Response] res
+    #  The response
     # @return [LLM::Object]
+    #  Returns a tagged object
     def remote_file(res)
       LLM::Object.from(value: res, kind: :remote_file)
     end
@@ -473,6 +481,7 @@ module LLM
 
     ##
     # @param [LLM::Tracer, nil] other
+    #  A tracer, or nil.
     # @return [void]
     def tracer=(other)
       @llm.tracer = other || LLM::Tracer::Null.new(@llm)
@@ -493,8 +502,8 @@ module LLM
     end
 
     ##
-    # Returns the time this context was created, derived
-    # from the timestamp embedded in its UUIDv7 id, or nil when it is not.
+    # Returns the time this context was created, derived from the
+    # timestamp embedded in its UUIDv7 id, or nil when it is not.
     # @return [Time, nil]
     def created_at
       @created_at ||= LLM::Utils.timestamp(@id)
