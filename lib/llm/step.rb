@@ -22,10 +22,9 @@ module LLM
   # caller owns, and a helper would be one more name on that object for as long
   # as it lives.
   #
-  # The write is best effort. A failure is warned about rather than raised,
-  # because this runs inside the request that has just completed, and a stale
-  # checkpoint is a smaller failure than a turn that ends because the database
-  # was busy.
+  # The write is best effort: a failure is swallowed rather than raised, because
+  # this runs inside the request that has just completed, and a stale checkpoint
+  # is a smaller failure than a turn that ends because the database was busy.
   #
   # @see LLM::Stream#on_step
   # @see LLM::ActiveRecord::Utils.save!
@@ -42,15 +41,14 @@ module LLM
       record = ctx.record
       if record && record.class.respond_to?(:llm_plugin_options)
         options = record.class.llm_plugin_options
-        if defined?(::ActiveRecord::Base) && record.is_a?(::ActiveRecord::Base)
+        if defined?(::ActiveRecord::Base) and ::ActiveRecord::Base === record
           LLM::ActiveRecord::Utils.save!(record, ctx, options)
-        elsif defined?(::Sequel::Model) && record.is_a?(::Sequel::Model)
+        elsif defined?(::Sequel::Model) and ::Sequel::Model === record
           LLM::Sequel::Plugin::Utils.save!(record, ctx, options)
         end
       end
       super
-    rescue => e
-      warn "llm.rb: could not save the conversation: #{e.class}: #{e.message}"
+    rescue
       nil
     end
   end
