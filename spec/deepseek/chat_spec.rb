@@ -12,6 +12,7 @@ RSpec.describe "LLM::Context: deepseek" do
     include_examples "LLM::Context: completions", :deepseek
     include_examples "LLM::Context: text stream", :deepseek
     include_examples "LLM::Context: tool stream", :deepseek
+    include_examples "LLM::Context: vision",      :deepseek, formats: %i[png]
   end
 
   context LLM::Function do
