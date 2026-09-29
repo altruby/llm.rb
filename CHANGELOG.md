@@ -56,6 +56,29 @@
   has not been saved, where `#messages` reads the column. The Sequel plugin
   answers to `#messages!` too, where it is the same call as `#messages`.
 
+### Agent
+
+* **agent: keep the instructions it injected in step** <br>
+  [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html) now brings
+  the instructions it injected up to date before a request goes out, so a
+  conversation restored from saved state runs on the agent's current
+  instructions rather than on the ones it was saved with. The message is
+  found by a mark the agent puts on it, so a message the caller composed is
+  never replaced, and the mark is written by
+  [`LLM::Message#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#to_h-instance_method)
+  and read back on a restore, which is the conversation the refresh exists
+  for. Before this, the instructions were injected once and the message
+  stayed as it was for the life of the conversation.
+
+* **agent: identify its own instructions by the mark, not by the role** <br>
+  Fix a bug where the agent decided whether it had already injected its
+  instructions by looking for a message with the `system` role. Google gives
+  instructions the `user` role, so the agent did not recognise the message it
+  had already injected and added another copy of the instructions on every
+  turn. It now asks the provider which role instructions are given, and
+  identifies the message it wrote by its mark, because on Google the message
+  a caller seeds a conversation with is a user message too.
+
 ### Console
 
 * **console: erase with the backspace key on OpenBSD** <br>
@@ -141,6 +164,18 @@
   has just completed. Before this, `talk` and `ask` on both wrappers saved
   once, when the whole turn had finished, so an interrupted turn persisted
   nothing.
+
+### Prompt
+
+* **prompt: let a message carry fields a caller attaches to it** <br>
+  [`LLM::Prompt#system`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#system-instance_method),
+  [`#user`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#user-instance_method),
+  [`#developer`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#developer-instance_method),
+  and [`#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#talk-instance_method),
+  along with its `#chat` alias, now take an `extra:` keyword, so a message a
+  caller composes can carry fields of its own. The runtime reads those fields
+  back rather than inferring provenance from a role, which is how an agent
+  tells the instructions it injected from a message the caller wrote.
 
 ### Provider
 
