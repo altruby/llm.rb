@@ -63,10 +63,12 @@ class LLM::Function
     # ractor has to stay alive to answer whoever is waiting on it, so the
     # raise a ractor that has terminated leaves behind is the one thing
     # this must not let through.
-    # @return [void]
+    # @return [nil]
     def interrupt_tool
       @tool&.send(:interrupt)
+      nil
     rescue ::Ractor::ClosedError
+      nil
     end
 
     def spawn
