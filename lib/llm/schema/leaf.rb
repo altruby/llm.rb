@@ -96,9 +96,11 @@ class LLM::Schema
 
     ##
     # Mark a leaf as required
+    # @param [Boolean] value
+    #  When false, marks the leaf as optional
     # @return [LLM::Schema::Leaf]
-    def required
-      tap { @required = true }
+    def required(value = true)
+      tap { @required = value }
     end
 
     ##
