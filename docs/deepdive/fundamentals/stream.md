@@ -151,9 +151,3 @@ agent.talk "Explain Ruby fibers."
 A stream subclass gives you visibility into more than just content chunks. React to tool
 calls as they happen, show compaction progress, or integrate with
 an existing observability stack.
-
-#### Notes
-
-The IO-like form is equivalent to
-[`LLM::Stream#on_content`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_content)
-and does not include the other hooks.

@@ -34,13 +34,23 @@ and
 for serialization and
 [`LLM::Context#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#restore)
 for deserialization. Save writes the current state, restore loads
-it back and picks up where the conversation left off. The ORM
-wrappers automate this; each
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
-or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
-call persists the
-updated state back to the column automatically.
+it back and picks up where the conversation left off.
+
+The ORM wrappers write on a different boundary than the file does, and
+the two are worth telling apart.
+[`LLM::Step`](https://r.uby.dev/api-docs/llm.rb/LLM/Step.html) is
+prepended onto the stream, and it saves the conversation through the
+record the context is bound to each time
+[`LLM::Stream#on_step`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_step-instance_method)
+fires - after a response is in the conversation and before the tools it
+asked for run. A turn that runs tools before it answers is therefore
+saved more than once, and an application that writes it down can
+continue an interrupted turn instead of redoing it.
+
+A `path:` has no record behind it to write to, so that one saves once
+per turn. The difference is what each is for: the column is a
+checkpoint after every completed request, and the file is a session at
+the end of one.
 
 #### Why would I use it?
 
@@ -242,12 +252,10 @@ first call, a fresh agent is created and the conversation starts
 from scratch.
 
 On subsequent calls, the stored state is restored and the
-conversation continues. Every
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
-or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
-call persists the
-updated state back to the column automatically.
+conversation continues. The column is written after each completed
+request rather than at the end of a turn, so a turn that runs tools
+before it answers is saved more than once - and a turn that is
+interrupted can be resumed from its last completed request.
 
 The `data_column:` option lets you use a different column name.
 The `format:` option controls the storage type. Use `:string` for
@@ -327,7 +335,7 @@ agent.talk "perform research"
 #### Why would I use it?
 
 The ActiveRecord wrapper integrates with your existing models.
-Agent state is automatically persisted after each conversation turn
+Agent state is automatically persisted after each completed request,
 using the same `create!`, `save!`, and query methods you already
 use.
 
@@ -447,11 +455,8 @@ the plugin in the model class. The `data` column stores
 the full agent state as JSON, same structure as ActiveRecord.
 On first call, a fresh agent is created. On subsequent calls,
 the stored state is restored and the conversation continues.
-Every
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
-or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
-call persists the updated state.
+The state is written after each completed request, as it is under
+ActiveRecord.
 
 The `data_column:` and `format:` options work identically to
 ActiveRecord. For `:jsonb`, Sequel loads the `pg_json` extension
