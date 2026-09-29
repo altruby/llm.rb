@@ -18,6 +18,20 @@ RSpec.describe "LLM::Stream#on_step" do
     allow(ctx).to receive(:complete) { |prompt, params| [[], params, response] }
   end
 
+  describe ".try" do
+    it "prepares the stream it answers with" do
+      stream = LLM::Stream.try(nil)
+      expect(stream).to be_a(LLM::Stream::Disabled)
+      expect(stream.singleton_class.include?(LLM::Step)).to be(true)
+    end
+
+    it "prepares a stream that is already one" do
+      stream = LLM::Stream.new
+      expect(LLM::Stream.try(stream)).to be(stream)
+      expect(stream.singleton_class.include?(LLM::Step)).to be(true)
+    end
+  end
+
   describe "a context" do
     it "tells the stream once when a request completes" do
       steps = []
@@ -81,14 +95,14 @@ RSpec.describe "LLM::Stream#on_step" do
       end.new
     end
 
-    it "is extended onto the stream by the context" do
+    it "prepares the stream before the step is emitted" do
       ctx.talk("hello")
-      expect(stream.singleton_class.include?(described_class)).to be(true)
+      expect(stream.steps).to eq([[ctx, response]])
     end
 
     it "passes the step along when the context has no record" do
       ctx.talk("hello")
-      expect(stream.steps).to eq([[ctx, response]])
+      expect(stream.steps.size).to eq(1)
     end
 
     it "passes the step along for a record that carries no plugin" do

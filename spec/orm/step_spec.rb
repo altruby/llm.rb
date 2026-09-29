@@ -13,11 +13,10 @@ require "sequel/plugins/agent"
 # database and calls the module the way a completed request does, so the two
 # ORM branches are exercised against a table rather than against a double.
 RSpec.describe LLM::Step do
-  let(:stream) { LLM::Stream.new }
+  let(:stream) { LLM::Stream.try(LLM::Stream.new) }
   let(:provider) { LLM.openai(key: "secret") }
 
   before do
-    stream.singleton_class.prepend(described_class)
     ctx.messages << LLM::Message.new("assistant", "hello")
     stream.on_step(ctx, nil)
   end

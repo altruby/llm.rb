@@ -53,11 +53,15 @@ module LLM
     # objects, IO objects who implement `#<<`, true, false,
     # and nil. Anything else raises a TypeError.
     #
+    # The stream it answers with is ready to be told about a step:
+    # {LLM::Step LLM::Step} is prepended onto it here, once, rather than by
+    # every caller that means to save a conversation.
+    #
     # @raise [TypeError]
     # @param [LLM::Stream, #<<, Boolean, NilClass] obj
     # @return [LLM::Stream]
     def self.try(obj, extra: {})
-      if LLM::Stream === obj
+      stream = if LLM::Stream === obj
         obj.tap { _1.extra.merge!(extra) }
       elsif obj.respond_to?(:<<)
         LLM::Stream::IO.new(obj).tap { _1.extra.merge!(extra) }
@@ -68,6 +72,8 @@ module LLM
       else
         raise TypeError, "invalid stream object"
       end
+      stream.singleton_class.prepend(LLM::Step)
+      stream
     end
 
     ##
