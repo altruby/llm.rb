@@ -1,0 +1,147 @@
+# frozen_string_literal: true
+
+require "setup"
+require "timeout"
+
+##
+# What a cancel does to a running `:async` tool.
+#
+# The task is told, and the reactor is stopped by whoever waits - which is
+# the only point at which it is known to be idle, and the point a group
+# already stopped it from.
+#
+# Neither example waits on a clock to find out what happened: the tool says
+# when it has started, so an example knows the cancel landed on a running
+# tool rather than racing its start, and says when it has finished, so an
+# example knows the interrupt ended it rather than leaving it to run on.
+#
+# Every wait has a deadline. A cancel that silently fails to deliver would
+# otherwise be a cell that hangs rather than a failure that names itself,
+# and this repository has already spent cells on hangs.
+RSpec.describe LLM::Function::Async::Task do
+  let(:started) { Queue.new }
+  let(:finished) { Queue.new }
+  let(:reactor) { LLM::Function::Async::Reactor.new }
+  after { reactor.stop }
+
+  ##
+  # A tool that runs until something stops it, saying so at both ends.
+  #
+  # `sleep` is the scheduler's, so it is a point at which the interrupt can
+  # arrive.
+  def counting_tool
+    started, finished = self.started, self.finished
+    Class.new(LLM::Tool) do
+      name "counting"
+      define_method(:call) do
+        started << :in_call
+        loop { sleep 0.01 }
+      ensure
+        finished << :done
+      end
+    end
+  end
+
+  ##
+  # And one that handles the interrupt rather than letting it raise.
+  #
+  # It yields twice: once before the interrupt can arrive, and again after
+  # it has been told, before it returns. The second yield is the point - a
+  # tool that answers slowly is the one a teardown can take away from, and
+  # the answer has to be pushed before that can happen.
+  def rescuing_tool
+    started = self.started
+    Class.new(LLM::Tool) do
+      name "rescuing"
+      define_method(:call) do
+        started << :in_call
+        sleep 0.05
+        {"ok" => true}
+      rescue LLM::Interrupt
+        sleep 0.05
+        {"ok" => true, "interrupted" => true}
+      end
+    end
+  end
+
+  def task_for(tool)
+    function = tool.function.dup.tap do |fn|
+      fn.id = "call_1"
+      fn.arguments = {}
+    end
+    function.task(:async).tap { |task| task.reactor = reactor }
+  end
+
+  def settle(queue, timeout = 5)
+    Timeout.timeout(timeout) { queue.pop }
+  end
+
+  def within(timeout = 5, &block)
+    Timeout.timeout(timeout, &block)
+  end
+
+  describe "a tool that lets the interrupt raise" do
+    it "is told, and stops running" do
+      task = task_for(counting_tool)
+      task.spawn
+      settle(started)
+
+      task.interrupt!
+
+      expect(settle(finished)).to eq(:done)
+    end
+
+    it "raises LLM::Interrupt to the caller" do
+      task = task_for(counting_tool)
+      task.spawn
+      settle(started)
+
+      task.interrupt!
+
+      expect { within { task.wait } }.to raise_error(LLM::Interrupt)
+    end
+
+    it "stops the reactor it ran on" do
+      task = task_for(counting_tool)
+      task.spawn
+      settle(started)
+
+      task.interrupt!
+      expect { within { task.wait } }.to raise_error(LLM::Interrupt)
+
+      expect(reactor.thread).not_to be_alive
+    end
+  end
+
+  describe "a tool that handles the interrupt" do
+    it "is let to, and answers with its own value" do
+      task = task_for(rescuing_tool)
+      task.spawn
+      settle(started)
+
+      task.interrupt!
+
+      expect(within { task.wait }.to_h[:value]).to eq("ok" => true, "interrupted" => true)
+    end
+  end
+
+  describe "a cancel that arrives before the tool starts" do
+    it "is answered rather than run" do
+      ##
+      # The cancel precedes `spawn`, so it provably precedes the block:
+      # there is no queue to push to yet, `@cancelled` is set, and the block
+      # raises before it reaches a tool when the reactor dispatches it. No
+      # thread needs stopping to make the order - it is the order.
+      task = task_for(counting_tool)
+      task.interrupt!
+
+      expect { within { task.wait } }.to raise_error(LLM::Interrupt)
+      expect(started).to be_empty
+    end
+
+    it "is a no-op for a task that never spawned" do
+      task = task_for(counting_tool)
+      expect { task.interrupt! }.not_to raise_error
+    end
+  end
+end
