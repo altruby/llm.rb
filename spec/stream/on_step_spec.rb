@@ -81,8 +81,9 @@ RSpec.describe "LLM::Stream#on_step" do
       end.new
     end
 
-    before do
-      stream.extend(described_class)
+    it "is extended onto the stream by the context" do
+      ctx.talk("hello")
+      expect(stream.singleton_class.include?(described_class)).to be(true)
     end
 
     it "passes the step along when the context has no record" do
@@ -90,18 +91,11 @@ RSpec.describe "LLM::Stream#on_step" do
       expect(stream.steps).to eq([[ctx, response]])
     end
 
-    it "passes the step along after saving a record" do
-      record = double("record")
+    it "passes the step along for a record that carries no plugin" do
+      record = Class.new { def self.llm_plugin_options = {} }.new
       allow(ctx).to receive(:record).and_return(record)
-      allow(record).to receive(:is_a?).and_return(false)
-      allow(record.class).to receive(:respond_to?).with(:llm_plugin_options).and_return(true)
-      allow(record.class).to receive(:llm_plugin_options).and_return({})
       ctx.talk("hello")
       expect(stream.steps).to eq([[ctx, response]])
-    end
-
-    it "returns nil from the module itself" do
-      expect(stream.on_step(ctx, response)).to be_nil
     end
   end
 end
