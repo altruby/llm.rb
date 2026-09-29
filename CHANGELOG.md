@@ -15,7 +15,53 @@
 
 ## What's next
 
-*No unreleased changes yet. Check back after the next release.*
+### Console
+
+* **console: erase with the backspace key on OpenBSD** <br>
+  The console now erases a character for every code a backspace key sends. A
+  terminal that follows the Linux convention sends DEL (127), the OpenBSD
+  console sends ^H (8), and curses sends its own `KEY_BACKSPACE` when the
+  terminal's terminfo describes the key. All three erase. Before this only 127
+  did, so the backspace key did nothing on the OpenBSD console.
+
+### Function
+
+* **function: deliver an interrupt to the tool, not to whatever is running** <br>
+  [`LLM::Function::Window`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Window.html)
+  is the stretch of a call that an interrupt belongs to. The `:fork` strategy
+  now raises `LLM::Interrupt` on the thread that runs the tool, and only while
+  the tool runs: a cancel that arrives before the tool starts is held until it
+  does, so the tool's own `rescue` can handle it, and one that arrives after the
+  tool has returned is a no-op, which no longer throws the result away. Before
+  this, the interrupt was raised on the child process's main thread wherever
+  that thread had got to.
+
+### Provider
+
+* **deepseek: support image attachments in chat completions** <br>
+  DeepSeek's vision models now take an image through the chat completions
+  adapter. A tagged prompt object of kind `:image_url` is sent as an `image_url`
+  content item, and a local image file is sent as a base64 encoded data URI.
+  Anything else is rejected with a reason of its own: a remote file or an
+  `LLM::Response` raises
+  [`LLM::PromptError`](https://r.uby.dev/api-docs/llm.rb/LLM/PromptError.html)
+  because DeepSeek has no Files API, so a file id cannot be resolved, and a
+  local file that is not an image raises because DeepSeek's models read images
+  only.
+
+### Registry
+
+* **refresh model metadata** <br>
+  Update `data/` with current model listings, limits, and pricing. Alibaba adds
+  `qwen3.5-flash`, `qwen3.7-flash`, and `qwen3.8-omni-flash`, and gives
+  `qwen3.7-plus` attachments, structured output, and a lower price; OpenAI adds
+  `gpt-daybreak-blue-latest` and `gpt-daybreak-red-latest`; Bedrock adds
+  `openai.gpt-6-sol` and `openai.gpt-6-luna`; and DeepInfra adds
+  `tencent/Hy4-preview` and the Xiaomi MiMo V2.6 Pro and V2.6 Flash models.
+  Bedrock also corrects the context and output limits of fifteen models, Google
+  lowers the limits of `gemini-2.5-computer-use-preview-10-2025` and
+  `gemini-3-pro-image`, and OpenRouter adds four models, drops six, and reprices
+  many of the DeepSeek, Z.ai, and Qwen entries.
 
 ## v15.5.0
 
