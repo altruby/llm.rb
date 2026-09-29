@@ -483,7 +483,7 @@ module LLM
 
     ##
     # Returns the agent's description
-    # @return [String]
+    # @return [String, nil]
     def description
       @description
     end
@@ -849,7 +849,9 @@ module LLM
     # {LLM::Message#==} compares everything a message carries apart from
     # its id, which drags fields that have nothing to do with
     # instructions into the comparison. The mark is carried onto the
-    # replacement so that the turn after this one can still find it.
+    # replacement so that the turn after this one can still find it, and
+    # so is the role the message already had: it is the provider's, and
+    # rebuilding it here would undo the reason the replacement is safe.
     # @api private
     # @return [void]
     def refresh_instructions!
