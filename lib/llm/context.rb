@@ -222,6 +222,7 @@ module LLM
         @messages.concat(prompt)
       end
       @messages.concat([res.choices[-1]].compact)
+      stream.on_step(self, res)
       res
     ensure
       @owner = nil

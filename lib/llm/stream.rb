@@ -37,10 +37,12 @@ module LLM
   #
   # @see LLM::Agent Where streams are typically attached
   # @see LLM::Context Where streams are bound per-turn
+  # @see LLM::Step An extension that saves the conversation at each step
   class Stream
     require_relative "stream/queue"
     require_relative "stream/io"
     require_relative "stream/disabled"
+    require_relative "step"
 
     ##
     # This method will try to convert its argument into
@@ -51,18 +53,22 @@ module LLM
     # objects, IO objects who implement `#<<`, true, false,
     # and nil. Anything else raises a TypeError.
     #
+    # The stream it answers with is ready to be told about a step:
+    # {LLM::Step LLM::Step} is prepended onto it here, once, rather than by
+    # every caller that means to save a conversation.
+    #
     # @raise [TypeError]
     # @param [LLM::Stream, #<<, Boolean, NilClass] obj
     # @return [LLM::Stream]
     def self.try(obj, extra: {})
       if LLM::Stream === obj
-        obj.tap { _1.extra.merge!(extra) }
+        obj.tap { _1.extra.merge!(extra) }.tap { _1.singleton_class.prepend(LLM::Step) }
       elsif obj.respond_to?(:<<)
-        LLM::Stream::IO.new(obj).tap { _1.extra.merge!(extra) }
+        LLM::Stream::IO.new(obj).tap { _1.extra.merge!(extra) }.tap { _1.singleton_class.prepend(LLM::Step) }
       elsif obj == true
-        LLM::Stream.new.tap { _1.extra.merge!(extra) }
+        LLM::Stream.new.tap { _1.extra.merge!(extra) }.tap { _1.singleton_class.prepend(LLM::Step) }
       elsif obj.nil? || obj == false
-        LLM::Stream::Disabled.new.tap { _1.extra.merge!(extra) }
+        LLM::Stream::Disabled.new.tap { _1.extra.merge!(extra) }.tap { _1.singleton_class.prepend(LLM::Step) }
       else
         raise TypeError, "invalid stream object"
       end
@@ -149,6 +155,32 @@ module LLM
     #  The completed tool return.
     # @return [nil]
     def on_tool_return(tool, result)
+      nil
+    end
+
+    ##
+    # Called when a request in a turn has completed.
+    #
+    # This is the boundary between one request and the next: the response
+    # is in the context's message history, and a turn that asked for tools
+    # runs them after this while a turn that is finished ends here.
+    #
+    # It is emitted once per successful request, so a request that is
+    # retried after a rate limit or a timeout calls this when it lands and
+    # not once per attempt. It is also emitted when the stream is disabled:
+    # a disabled stream has no output to report, but it is still told that
+    # a step ended.
+    #
+    # The context is passed with the response so that a stream does not have
+    # to reach for it: {LLM::Step LLM::Step}, which saves the conversation the
+    # context holds, is written against this callback alone.
+    #
+    # @param [LLM::Context] ctx
+    #  The context the request belongs to
+    # @param [LLM::Response] res
+    #  The response for the request that completed
+    # @return [nil]
+    def on_step(ctx, res)
       nil
     end
 

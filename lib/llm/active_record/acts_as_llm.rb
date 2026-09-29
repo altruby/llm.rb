@@ -56,21 +56,23 @@ module LLM::ActiveRecord
 
     module InstanceMethods
       ##
-      # Continues the stored context with new input and flushes it.
+      # Continues the stored context with new input.
+      #
+      # The conversation is saved by {LLM::Step LLM::Step} at each request.
       # @see LLM::Context#talk
       # @return [LLM::Response]
       def talk(...)
-        options = self.class.llm_plugin_options
-        ctx.talk(...).tap { Utils.save!(self, ctx, options) }
+        ctx.talk(...)
       end
 
       ##
-      # Continues the stored context with new input and flushes it.
+      # Continues the stored context with new input.
+      #
+      # The conversation is saved by {LLM::Step LLM::Step} at each request.
       # @see LLM::Context#ask
       # @return [LLM::Response]
       def ask(...)
-        options = self.class.llm_plugin_options
-        ctx.ask(...).tap { Utils.save!(self, ctx, options) }
+        ctx.ask(...)
       end
 
       ##
