@@ -75,10 +75,13 @@ class LLM::Function
         ##
         # Everything the call needs is prepared outside the window, so
         # the distance from `running!` to the tool's first instruction is
-        # the method dispatch and nothing else.
+        # the method dispatch and nothing else. The tool is built outside
+        # it too: a raise from `initialize` is not an interrupt to
+        # answer, and inside the window it would be answered as one.
         kwargs = Hash === arguments ? arguments.transform_keys(&:to_sym) : arguments
+        runner = runner_class.new
         window.running!
-        result = runner_class.new.call(**kwargs)
+        result = runner.call(**kwargs)
         ##
         # The window closes the moment the tool has returned and before
         # the result is written, so an interrupt that arrives once the
