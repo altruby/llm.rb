@@ -188,8 +188,13 @@ module LLM::Sequel
     end
 
     ##
+    # @note There is no view over the jsonb column on this side, so a record
+    #   always loads the runtime to answer this - unlike
+    #   {LLM::ActiveRecord}, where a jsonb record reads the column directly.
+    #   The two wrappers are written to mirror each other, and this is the
+    #   one place they do not.
     # @see LLM::Context#messages
-    # @return [Array<LLM::Message>]
+    # @return [LLM::Buffer]
     def messages
       ctx.messages
     end
