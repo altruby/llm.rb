@@ -46,6 +46,12 @@ module LLM
 
     ##
     # Returns a Hash representation of the message.
+    #
+    # This is the whole of a message as far as storage is concerned:
+    # {LLM::Context#to_h} maps its messages through here, and restore
+    # reads them back from the same list. A field that is not named
+    # here does not survive a save, so a field the runtime relies on
+    # after a restore has to be named.
     # @return [Hash]
     def to_h
       {
@@ -54,6 +60,7 @@ module LLM
         content:,
         reasoning_content:,
         compaction: extra.compaction,
+        instructions: extra.instructions,
         tools: extra.tool_calls&.map { LLM::Object === _1 ? _1.to_h : _1 },
         usage:,
         original_tool_calls: extra.original_tool_calls
