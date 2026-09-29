@@ -106,7 +106,7 @@ class LLM::Function
             # has done so by the time the raise lands on it, and so that
             # a tool which rescues `LLM::Interrupt` reads what its hook
             # wrote.
-            LLM::Function.interrupt_runner(runner)
+            LLM::Function.interrupt(runner)
           ensure
             ##
             # The window decides whether the raise is the tool's to
