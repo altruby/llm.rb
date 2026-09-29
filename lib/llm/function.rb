@@ -63,14 +63,15 @@ class LLM::Function
   ##
   # Tells a runner that its call was interrupted, if it wants telling.
   #
-  # {#interrupt!} resolves the runner itself. A strategy that runs the hook
-  # from its own side has the runner in hand already - the child's copy in
-  # `:fork` is not the parent's, and a ractor cannot be handed the function
-  # at all - and both go through here so that `on_cancel` keeps its
+  # Internal to the strategies that run the hook from their own side, where
+  # the runner is a local rather than something {#interrupt!} can resolve:
+  # the child's copy in `:fork` is not the parent's, and a ractor cannot be
+  # handed the function at all. One lookup, so that `on_cancel` keeps its
   # precedence over `on_interrupt` everywhere.
   # @param [Object, nil] runner
   # @return [nil]
-  def self.interrupt(runner)
+  # @api private
+  def self.interrupt_runner(runner)
     return nil unless runner
     hook = %i[on_cancel on_interrupt].find { runner.respond_to?(_1) }
     runner.public_send(hook) if hook
@@ -374,16 +375,20 @@ class LLM::Function
   # rather than a raise, because the call path is where a constructor's
   # failure belongs.
   #
-  # The hook runs where the call runs, and the strategies differ only in how
-  # they reach it: `:thread`, `:fiber` and `:async` call it on the thread or
-  # fiber that ran the call, and `:fork` and `:ractor` call it inside the
-  # child or the ractor. Each calls it only where an interrupt was actually
-  # delivered. `:sequential` is the exception, because nothing is raised
-  # into a sequential tool: this is its only notification, and it runs
-  # wherever `interrupt!` was called.
+  # The hook runs where the call runs, and the strategies differ in how they
+  # reach it: `:thread`, `:fiber` and `:async` call it on the thread or fiber
+  # that ran the call, once the call has ended, and `:fork` and `:ractor`
+  # call it inside the child or the ractor, before the interrupt is
+  # delivered. Each of the five calls it only where an interrupt was
+  # delivered.
+  #
+  # This method is the sixth path, and not a strategy: a caller that reaches
+  # it directly - `LLM::Context#interrupt!` over pending functions, say -
+  # tells the runner here, on the calling thread, with no delivery to speak
+  # of.
   # @return [nil]
   def interrupt!
-    LLM::Function.interrupt(runner_or_nil)
+    LLM::Function.interrupt_runner(runner_or_nil)
   end
   alias_method :cancel!, :interrupt!
 
