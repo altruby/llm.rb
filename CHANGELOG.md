@@ -22,6 +22,7 @@
 | Old | New |
 |-----|-----|
 | Ruby 3.3 or later | Ruby 3.4 or later |
+| `record.messages` returns the messages the runtime holds | a `:jsonb` record returns a relation of `LLM::ActiveRecord::Message` rows |
 
 * **drop Ruby 3.3 support** <br>
   The gem now requires Ruby 3.4 or later: `required_ruby_version` is
@@ -29,6 +30,21 @@
   Ruby 3.3 cannot hold an interrupt for a ractor-backed tool call, so a
   cancel that arrives before the tool starts is not delivered there, while
   Ruby 3.4 and 4.0 both deliver it.
+
+* **activerecord: read a `:jsonb` record's messages from the column** <br>
+  [`LLM::ActiveRecord`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord.html)
+  now answers `#messages` for a record whose `format` is `:jsonb` with an
+  [`ActiveRecord::Relation`](https://api.rubyonrails.org/classes/ActiveRecord/Relation.html)
+  over the column, through
+  [`LLM::ActiveRecord::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord/Message.html),
+  so a conversation can be filtered, counted, and ordered in SQL, and reading it
+  needs no provider and no credentials. Before this, every record loaded the
+  runtime and returned the messages it held, whatever the format. The relation
+  is not a drop-in replacement for that buffer: it reads what is persisted
+  rather than what a runtime holds in memory, it is unordered, so order by
+  `position`, and its rows answer `unwrap!` rather than being
+  [`LLM::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html) objects.
+  Every other format, and Sequel, still loads the runtime.
 
 ### Console
 
