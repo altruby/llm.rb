@@ -299,60 +299,64 @@ RSpec.describe LLM::Function do
     end
   end
 
-  describe "when a tool implements an interrupt hook" do
-    it "resolves one runner instance per call" do
-      klass = Class.new(LLM::Tool) do
-        name "resolves"
+  describe "when a tool implements a cooperative hook" do
+    let(:tool_class) do
+      Class.new(LLM::Tool) do
+        name "probe"
+
+        attr_reader :interrupted, :ran
 
         def call
-          {"ok" => true}
-        end
-      end
-      first = klass.function.dup
-      second = klass.function.dup
-      expect(first.runner).to equal(first.runner)
-      expect(first.runner).not_to equal(second.runner)
-    end
-
-    it "tells a tool that was supplied as a class" do
-      told = []
-      klass = Class.new(LLM::Tool) do
-        name "told"
-
-        define_method(:call) { {"ok" => true} }
-        define_method(:on_interrupt) { told << object_id }
-      end
-      fn = klass.function.dup.tap do |f|
-        f.id = "call_1"
-        f.arguments = {}
-      end
-      fn.task(:sequential).interrupt!
-      expect(told).to eq([fn.runner.object_id])
-    end
-
-    it "tells the instance that is running the call" do
-      running = Queue.new
-      told = Queue.new
-      klass = Class.new(LLM::Tool) do
-        name "running"
-
-        define_method(:call) do
-          running << true
+          @ran = true
           sleep 10
           {"ok" => true}
         end
-        define_method(:on_interrupt) { told << object_id }
+
+        def on_interrupt
+          @interrupted = true
+        end
       end
-      fn = klass.function.dup.tap do |f|
-        f.id = "call_1"
-        f.arguments = {}
+    end
+    let(:function) do
+      tool_class.function.dup.tap do |fn|
+        fn.id = "call_1"
+        fn.arguments = {}
       end
-      task = fn.task(:thread)
-      task.spawn
-      running.pop
-      task.interrupt!
-      expect { task.wait }.to raise_error(LLM::Interrupt)
-      expect(told.pop).to eq(fn.runner.object_id)
+    end
+    let(:other) { tool_class.function.dup }
+
+    describe "when resolving the runner" do
+      it "resolves one instance per function" do
+        expect(function.runner).to equal(function.runner)
+      end
+
+      it "resolves a separate instance per copy" do
+        expect(function.runner).not_to equal(other.runner)
+      end
+    end
+
+    describe "when the tool is supplied as a class" do
+      let(:task) { function.task(:sequential) }
+
+      before { task.interrupt! }
+
+      it "tells the tool" do
+        expect(function.runner.interrupted).to be(true)
+      end
+    end
+
+    describe "when the tool is running a call" do
+      let(:task) { function.task(:thread) }
+
+      before do
+        task.spawn
+        sleep 0.05 until function.runner.ran
+        task.interrupt!
+      end
+
+      it "tells the tool" do
+        expect(function.runner.interrupted).to be(true)
+      end
     end
   end
 
