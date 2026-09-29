@@ -21,20 +21,26 @@ require "timeout"
 #   cross a ractor boundary, so the answer to an interrupted call is this
 #   strategy's own.
 #
-# **"Now" has to cross a ractor boundary, and a Queue cannot.** The
-# examples run on the main ractor and drive a task whose tool runs in
-# another one, so the tool is handed the ractor the example itself runs
-# on rather than a Queue, and it signals that ractor when it is running.
-# The example waits on `Ractor.receive` for the message, which blocks
-# until it arrives, so no example sleeps to find out where the call has
-# got to: `signal` is the "now", and the cases that need one use it.
+# **"Now" has to cross a ractor boundary.** The window's own spec hands
+# its tool a Queue, because both ends of that handover are threads the
+# example made. Here the example runs on the main ractor and drives a
+# task whose tool runs in another one, so the handover is made with the
+# one object that crosses a ractor boundary: a ractor. The tool is
+# handed the ractor the example itself runs on and signals it when it is
+# running, and the example waits on `Ractor.receive` for that message,
+# which blocks until it arrives. No example sleeps to find out where the
+# call has got to: `signal` is the "now", and the cases that need one use
+# it.
 #
 # **The tool holds.** A tool signals and then sleeps, so an interrupt is
 # delivered while the tool is inside its own call, rather than after it
 # has returned, where the window makes the interrupt a no-op.
 RSpec.describe LLM::Function::Ractor::Job do
+  ##
+  # The parser is compared as it is written rather than as CI spells it,
+  # which is `JSON`, so this is not a guard that always skips.
   before do
-    skip "not supported by yajl or oj" unless ENV.fetch("JSON_PARSER", "json") == "json"
+    skip "not supported by yajl or oj" unless ENV.fetch("JSON_PARSER", "json").downcase == "json"
   end
 
   ##
