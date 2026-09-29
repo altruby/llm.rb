@@ -34,13 +34,18 @@ module LLM::Function::Sequential
     end
 
     ##
-    # Interrupts the thread blocked in {#wait}.
-    # Sequential functions run on the caller's thread,
-    # and this methods raises {LLM::Interrupt} on that
-    # thread.
+    # Interrupts the thread blocked in {#wait}, and tells the tasks.
+    #
+    # Sequential functions run on the caller's thread, so the raise is what
+    # interrupts the call and it has to land there. It is issued first, and
+    # the tasks are told second: the delivery is this group's whole
+    # interrupt, and a hook that raises must not be able to take it with it
+    # or to leave the remaining tasks untold. That is also the order the
+    # in-process strategies use, where the hook runs after the raise.
     # @return [nil]
     def interrupt!
       @owner&.raise(LLM::Interrupt)
+      @tasks.each(&:interrupt!)
       nil
     end
     alias_method :cancel!, :interrupt!

@@ -309,20 +309,20 @@ RSpec.describe LLM::Function do
         end
         self.instances = 0
 
-        attr_reader :interrupted, :ran
+        attr_reader :ran, :told
 
         def initialize
           self.class.instances += 1
         end
 
         def call
-          @ran = true
+          @ran = Thread.current.object_id
           sleep 10
           {"ok" => true}
         end
 
         def on_interrupt
-          @interrupted = true
+          @told = Thread.current.object_id
         end
       end
     end
@@ -390,7 +390,7 @@ RSpec.describe LLM::Function do
       before { task.interrupt! }
 
       it "tells the tool" do
-        expect(function.runner.interrupted).to be(true)
+        expect(function.runner.told).not_to be_nil
       end
     end
 
@@ -402,6 +402,144 @@ RSpec.describe LLM::Function do
         Timeout.timeout(2) { sleep 0.05 until function.runner.ran }
         task.interrupt!
       end
+
+      it "tells the tool on the thread that runs the call" do
+        task.wait rescue LLM::Interrupt
+        expect(function.runner.told).to eq(function.runner.ran)
+      end
+    end
+
+    describe "when the tool runs on a reactor" do
+      before do
+        require "async"
+        Console.logger.level = :fatal if defined?(Console)
+      end
+
+      let(:reactor) { LLM::Function::Async::Reactor.new }
+      let(:task) { function.task(:async).tap { _1.reactor = reactor } }
+
+      before do
+        task.spawn
+        Timeout.timeout(2) { sleep 0.05 until function.runner.ran }
+        task.interrupt!
+      end
+
+      after { reactor&.stop }
+
+      it "tells the tool on the thread that runs the call" do
+        task.wait rescue LLM::Interrupt
+        expect(function.runner.told).to eq(function.runner.ran)
+      end
+
+      context "when the hook raises" do
+        let(:tool_class) do
+          Class.new(LLM::Tool) do
+            name "reactored"
+
+            attr_reader :ran
+
+            def call
+              @ran = Thread.current.object_id
+              sleep 10
+              {"ok" => true}
+            end
+
+            def on_interrupt
+              raise "hook failed"
+            end
+          end
+        end
+
+        it "answers the caller" do
+          expect { Timeout.timeout(2) { task.wait } }.to raise_error(RuntimeError, "hook failed")
+        end
+      end
+    end
+
+    describe "when the tool runs in a child process" do
+      let(:tool_class) do
+        Class.new(LLM::Tool) do
+          name "forked"
+
+          def call
+            sleep 10
+            {"ok" => true}
+          rescue LLM::Interrupt
+            {"ok" => false, "told" => @told}
+          end
+
+          def on_interrupt
+            @told = true
+          end
+        end
+      end
+      let(:task) { function.task(:fork) }
+
+      before do
+        task.spawn
+        sleep 0.05 until task.alive?
+        task.interrupt!
+      end
+
+      it "tells the tool" do
+        expect(task.wait.value).to include("told" => true)
+      end
+    end
+
+    describe "when the tool runs in a ractor" do
+      before do
+        skip "not supported by yajl or oj" unless ENV.fetch("JSON_PARSER", "json").downcase == "json"
+      end
+
+      let(:tool_class) do
+        Class.new(LLM::Tool) do
+          name "ractorized"
+
+          def call
+            sleep 10
+            {"ok" => true}
+          rescue LLM::Interrupt
+            {"ok" => false, "told" => @told}
+          end
+
+          def on_interrupt
+            @told = true
+          end
+        end
+      end
+      let(:task) { function.task(:ractor) }
+
+      before do
+        task.spawn
+        sleep 0.05 until task.alive?
+        task.interrupt!
+      end
+
+      it "tells the tool" do
+        expect(task.wait.value).to include("told" => true)
+      end
+    end
+
+    describe "when a sequential group is interrupted" do
+      let(:tool_class) do
+        Class.new(LLM::Tool) do
+          name "grouped"
+
+          attr_reader :interrupted
+
+          def call
+            sleep 10
+            {"ok" => true}
+          end
+
+          def on_interrupt
+            @interrupted = true
+          end
+        end
+      end
+      let(:group) { LLM::Function::Sequential::Group.new([function.task(:sequential)]) }
+
+      before { group.interrupt! }
 
       it "tells the tool" do
         expect(function.runner.interrupted).to be(true)

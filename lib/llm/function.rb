@@ -61,6 +61,25 @@ class LLM::Function
   end
 
   ##
+  # Tells a runner that its call was interrupted, if it wants telling.
+  #
+  # Internal to the strategies that run the hook from their own side, where
+  # the runner is a local rather than something {#interrupt!} can resolve:
+  # the child's copy in `:fork` is not the parent's, and a ractor cannot be
+  # handed the function at all. The argument is the runner and not the
+  # function, which is what separates this from {#interrupt!}, and one lookup
+  # means `on_cancel` keeps its precedence over `on_interrupt` everywhere.
+  # @param [Object, nil] runner
+  # @return [nil]
+  # @api private
+  def self.interrupt(runner)
+    return nil unless runner
+    hook = %i[on_cancel on_interrupt].find { runner.respond_to?(_1) }
+    runner.public_send(hook) if hook
+    nil
+  end
+
+  ##
   # {LLM::Function::Return LLM::Function::Return} represents the result of a
   # tool call.
   #
@@ -356,13 +375,26 @@ class LLM::Function
   # built, or a function whose task was never made - this is a no-op
   # rather than a raise, because the call path is where a constructor's
   # failure belongs.
+  #
+  # Six routes reach the hook, and they differ in where it runs and in
+  # whether an interrupt has to have been delivered first:
+  #
+  # - `:thread`, `:fiber` and `:async` run it on the thread or fiber that ran
+  #   the call, once the call has ended, and only where the raise was issued
+  #   into a live job.
+  # - `:fork` and `:ractor` run it inside the child or the ractor, before the
+  #   interrupt is delivered, and only for a message that arrived.
+  # - `:sequential` is the exception, and this method is how it is reached:
+  #   nothing is raised into a sequential tool, so the hook is its only
+  #   notification and it runs on the thread that cancelled, through
+  #   {Sequential::Task#interrupt!}.
+  #
+  # A caller that reaches this directly - `LLM::Context#interrupt!` over
+  # pending functions, say - takes the last route, with no delivery to speak
+  # of and nothing running.
   # @return [nil]
   def interrupt!
-    _runner = runner_or_nil
-    return nil unless _runner
-    hook = %i[on_cancel on_interrupt].find { _runner.respond_to?(_1) }
-    _runner.public_send(hook) if hook
-    nil
+    LLM::Function.interrupt(runner_or_nil)
   end
   alias_method :cancel!, :interrupt!
 

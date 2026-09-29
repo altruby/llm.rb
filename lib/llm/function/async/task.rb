@@ -43,6 +43,19 @@ module LLM::Function::Async
     # which one that saves its work does, is torn down with `Cancel`, which
     # nothing here catches and nothing pushes, leaving a caller blocked on a
     # queue that will never fill.
+    #
+    # The tool's hook runs from inside that block, so it runs on the
+    # reactor's thread, and the result is held in a local until it has: a
+    # hook that runs after the queue was pushed is a hook the caller can
+    # race past.
+    #
+    # The rescue below is the other half of that promise, and it is written
+    # to catch everything rather than an interrupt. A hook that raises from
+    # the block's `ensure` unwinds past the push, so the queue would be left
+    # empty and `#wait` would wait on it forever - the outcome this comment
+    # already names. Whatever comes out of the block is pushed, and `#wait`
+    # hands anything that is an exception to the caller the way `Thread#value`
+    # and `Fiber#value` do for the other in-process strategies.
     # @return [nil]
     def spawn
       return if @guarded
@@ -53,8 +66,27 @@ module LLM::Function::Async
         @task = task
         @scheduler = Fiber.scheduler
         raise LLM::Interrupt if @cancelled
-        task.defer_cancel { @queue << function.call }
-      rescue LLM::Interrupt => e
+        task.defer_cancel do
+          result = begin
+            function.call
+          ensure
+            ##
+            # The hook runs on the reactor's thread rather than on the one
+            # that cancelled. See the note on
+            # `LLM::Function::Thread::Task#spawn` for why it cannot run
+            # before the call's frame has ended, and what `@delivered`
+            # means.
+            function.interrupt! if @delivered
+          end
+          @queue << result
+        end
+      rescue => e
+        ##
+        # This runs after the `defer_cancel` block's `ensure`, so the tool is
+        # told first and the caller second. It answers an interrupt, a
+        # cancel that arrived before `spawn` - the block raises before it
+        # reaches a tool, and there is no result to push - and a hook whose
+        # own error unwound past the push.
         @queue << e
         raise
       end
@@ -74,6 +106,12 @@ module LLM::Function::Async
     # it lets it raise, and either way the block above is what the caller
     # hears from - its value, or the exception it forwards.
     #
+    # The tool is told from inside the reactor, not here, so that a tool
+    # whose state belongs to the reactor's thread sees that thread.
+    # `@delivered` is set where the raise is issued into a live fiber: a
+    # cancel that arrives before the task starts, or after it has finished,
+    # interrupted nothing and tells nobody.
+    #
     # Nothing is done to the reactor here. Where it is stopped is `#wait`'s
     # own `ensure`, the only point at which it is known to be idle, and the
     # point a group's `wait` already stops it from: a task cannot tell
@@ -89,6 +127,7 @@ module LLM::Function::Async
       @alive = false
       @cancelled = true
       if @task&.fiber&.alive?
+        @delivered = true
         @scheduler.fiber_interrupt(@task.fiber, LLM::Interrupt.new)
       elsif @task.nil? && @queue
         ##
@@ -110,6 +149,10 @@ module LLM::Function::Async
     # strategy's, and a tool that will not stop meets the join and the kill
     # here rather than in the caller's cancel.
     #
+    # Anything that is an exception is raised rather than returned, which is
+    # what `Thread#value` and `Fiber#value` do. An interrupt is the usual
+    # one, and a hook that raised from the block's `ensure` is the other.
+    #
     # The guarded path returns before any of that, so a task whose guard
     # blocked it does not stop a reactor it never used - which matters in a
     # group, where the reactor is not its own.
@@ -120,7 +163,7 @@ module LLM::Function::Async
         spawn unless @queue
         result = @queue.pop
         @alive = false
-        raise result if LLM::Interrupt === result
+        raise result if Exception === result
         result
       ensure
         @reactor&.stop

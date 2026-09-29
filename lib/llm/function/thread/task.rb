@@ -12,6 +12,9 @@ module LLM::Function::Thread
   # the thread, which stops the tool call mid-flight. The thread
   # is created with `report_on_exception` disabled so unhandled
   # exceptions propagate through {#wait} instead of to stderr.
+  #
+  # A tool that implements `on_interrupt` is told on that thread, once
+  # the call has ended, rather than on the thread that cancelled it.
   class Task < LLM::Function::Task
     ##
     # @param [LLM::Function] fn
@@ -24,7 +27,29 @@ module LLM::Function::Thread
     # @return [nil]
     def spawn
       return if @guarded
-      @thread = ::Thread.new { function.call }
+      @thread = ::Thread.new do
+        function.call
+      ensure
+        ##
+        # The hook runs on this thread rather than on the one that
+        # cancelled, because a tool's state belongs to the thread its call
+        # runs on, and the caller's thread is not that thread.
+        #
+        # On the job's own thread the hook can only run after the call's
+        # frame has ended - you cannot run code on a thread blocked inside
+        # a method it owns except by raising into it - and `@delivered` is
+        # written before the raise and read after it, so the flag says what
+        # it means. It is set only where the raise was issued into a live
+        # thread: a cancel that arrives before the call starts, or after it
+        # has finished, interrupted nothing and tells nobody.
+        #
+        # The hook runs before this thread ends, so it has run before
+        # `#wait` can return - which is the other half of telling the tool
+        # before the caller. A hook that raises becomes what this thread
+        # returns instead, so the error reaches the caller in place of the
+        # call's result.
+        function.interrupt! if @delivered
+      end
       @thread.report_on_exception = false
       nil
     end
@@ -38,8 +63,10 @@ module LLM::Function::Thread
     ##
     # @return [nil]
     def interrupt!
-      @thread&.raise(LLM::Interrupt) if @thread&.alive?
-      function.interrupt!
+      if @thread&.alive?
+        @delivered = true
+        @thread.raise(LLM::Interrupt)
+      end
       nil
     end
     alias_method :cancel!, :interrupt!

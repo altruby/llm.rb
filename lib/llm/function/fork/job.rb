@@ -72,17 +72,43 @@ class LLM::Function
       }
     end
 
+    ##
+    # Starts the watcher that turns a control message into an interrupt.
+    #
+    # The watcher is the only thread in the child that has the tool in hand,
+    # which is why the runner is passed to it rather than resolved again: a
+    # fork copies it, and the copy the parent holds is not the object that
+    # runs here.
+    # @param [Object] runner
+    # @return [Thread]
     def setup(runner)
       ready = Queue.new
       thread = ::Thread.new do
         ready << true
-        kind = @ch.control.recv
-        next unless kind == :interrupt
         ##
-        # The window decides whether this is the tool's to handle, or
-        # whether the tool has already been and gone.
-        @window.interrupt!
-      rescue IOError, ArgumentError
+        # Only the receive is guarded: it raises when the parent has gone,
+        # and nothing else in this block should be answerable to that
+        # rescue. A hook that raises must not be swallowed by it, and must
+        # not take the raise with it either - hence the `ensure` below,
+        # which delivers whatever the hook does.
+        kind = begin
+          @ch.control.recv
+        rescue IOError, ArgumentError
+          next
+        end
+        next unless kind == :interrupt
+        begin
+          ##
+          # The tool is told first, so a tool that releases a resource has
+          # done so by the time the raise lands on it, and so that a tool
+          # which rescues `LLM::Interrupt` reads what its hook wrote.
+          LLM::Function.interrupt(runner)
+        ensure
+          ##
+          # The window decides whether the raise is the tool's to handle,
+          # or whether the tool has already been and gone.
+          @window.interrupt!
+        end
       end
       ready.pop
       thread
