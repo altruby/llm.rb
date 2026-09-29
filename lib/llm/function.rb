@@ -44,6 +44,7 @@ class LLM::Function
   require_relative "function/thread/group"
   require_relative "function/fiber/group"
   require_relative "function/async/group"
+  require_relative "function/window"
   require_relative "function/fork"
   require_relative "function/fork/group"
   require_relative "function/ractor"
