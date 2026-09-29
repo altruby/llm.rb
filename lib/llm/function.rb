@@ -54,6 +54,13 @@ class LLM::Function
   prepend LLM::Function::Tracing
 
   ##
+  # Returns strategies that execute in an isolated environment.
+  # @return [Array<Symbol>]
+  def self.isolated
+    %i[fork ractor]
+  end
+
+  ##
   # {LLM::Function::Return LLM::Function::Return} represents the result of a
   # tool call.
   #
@@ -290,10 +297,10 @@ class LLM::Function
     # so a tool whose `initialize` wants a current `Async::Task` or a
     # scheduler-installed fiber does not get one.
     #
-    # A guarded task runs nothing, so it resolves nothing. `:fork` and
-    # `:ractor` stay lazy on purpose, because there the tool is built in
-    # the child process or the ractor and this instance is not the one
-    # that runs.
+    # A guarded task runs nothing, so it resolves nothing. A strategy in
+    # {LLM::Function.isolated} stays lazy on purpose, because there the
+    # tool is built in the child process or the ractor and this instance
+    # is not the one that runs.
     options = options.merge(guarded: options[:guarded] || resolve(strategy))
     case strategy
     when :sequential
@@ -463,7 +470,7 @@ class LLM::Function
   private
 
   ##
-  # Resolves the runner for a strategy whose tool runs in this process, and
+  # Resolves the runner for a strategy that runs in this process, and
   # answers with an in-band error when the tool cannot be built.
   #
   # {#call_function} resolves inside its own rescue, and that rescue is what
@@ -477,7 +484,7 @@ class LLM::Function
   # @param [Symbol] strategy
   # @return [LLM::Function::Return, nil]
   def resolve(strategy)
-    return nil unless %i[sequential thread fiber async].include?(strategy)
+    return nil if LLM::Function.isolated.include?(strategy)
     runner
     nil
   rescue LLM::Interrupt
