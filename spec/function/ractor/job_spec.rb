@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "setup"
-require "timeout"
 
 ##
 # The ractor's half of the window's contract.
@@ -30,14 +29,17 @@ require "timeout"
 #
 # **"Now" has to cross a ractor boundary.** The window's own spec hands
 # its tool a Queue, because both ends of that handover are threads the
-# example made. Here the example runs on the main ractor and drives a
-# task whose tool runs in another one, so the handover is made with the
-# one object that crosses a ractor boundary: a ractor. The tool is
-# handed the ractor the example itself runs on and signals it when it is
-# running, and the example waits on `Ractor.receive` for that message,
-# which blocks until it arrives. No example sleeps to find out where the
-# call has got to: `signal` is the "now", and the cases that need one use
-# it.
+# example made. Here the tool runs in another ractor, so the handover is
+# a ractor as well: the examples that need one make a gate, hand it to
+# the tool on the tool's own class rather than through an argument (a
+# constant is read across a ractor boundary, where an argument is copied
+# across one), and wait for the message the way the mailbox waits for a
+# reply. No example sleeps to find out where the call has got to.
+#
+# **Every wait has a deadline.** A raise cannot be relied on to interrupt
+# a wait on a ractor, so each of them runs on a thread of its own and is
+# joined with a timeout: a ractor that never gets there fails with a
+# message rather than hanging the suite.
 #
 # **The tool holds.** A tool signals and then sleeps, so an interrupt is
 # delivered while the tool is inside its own call, rather than after it
@@ -51,24 +53,37 @@ RSpec.describe LLM::Function::Ractor::Job do
   end
 
   ##
-  # The ractor these examples run on, and the one a tool is handed so
-  # that it can say that it is running.
-  let(:port) { Ractor.current }
+  # Runs the block on a thread of its own and joins it, so a wait that
+  # never ends is a failure that names the wait rather than a hang.
+  def within(seconds = 5, &block)
+    thread = Thread.new(&block)
+    thread.join(seconds) ? thread.value : raise("timed out after #{seconds} seconds")
+  end
 
   ##
-  # The tool's message, or a failure rather than a hang if the ractor
-  # never gets as far as sending it.
+  # A ractor a tool can signal, and the "now" of the cases that need one.
+  # It is not the ractor the example runs on, so a tool's message cannot
+  # arrive anywhere else, and one example cannot consume another's.
+  def gate
+    @gate ||= Ractor.new { Ractor.receive }
+  end
+
+  ##
+  # The gate's message, waited for the way the mailbox waits for a reply:
+  # `take` where the runtime has it, `Ractor.select` where it does not.
   def signal
-    Timeout.timeout(5) { Ractor.receive }
+    gate.respond_to?(:take) ? gate.take : Ractor.select(gate).last
   end
 
   describe "an interrupt while the tool runs" do
     let(:tool_class) do
+      tool_gate = gate
       Class.new(LLM::Tool) do
         name "interruptible"
+        const_set(:GATE, tool_gate)
 
-        def call(port:)
-          port.send([:running])
+        def call
+          self.class::GATE.send([:running])
           sleep 10
           {"ok" => true}
         rescue LLM::Interrupt
@@ -80,7 +95,7 @@ RSpec.describe LLM::Function::Ractor::Job do
     let(:function) do
       tool_class.function.dup.tap do |fn|
         fn.id = "call_1"
-        fn.arguments = {port: port}
+        fn.arguments = {}
       end
     end
 
@@ -89,12 +104,12 @@ RSpec.describe LLM::Function::Ractor::Job do
     it "reaches the tool's own rescue" do
       task.spawn
       ##
-      # Sent from inside the tool's call, so the interrupt is delivered
-      # to a tool that is running. This is the case the ractor already
+      # Sent from inside the tool's call, so the interrupt is delivered to
+      # a tool that is running. This is the case the ractor already
       # delivered, and the case the window must not break.
-      signal
+      within { signal }
       task.interrupt!
-      expect(Timeout.timeout(5) { task.wait.to_h }).to eq(
+      expect(within { task.wait.to_h }).to eq(
         id: "call_1",
         name: "interruptible",
         value: {"ok" => true, "interrupted" => true}
@@ -134,7 +149,7 @@ RSpec.describe LLM::Function::Ractor::Job do
       # when it is cancelled is told by its own `rescue`, and loses it if
       # the call is answered early instead.
       task.interrupt!
-      expect(Timeout.timeout(5) { task.wait.to_h }).to eq(
+      expect(within { task.wait.to_h }).to eq(
         id: "call_2",
         name: "held",
         value: {"ok" => true, "interrupted" => true}
@@ -144,11 +159,13 @@ RSpec.describe LLM::Function::Ractor::Job do
 
   describe "an interrupt and a tool that does not rescue" do
     let(:tool_class) do
+      tool_gate = gate
       Class.new(LLM::Tool) do
         name "brittle"
+        const_set(:GATE, tool_gate)
 
-        def call(port:)
-          port.send([:running])
+        def call
+          self.class::GATE.send([:running])
           sleep 10
           {"ok" => true}
         end
@@ -158,7 +175,7 @@ RSpec.describe LLM::Function::Ractor::Job do
     let(:function) do
       tool_class.function.dup.tap do |fn|
         fn.id = "call_3"
-        fn.arguments = {port: port}
+        fn.arguments = {}
       end
     end
 
@@ -166,9 +183,9 @@ RSpec.describe LLM::Function::Ractor::Job do
 
     it "answers that the call was cancelled" do
       task.spawn
-      signal
+      within { signal }
       task.interrupt!
-      expect(Timeout.timeout(5) { task.wait.to_h }).to eq(
+      expect(within { task.wait.to_h }).to eq(
         id: "call_3",
         name: "brittle",
         value: {cancelled: true, reason: "interrupted"}
