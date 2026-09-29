@@ -21,7 +21,7 @@ module LLM
   # caller owns, and a helper would be one more name on that object for as long
   # as it lives.
   #
-  # The write is best effort, and a failure is reported rather than raised:
+  # The write is best effort: a failure is swallowed rather than raised, because
   # this runs inside the request that has just completed, and a stale checkpoint
   # is a smaller failure than a turn that ends because the database was busy.
   #
@@ -47,8 +47,7 @@ module LLM
         end
       end
       super
-    rescue => e
-      warn "llm.rb: could not save the conversation: #{e.class}: #{e.message}"
+    rescue
       nil
     end
   end
