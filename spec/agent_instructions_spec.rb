@@ -12,9 +12,9 @@ require "tmpdir"
 # a caller's own message has.
 #
 # These examples pin the rule that replaces none of the wrong message, the
-# role that has to survive a replacement, and the round trip that makes the
-# rule work on a restored conversation - the only conversation it exists
-# for.
+# role that has to survive a replacement, the call that joins the rule to a
+# turn, and the round trip that makes the rule work on a restored
+# conversation - the only conversation it exists for.
 RSpec.describe LLM::Agent, "instructions" do
   let(:provider) { LLM.openai(key: "test") }
   let(:tmpdir) { Dir.mktmpdir("llmrb-instructions") }
@@ -65,14 +65,33 @@ RSpec.describe LLM::Agent, "instructions" do
       expect(a.messages.first.extra.key?(:instructions)).to be(true)
     end
 
-    ##
-    # Through `apply_instructions`, because that is the only way this
-    # state is reached: an agent with no instructions returns before it
-    # calls the refresh.
     it "leaves a conversation alone when there are no instructions" do
       a = agent(instructions: nil)
       a.messages.concat [message("Say less")]
+      a.send(:refresh_instructions!)
+      expect(a.messages.first.content).to eq("Say less")
+    end
+  end
+
+  ##
+  # The call is what joins the rule to a turn, and nothing above it would
+  # notice if it stopped being made. This is the seam, one level below
+  # `talk`.
+  describe "#apply_instructions" do
+    it "refreshes the stored instructions on the way through" do
+      a = agent(instructions: "Say more")
+      a.messages.concat [message("Say less")]
       a.send(:apply_instructions, "hello")
+      expect(a.messages.first.content).to eq("Say more")
+    end
+
+    ##
+    # The same path, and the caller's own system message is left alone
+    # rather than refreshed on the way past it.
+    it "leaves a prompt's own system message alone" do
+      a = agent(instructions: "Say more")
+      a.messages.concat [message("Say less")]
+      a.send(:apply_instructions, a.prompt { _1.system("The caller's rule") })
       expect(a.messages.first.content).to eq("Say less")
     end
   end
