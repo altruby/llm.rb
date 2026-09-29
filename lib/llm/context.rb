@@ -229,7 +229,7 @@ module LLM
       # a disabled stream has no output to report but a step still ended —
       # and the transport drops the stream before the request runs, so
       # this is the one event it would otherwise never see.
-      stream.on_step(res)
+      stream.on_step(self, res)
       res
     ensure
       @owner = nil

@@ -37,10 +37,12 @@ module LLM
   #
   # @see LLM::Agent Where streams are typically attached
   # @see LLM::Context Where streams are bound per-turn
+  # @see LLM::Step An extension that saves the conversation at each step
   class Stream
     require_relative "stream/queue"
     require_relative "stream/io"
     require_relative "stream/disabled"
+    require_relative "step"
 
     ##
     # This method will try to convert its argument into
@@ -165,10 +167,16 @@ module LLM
     # a disabled stream has no output to report, but it is still told that
     # a step ended.
     #
+    # The context is passed with the response so that a stream does not have
+    # to reach for it: {LLM::Step LLM::Step}, which saves the conversation the
+    # context holds, is written against this callback alone.
+    #
+    # @param [LLM::Context] ctx
+    #  The context the request belongs to
     # @param [LLM::Response] res
-    #  The response for the request that completed.
+    #  The response for the request that completed
     # @return [nil]
-    def on_step(res)
+    def on_step(ctx, res)
       nil
     end
 

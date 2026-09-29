@@ -21,16 +21,16 @@ RSpec.describe "LLM::Stream#on_step" do
   describe "a context" do
     it "tells the stream once when a request completes" do
       steps = []
-      stream.define_singleton_method(:on_step) { |res| steps << res }
+      stream.define_singleton_method(:on_step) { |ctx, res| steps << [ctx, res] }
       ctx.talk("hello")
-      expect(steps).to eq([response])
+      expect(steps).to eq([[ctx, response]])
     end
 
-    it "calls the callback with the response" do
+    it "passes the response, and the context it belongs to" do
       called = nil
-      stream.define_singleton_method(:on_step) { |res| called = res }
+      stream.define_singleton_method(:on_step) { |ctx, res| called = [ctx, res] }
       ctx.talk("hello")
-      expect(called).to be(response)
+      expect(called).to eq([ctx, response])
     end
   end
 
@@ -40,29 +40,68 @@ RSpec.describe "LLM::Stream#on_step" do
     it "is still told when a request completes" do
       steps = []
       stream.extend(Module.new do
-        define_method(:on_step) { |res| steps << res }
+        define_method(:on_step) { |ctx, res| steps << [ctx, res] }
       end)
       ctx.talk("hello")
-      expect(steps).to eq([response])
+      expect(steps).to eq([[ctx, response]])
     end
 
     it "reaches the base callback through super" do
       reached = []
       stream.extend(Module.new do
-        define_method(:on_step) do |res|
-          reached << res
-          super(res)
+        define_method(:on_step) do |ctx, res|
+          reached << [ctx, res]
+          super(ctx, res)
         end
       end)
       ctx.talk("hello")
-      expect(reached).to eq([response])
-      expect(stream.on_step(response)).to be_nil
+      expect(reached).to eq([[ctx, response]])
+      expect(stream.on_step(ctx, response)).to be_nil
     end
   end
 
   describe "the base callback" do
     it "returns nil" do
-      expect(stream.on_step(response)).to be_nil
+      expect(stream.on_step(ctx, response)).to be_nil
+    end
+  end
+
+  describe LLM::Step do
+    let(:stream) do
+      Class.new(LLM::Stream) do
+        attr_reader :steps
+
+        def initialize
+          @steps = []
+        end
+
+        def on_step(ctx, res)
+          @steps << [ctx, res]
+        end
+      end.new
+    end
+
+    before do
+      stream.extend(described_class)
+    end
+
+    it "passes the step along when the context has no record" do
+      ctx.talk("hello")
+      expect(stream.steps).to eq([[ctx, response]])
+    end
+
+    it "passes the step along after saving a record" do
+      record = double("record")
+      allow(ctx).to receive(:record).and_return(record)
+      allow(record).to receive(:is_a?).and_return(false)
+      allow(record.class).to receive(:respond_to?).with(:llm_plugin_options).and_return(true)
+      allow(record.class).to receive(:llm_plugin_options).and_return({})
+      ctx.talk("hello")
+      expect(stream.steps).to eq([[ctx, response]])
+    end
+
+    it "returns nil from the module itself" do
+      expect(stream.on_step(ctx, response)).to be_nil
     end
   end
 end
