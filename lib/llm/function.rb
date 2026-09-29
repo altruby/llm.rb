@@ -66,12 +66,13 @@ class LLM::Function
   # Internal to the strategies that run the hook from their own side, where
   # the runner is a local rather than something {#interrupt!} can resolve:
   # the child's copy in `:fork` is not the parent's, and a ractor cannot be
-  # handed the function at all. One lookup, so that `on_cancel` keeps its
-  # precedence over `on_interrupt` everywhere.
+  # handed the function at all. The argument is the runner and not the
+  # function, which is what separates this from {#interrupt!}, and one lookup
+  # means `on_cancel` keeps its precedence over `on_interrupt` everywhere.
   # @param [Object, nil] runner
   # @return [nil]
   # @api private
-  def self.interrupt_runner(runner)
+  def self.interrupt(runner)
     return nil unless runner
     hook = %i[on_cancel on_interrupt].find { runner.respond_to?(_1) }
     runner.public_send(hook) if hook
@@ -388,7 +389,7 @@ class LLM::Function
   # of.
   # @return [nil]
   def interrupt!
-    LLM::Function.interrupt_runner(runner_or_nil)
+    LLM::Function.interrupt(runner_or_nil)
   end
   alias_method :cancel!, :interrupt!
 
