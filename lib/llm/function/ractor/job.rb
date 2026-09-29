@@ -79,22 +79,30 @@ class LLM::Function
         # a caller: it is `Thread.current`, the ractor's own main
         # thread, and the thread the tool runs on.
         window = LLM::Function::Window.new(thread: ::Thread.current)
+        ##
+        # The tool is built outside the window, so a raise from
+        # `initialize` is not answered as an interrupt, and before the
+        # watcher, so that the watcher has something to tell: a ractor
+        # cannot be handed the function, and the instance the parent
+        # holds is not this one.
+        runner = runner_class.new
         ::Thread.new do
           ::Ractor.receive == :interrupt or next
           ##
-          # The window decides whether this is the tool's to handle, or
-          # whether the tool has already been and gone.
+          # The tool is told first, so a tool that releases a resource
+          # has done so by the time the raise lands on it, and so that
+          # a tool which rescues `LLM::Interrupt` reads what its hook
+          # wrote. The window decides whether the raise is the tool's
+          # to handle, or whether the tool has already been and gone.
+          LLM::Function.interrupt(runner)
           window.interrupt!
         rescue ::Ractor::Error
         end
         ##
         # Everything the call needs is prepared outside the window, so
         # the distance from `running!` to the tool's first instruction is
-        # the method dispatch and nothing else. The tool is built outside
-        # it too: a raise from `initialize` is not an interrupt to
-        # answer, and inside the window it would be answered as one.
+        # the method dispatch and nothing else.
         kwargs = Hash === arguments ? arguments.transform_keys(&:to_sym) : arguments
-        runner = runner_class.new
         window.running!
         result = runner.call(**kwargs)
         ##

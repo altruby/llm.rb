@@ -74,6 +74,12 @@ module LLM::Function::Async
     # it lets it raise, and either way the block above is what the caller
     # hears from - its value, or the exception it forwards.
     #
+    # The tool is told before the fiber is raised on, so a tool that
+    # releases a resource in `on_interrupt` has done so by the time its own
+    # `rescue` runs. The hook belongs to the task rather than to the window,
+    # so a cancel that arrives before the tool starts still tells it - and
+    # the block raises rather than running a call the cancel declined.
+    #
     # Nothing is done to the reactor here. Where it is stopped is `#wait`'s
     # own `ensure`, the only point at which it is known to be idle, and the
     # point a group's `wait` already stops it from: a task cannot tell
@@ -88,6 +94,7 @@ module LLM::Function::Async
     def interrupt!
       @alive = false
       @cancelled = true
+      function.interrupt!
       if @task&.fiber&.alive?
         @scheduler.fiber_interrupt(@task.fiber, LLM::Interrupt.new)
       elsif @task.nil? && @queue

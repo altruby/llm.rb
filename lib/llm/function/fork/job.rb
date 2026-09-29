@@ -72,6 +72,15 @@ class LLM::Function
       }
     end
 
+    ##
+    # Starts the watcher that turns a control message into an interrupt.
+    #
+    # The watcher is the only thread in the child that has the tool in hand,
+    # which is why the runner is passed to it rather than resolved again: a
+    # fork copies it, and the copy the parent holds is not the object that
+    # runs here.
+    # @param [Object] runner
+    # @return [Thread]
     def setup(runner)
       ready = Queue.new
       thread = ::Thread.new do
@@ -79,8 +88,12 @@ class LLM::Function
         kind = @ch.control.recv
         next unless kind == :interrupt
         ##
-        # The window decides whether this is the tool's to handle, or
+        # The tool is told first, so a tool that releases a resource has
+        # done so by the time the raise lands on it, and so that a tool
+        # which rescues `LLM::Interrupt` reads what its hook wrote. The
+        # window decides whether the raise is the tool's to handle, or
         # whether the tool has already been and gone.
+        LLM::Function.interrupt(runner)
         @window.interrupt!
       rescue IOError, ArgumentError
       end

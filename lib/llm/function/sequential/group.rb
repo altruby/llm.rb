@@ -34,12 +34,16 @@ module LLM::Function::Sequential
     end
 
     ##
-    # Interrupts the thread blocked in {#wait}.
-    # Sequential functions run on the caller's thread,
-    # and this methods raises {LLM::Interrupt} on that
-    # thread.
+    # Interrupts the thread blocked in {#wait}, and tells the tasks.
+    #
+    # Sequential functions run on the caller's thread, so the raise is what
+    # interrupts the call and it has to land there. The tasks are told as
+    # well, which is what every other group does and what this one skipped -
+    # and telling them first means a tool that releases a resource has done
+    # so by the time the raise lands on it.
     # @return [nil]
     def interrupt!
+      @tasks.each(&:interrupt!)
       @owner&.raise(LLM::Interrupt)
       nil
     end
