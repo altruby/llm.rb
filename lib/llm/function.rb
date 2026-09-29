@@ -376,17 +376,22 @@ class LLM::Function
   # rather than a raise, because the call path is where a constructor's
   # failure belongs.
   #
-  # The hook runs where the call runs, and the strategies differ in how they
-  # reach it: `:thread`, `:fiber` and `:async` call it on the thread or fiber
-  # that ran the call, once the call has ended, and `:fork` and `:ractor`
-  # call it inside the child or the ractor, before the interrupt is
-  # delivered. Each of the five calls it only where an interrupt was
-  # delivered.
+  # Six routes reach the hook, and they differ in where it runs and in
+  # whether an interrupt has to have been delivered first:
   #
-  # This method is the sixth path, and not a strategy: a caller that reaches
-  # it directly - `LLM::Context#interrupt!` over pending functions, say -
-  # tells the runner here, on the calling thread, with no delivery to speak
-  # of.
+  # - `:thread`, `:fiber` and `:async` run it on the thread or fiber that ran
+  #   the call, once the call has ended, and only where the raise was issued
+  #   into a live job.
+  # - `:fork` and `:ractor` run it inside the child or the ractor, before the
+  #   interrupt is delivered, and only for a message that arrived.
+  # - `:sequential` is the exception, and this method is how it is reached:
+  #   nothing is raised into a sequential tool, so the hook is its only
+  #   notification and it runs on the thread that cancelled, through
+  #   {Sequential::Task#interrupt!}.
+  #
+  # A caller that reaches this directly - `LLM::Context#interrupt!` over
+  # pending functions, say - takes the last route, with no delivery to speak
+  # of and nothing running.
   # @return [nil]
   def interrupt!
     LLM::Function.interrupt(runner_or_nil)

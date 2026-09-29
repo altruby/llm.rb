@@ -48,6 +48,14 @@ module LLM::Function::Async
     # reactor's thread, and the result is held in a local until it has: a
     # hook that runs after the queue was pushed is a hook the caller can
     # race past.
+    #
+    # The rescue below is the other half of that promise, and it is written
+    # to catch everything rather than an interrupt. A hook that raises from
+    # the block's `ensure` unwinds past the push, so the queue would be left
+    # empty and `#wait` would wait on it forever - the outcome this comment
+    # already names. Whatever comes out of the block is pushed, and `#wait`
+    # hands anything that is an exception to the caller the way `Thread#value`
+    # and `Fiber#value` do for the other in-process strategies.
     # @return [nil]
     def spawn
       return if @guarded
@@ -72,12 +80,13 @@ module LLM::Function::Async
           end
           @queue << result
         end
-      rescue LLM::Interrupt => e
+      rescue => e
         ##
-        # A block-level rescue runs after the `defer_cancel` block's
-        # `ensure`, so the tool is told first and the caller second. This is
-        # also what answers a cancel that arrives before `spawn`: the block
-        # raises before it reaches a tool, and there is no result to push.
+        # This runs after the `defer_cancel` block's `ensure`, so the tool is
+        # told first and the caller second. It answers an interrupt, a
+        # cancel that arrived before `spawn` - the block raises before it
+        # reaches a tool, and there is no result to push - and a hook whose
+        # own error unwound past the push.
         @queue << e
         raise
       end
@@ -140,6 +149,10 @@ module LLM::Function::Async
     # strategy's, and a tool that will not stop meets the join and the kill
     # here rather than in the caller's cancel.
     #
+    # Anything that is an exception is raised rather than returned, which is
+    # what `Thread#value` and `Fiber#value` do. An interrupt is the usual
+    # one, and a hook that raised from the block's `ensure` is the other.
+    #
     # The guarded path returns before any of that, so a task whose guard
     # blocked it does not stop a reactor it never used - which matters in a
     # group, where the reactor is not its own.
@@ -150,7 +163,7 @@ module LLM::Function::Async
         spawn unless @queue
         result = @queue.pop
         @alive = false
-        raise result if LLM::Interrupt === result
+        raise result if Exception === result
         result
       ensure
         @reactor&.stop
