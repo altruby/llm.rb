@@ -67,6 +67,17 @@ receives tokens as they arrive.
 fires when the model requests a tool.
 [`LLM::Stream#on_tool_return`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_tool_return)
 fires when the tool completes.
+[`LLM::Stream#on_step`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_step-instance_method)
+fires when a request completes, which is the boundary between one
+request and the next: the response is in the conversation, and a
+turn that asked for tools runs them after this while a turn that is
+finished ends here. That boundary is where a conversation is whole,
+and the runtime's
+[`LLM::Step`](https://r.uby.dev/api-docs/llm.rb/LLM/Step.html) is
+written against it - it is prepended onto a stream, and saves the
+conversation through the record the context is bound to, so a turn
+that is interrupted can be continued from its last completed request
+rather than started over.
 [`LLM::Stream#on_retry`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_retry)
 fires each time a failed request is retried. Compaction hooks
 let you show progress or log what was trimmed. Skill hooks bracket a
@@ -94,6 +105,11 @@ class MyStream < LLM::Stream
 
   # Queued streamed tool work has returned.
   def on_tool_return(tool, result)
+  end
+
+  # A request has completed: the response is in the conversation, and
+  # any tools it asked for run after this.
+  def on_step(ctx, res)
   end
 
   # Before a transformer rewrites an outgoing message.
