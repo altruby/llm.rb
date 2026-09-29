@@ -31,10 +31,11 @@ require "setup"
 # its tool a Queue, because both ends of that handover are threads the
 # example made. Here the tool runs in another ractor, so the handover is
 # a ractor as well: the examples that need one make a gate, hand it to
-# the tool on the tool's own class rather than through an argument (a
-# constant is read across a ractor boundary, where an argument is copied
-# across one), and wait for the message the way the mailbox waits for a
-# reply. No example sleeps to find out where the call has got to.
+# the tool on the tool's own class, and wait for the message the way the
+# mailbox waits for a reply. A constant rather than an argument, so the
+# gate is something the tool reads where it runs rather than something
+# the call carries with it. No example sleeps to find out where the call
+# has got to.
 #
 # **Every wait has a deadline.** A raise cannot be relied on to interrupt
 # a wait on a ractor, so each of them runs on a thread of its own and is
