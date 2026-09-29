@@ -61,19 +61,17 @@ module LLM
     # @param [LLM::Stream, #<<, Boolean, NilClass] obj
     # @return [LLM::Stream]
     def self.try(obj, extra: {})
-      stream = if LLM::Stream === obj
-        obj.tap { _1.extra.merge!(extra) }
+      if LLM::Stream === obj
+        obj.tap { _1.extra.merge!(extra) }.tap { _1.singleton_class.prepend(LLM::Step) }
       elsif obj.respond_to?(:<<)
-        LLM::Stream::IO.new(obj).tap { _1.extra.merge!(extra) }
+        LLM::Stream::IO.new(obj).tap { _1.extra.merge!(extra) }.tap { _1.singleton_class.prepend(LLM::Step) }
       elsif obj == true
-        LLM::Stream.new.tap { _1.extra.merge!(extra) }
+        LLM::Stream.new.tap { _1.extra.merge!(extra) }.tap { _1.singleton_class.prepend(LLM::Step) }
       elsif obj.nil? || obj == false
-        LLM::Stream::Disabled.new.tap { _1.extra.merge!(extra) }
+        LLM::Stream::Disabled.new.tap { _1.extra.merge!(extra) }.tap { _1.singleton_class.prepend(LLM::Step) }
       else
         raise TypeError, "invalid stream object"
       end
-      stream.singleton_class.prepend(LLM::Step)
-      stream
     end
 
     ##

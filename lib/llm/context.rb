@@ -222,9 +222,6 @@ module LLM
         @messages.concat(prompt)
       end
       @messages.concat([res.choices[-1]].compact)
-      ##
-      # The conversation is whole, and `LLM::Stream.try` has already put
-      # `LLM::Step` onto the stream, so this is all that is left.
       stream.on_step(self, res)
       res
     ensure
