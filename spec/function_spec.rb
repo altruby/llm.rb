@@ -323,7 +323,6 @@ RSpec.describe LLM::Function do
         fn.arguments = {}
       end
     end
-    let(:other) { tool_class.function.dup }
 
     describe "when resolving the runner" do
       it "resolves one instance per function" do
@@ -331,7 +330,13 @@ RSpec.describe LLM::Function do
       end
 
       it "resolves a separate instance per copy" do
-        expect(function.runner).not_to equal(other.runner)
+        definition = tool_class.function
+        definition.runner
+        expect(definition.dup.runner).not_to equal(definition.runner)
+      end
+
+      it "resolves before the task can be interrupted" do
+        expect(function.task(:thread).then { function.runner }).to be(function.runner)
       end
     end
 
@@ -350,7 +355,7 @@ RSpec.describe LLM::Function do
 
       before do
         task.spawn
-        sleep 0.05 until function.runner.ran
+        Timeout.timeout(2) { sleep 0.05 until function.runner.ran }
         task.interrupt!
       end
 

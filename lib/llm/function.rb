@@ -175,20 +175,6 @@ class LLM::Function
   end
 
   ##
-  # A duplicate resolves its own runner.
-  #
-  # The copy a task runs belongs to one call, and the instance that call
-  # resolves belongs to that copy - never to the definition it was
-  # duplicated from, which is shared and globally registered.
-  # @param [LLM::Function] other
-  # @return [void]
-  # @api private
-  def initialize_copy(other)
-    super
-    @_runner = nil
-  end
-
-  ##
   # Set (or get) the function name
   # @param [String] name The function name
   # @return [void]
@@ -283,6 +269,20 @@ class LLM::Function
     # the tool to the strategy. The task carries the blocked result and
     # returns it without running if the guard intervenes.
     options = options.merge(guarded: @guard&.call(function: self))
+    ##
+    # Resolve the runner here, on the calling thread, before the task
+    # returned below exists for another thread to interrupt.
+    #
+    # `#interrupt!` resolves the same instance, and `@_runner ||=` is a
+    # check-then-create: reached from two threads at once it builds two,
+    # runs the call on one and tells the hook on the other.
+    #
+    # A guarded task runs nothing, so it resolves nothing. `:fork` and
+    # `:ractor` stay lazy on purpose, because there the tool is built in
+    # the child process or the ractor and this instance is not the one
+    # that runs.
+    in_process = %i[sequential thread fiber async].include?(strategy)
+    runner if in_process && !options[:guarded]
     case strategy
     when :sequential
       Sequential::Task.new(self, options)
@@ -330,6 +330,10 @@ class LLM::Function
   # class-backed tool is told on the object the call will run on. Read off
   # the definition instead, a class answers `respond_to?` with false for
   # both hooks, and a tool that implements one is never told.
+  #
+  # An in-process strategy has already resolved the runner in {#task}, on
+  # the thread that built the task, so this reads a memo rather than
+  # creating one.
   # @return [nil]
   def interrupt!
     _runner = runner
@@ -418,6 +422,13 @@ class LLM::Function
   # the object that runs the call. A class-backed tool would otherwise build
   # an instance here and discard it, leaving {#interrupt!} with a class to
   # send the hook to.
+  #
+  # An in-process strategy resolves it in {#task}, on the calling thread,
+  # before the task exists for another thread to interrupt. Every other
+  # path resolves it at the first call.
+  #
+  # The tracer is assigned when the instance is resolved, so a tracer set
+  # after that does not reach it.
   # @return [Object]
   def runner
     @_runner ||= begin
@@ -428,6 +439,19 @@ class LLM::Function
   end
 
   private
+
+  ##
+  # A duplicate resolves its own runner.
+  #
+  # The copy a task runs belongs to one call, and the instance that call
+  # resolves belongs to that copy - never to the definition it was
+  # duplicated from, which is shared and globally registered.
+  # @param [LLM::Function] other
+  # @return [void]
+  def initialize_copy(other)
+    super
+    @_runner = nil
+  end
 
   ##
   # Internal method that calls the function and returns a Return object.
