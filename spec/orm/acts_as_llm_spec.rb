@@ -41,7 +41,7 @@ RSpec.describe "acts_as_llm" do
 
   describe "#messages" do
     it "reads the messages from the runtime" do
-      expect(record.messages).to be_a(Array).and(all(be_a(LLM::Message)))
+      expect(record.messages).to be_a(LLM::Buffer)
     end
   end
 

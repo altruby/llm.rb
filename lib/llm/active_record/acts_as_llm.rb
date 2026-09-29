@@ -103,7 +103,7 @@ module LLM::ActiveRecord
       # {LLM::ActiveRecord::Message#unwrap!} turns them back into
       # {LLM::Message} objects.
       # @see LLM::Context#messages
-      # @return [ActiveRecord::Relation, Array<LLM::Message>]
+      # @return [ActiveRecord::Relation, LLM::Buffer]
       def messages
         options = self.class.llm_plugin_options
         if options[:format] == :jsonb
