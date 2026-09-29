@@ -39,6 +39,12 @@ RSpec.describe "acts_as_llm" do
 
   include_examples "inherited wrapper callbacks"
 
+  describe "#messages" do
+    it "reads the messages from the runtime" do
+      expect(record.messages).to be_a(Array).and(all(be_a(LLM::Message)))
+    end
+  end
+
   context "with a live OpenAI completion",
           vcr: {cassette_name: "openai/chat/completion_contract"} do
     let(:context) do
