@@ -61,6 +61,22 @@ class LLM::Function
   end
 
   ##
+  # Tells a runner that its call was interrupted, if it wants telling.
+  #
+  # {#interrupt!} resolves the runner itself. A strategy whose tool lives in
+  # a child process or a ractor has it in hand instead, because the parent's
+  # copy is not the object that runs there, and both go through here so that
+  # `on_cancel` keeps its precedence over `on_interrupt` everywhere.
+  # @param [Object, nil] runner
+  # @return [nil]
+  def self.interrupt(runner)
+    return nil unless runner
+    hook = %i[on_cancel on_interrupt].find { runner.respond_to?(_1) }
+    runner.public_send(hook) if hook
+    nil
+  end
+
+  ##
   # {LLM::Function::Return LLM::Function::Return} represents the result of a
   # tool call.
   #
@@ -356,13 +372,13 @@ class LLM::Function
   # built, or a function whose task was never made - this is a no-op
   # rather than a raise, because the call path is where a constructor's
   # failure belongs.
+  #
+  # The raise belongs to {LLM::Function::Window} and the hook belongs to the
+  # task: a strategy tells its tool whenever its task is interrupted,
+  # whether or not a call is running.
   # @return [nil]
   def interrupt!
-    _runner = runner_or_nil
-    return nil unless _runner
-    hook = %i[on_cancel on_interrupt].find { _runner.respond_to?(_1) }
-    _runner.public_send(hook) if hook
-    nil
+    LLM::Function.interrupt(runner_or_nil)
   end
   alias_method :cancel!, :interrupt!
 
