@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "setup"
+require "setup"
 require "fileutils"
 require "tmpdir"
 
@@ -11,9 +11,10 @@ require "tmpdir"
 # instructions are given, and Google's is `:user`, which is also the role
 # a caller's own message has.
 #
-# These examples pin the rule that replaces none of the wrong message, and
-# the round trip that makes the rule work on a restored conversation - the
-# only conversation it exists for.
+# These examples pin the rule that replaces none of the wrong message, the
+# role that has to survive a replacement, and the round trip that makes the
+# rule work on a restored conversation - the only conversation it exists
+# for.
 RSpec.describe LLM::Agent, "instructions" do
   let(:provider) { LLM.openai(key: "test") }
   let(:tmpdir) { Dir.mktmpdir("llmrb-instructions") }
@@ -27,9 +28,11 @@ RSpec.describe LLM::Agent, "instructions" do
   ##
   # @param [String] content
   # @param [Boolean] marked
+  # @param [String] role
+  #  The role the provider gives instructions. Google's is "user".
   # @return [LLM::Message]
-  def message(content, marked: true)
-    LLM::Message.new("system", content, marked ? {instructions: true} : {})
+  def message(content, marked: true, role: "system")
+    LLM::Message.new(role, content, marked ? {instructions: true} : {})
   end
 
   describe "#refresh_instructions!" do
@@ -62,10 +65,14 @@ RSpec.describe LLM::Agent, "instructions" do
       expect(a.messages.first.extra.key?(:instructions)).to be(true)
     end
 
+    ##
+    # Through `apply_instructions`, because that is the only way this
+    # state is reached: an agent with no instructions returns before it
+    # calls the refresh.
     it "leaves a conversation alone when there are no instructions" do
       a = agent(instructions: nil)
       a.messages.concat [message("Say less")]
-      a.send(:refresh_instructions!)
+      a.send(:apply_instructions, "hello")
       expect(a.messages.first.content).to eq("Say less")
     end
   end
@@ -95,9 +102,20 @@ RSpec.describe LLM::Agent, "instructions" do
 
     it "refreshes the message it wrote" do
       a = agent(instructions: "Say more")
-      a.messages.concat [message("Say less")]
+      a.messages.concat [message("Say less", role: "user")]
       a.send(:refresh_instructions!)
       expect(a.messages.first.content).to eq("Say more")
+    end
+
+    ##
+    # The role is the provider's, and rebuilding it from `system_role`
+    # rather than keeping what the message already had is what makes a
+    # replacement destructive here rather than correct.
+    it "keeps the role the message already had" do
+      a = agent(instructions: "Say more")
+      a.messages.concat [message("Say less", role: "user")]
+      a.send(:refresh_instructions!)
+      expect(a.messages.first.role).to eq("user")
     end
 
     it "leaves a caller's message alone" do
