@@ -83,4 +83,15 @@ RSpec.describe LLM::Function::Ractor::Task do
       )
     end
   end
+
+  ##
+  # The task's own ractor has gone by the time the cancel comes, which is
+  # what a caller finds after a result has been delivered: the cancel is a
+  # no-op rather than a `::Ractor::ClosedError` on its thread.
+  describe "a task that has returned" do
+    it "answers a cancel with nil rather than a raise" do
+      within { task.wait }
+      expect(within { task.interrupt! }).to be_nil
+    end
+  end
 end
