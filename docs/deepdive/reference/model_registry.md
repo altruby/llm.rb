@@ -210,7 +210,7 @@ require "llm"
 reg = LLM::Registry.for(:openai)
 list = reg.models.sort
 list.first.id # => "text-embedding-3-small"
-list.last.id  # => "gpt-image-1-mini" (unpriced sorts last)
+list.last.id  # => "gpt-image-1" (unpriced sorts last)
 ```
 
 #### Why would I use it?

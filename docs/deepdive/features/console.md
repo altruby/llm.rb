@@ -63,6 +63,13 @@ The loop was previously named the REPL. `LLM::Repl` and
 `LLM::Agent#console`, so existing code keeps working, but new code
 should use the `console` names.
 
+When `bin/llm.rb` starts, it looks for an `AGENTS.md` file in the
+current working directory. If one exists, its contents become the
+agent's instructions for the session, so a project can describe how it
+wants the agent to work without passing flags. The instructions are
+injected once, so a resumed session that already has a system message
+keeps the one it has.
+
 The user-message label is exposed through
 [`LLM::Console#sender`](https://r.uby.dev/api-docs/llm.rb/LLM/Console.html#sender-instance_method),
 which defaults to `"You"`. The

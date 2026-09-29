@@ -109,3 +109,53 @@ mcp = LLM::MCP.http(
 )
 ```
 
+### Prompts
+
+#### Overview
+
+An MCP server can offer prompts as well as tools: reusable,
+parameterized message templates a client fetches and sends to a model.
+[`LLM::MCP#prompts`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#prompts)
+lists them, and
+[`LLM::MCP#find_prompt`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#find_prompt)
+fetches one and returns its messages.
+
+#### How it works
+
+`prompts` returns one
+[`LLM::Object`](https://r.uby.dev/api-docs/llm.rb/LLM/Object.html)
+per prompt, carrying its name, description, and arguments.
+`find_prompt` takes a `name:` and, for a prompt that declares
+arguments, an `arguments:` hash, and returns an `LLM::Object` whose
+`messages` are
+[`LLM::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html)
+objects ready to send:
+
+```ruby
+require "llm"
+
+mcp = LLM::MCP.stdio(argv: ["npx", "-y", "@forgejo/mcp-server"])
+
+mcp.session do
+  mcp.prompts.each { puts _1.name }
+
+  prompt = mcp.find_prompt(name: "review", arguments: {path: "lib/llm.rb"})
+  prompt.messages.each { puts "#{_1.role}: #{_1.content}" }
+end
+```
+
+#### Why would I use it?
+
+Prompts let a server ship the wording of a task, not just the tools to
+carry it out. Fetching one keeps that wording in the server that owns
+it, so it can change without a client release.
+
+#### Notes
+
+`find_prompt` adapts each message's content to the runtime's shape: a
+text item becomes a string, and anything else stays an `LLM::Object`
+under `original_content`.
+[`LLM::MCP#get_prompt`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#get_prompt)
+is an alias. Like `tools`, both methods borrow a session when one is
+not already running.
+

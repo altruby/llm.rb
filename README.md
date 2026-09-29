@@ -19,14 +19,20 @@ on CRuby. It has zero runtime dependencies by default, supports
 concurrent and parallel tool execution and has a single coherent API
 that spans 14+ providers.
 
-See llm.rb in action on the
-[the r.uby.dev website](https://r.uby.dev) where
-I am building a platform that supports users who have
-personalized agents with access to different services
-(eg GitHub, etc). Check it out if curious.
-**Still in early development.**
+The README covers the common cases. For everything else there is the
+[deepdive](docs/deepdive.md), a reference with a chapter for each
+topic, and for what changes between releases there is the
+[changelog](CHANGELOG.md).
+
+[The r.uby.dev website](https://r.uby.dev) hosts
+an agentic platform that provides users with
+personalized agents who can access GitHub, and
+other services. It is built with llm.rb. Check it
+out if curious. **Still in early development.**
 
 ## Install
+
+llm.rb requires Ruby 3.4 or later.
 
 ```bash
 gem install llm.rb

@@ -132,3 +132,49 @@ tool parameters, anything you learn here applies to tools too.
 renders the schema as a prompt-friendly string. `required` and
 `defaults` refer to properties that already exist, so declare the
 property first and mark it afterwards.
+
+### Parsing
+
+#### Overview
+
+[`LLM::Schema.parse`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html#parse-class_method)
+turns an external JSON Schema, such as one a tool manifest or a
+provider hands you, into the same leaf objects the Ruby DSL produces,
+so a schema written elsewhere can be used here.
+
+#### How it works
+
+Pass a Hash (or an `LLM::Object`) and get a leaf back. Object, array,
+string, integer, number, boolean, and null types are supported, along
+with `$ref` references into the same document, the `anyOf`, `oneOf`,
+and `allOf` unions, and the metadata keywords `description`, `default`,
+`enum`, and `const`. The range keywords `minLength`/`maxLength` and
+`minimum`/`maximum`/`multipleOf` are applied to the leaf as well:
+
+```ruby
+schema = LLM::Schema.parse(
+  "type" => "object",
+  "properties" => {
+    "name" => {"type" => "string", "minLength" => 1},
+    "age"  => {"type" => "integer", "minimum" => 0, "maximum" => 120}
+  },
+  "required" => ["name"]
+)
+
+puts schema
+# object
+#   name: string (required, minLength: 1)
+#   age?: integer (minimum: 0, maximum: 120)
+```
+
+#### Why would I use it?
+
+A JSON Schema you already have can drive a structured response without
+being rewritten by hand. Parsing produces the same objects the Ruby
+DSL builds, so the result is used the same way.
+
+#### Notes
+
+An unsupported `type`, an unresolvable `$ref`, or a `$ref` that does
+not start with `#/` raises `TypeError`. When a schema omits `type`,
+the parser infers it from `const`, `enum`, or `default`.

@@ -278,6 +278,28 @@ Hash that reads like a configuration block.
 Unknown keys raise `KeyError`, so typos are caught at class load
 time rather than at runtime.
 
+For a parameter shape that the typed `parameter` form does not cover,
+[`LLM::Tool.params`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#params-class_method)
+yields the schema object directly, so the same value methods a schema
+uses are available:
+
+```ruby
+class Search < LLM::Tool
+  name "search"
+
+  params do |schema|
+    schema.object(
+      query: schema.string.required,
+      limit: schema.integer.default(10)
+    )
+  end
+
+  def call(query:, limit: 10)
+    results(query, limit:)
+  end
+end
+```
+
 ### Fan-out with tools
 
 #### Overview
@@ -412,3 +434,49 @@ needs most. See the
 
 The tools that spawn subprocesses use the optional `test-cmd.rb`
 gem for process management and interrupt handling.
+
+### Interrupts
+
+#### Overview
+
+A tool call can be cut short, either because the user cancelled the
+turn or because the runtime stopped the request. A tool that holds a
+resource can release it by overriding
+[`LLM::Tool#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_interrupt-instance_method),
+which the runtime calls when an in-flight call is interrupted.
+
+#### How it works
+
+The runtime calls
+[`LLM::Tool#on_cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_cancel-instance_method),
+whose default implementation calls `on_interrupt`. Override
+`on_interrupt` for cleanup that applies to both cases:
+
+```ruby
+class LongJob < LLM::Tool
+  name "long_job"
+
+  def call(job_id:)
+    @job = start_job(job_id)
+    wait_for(@job)
+  end
+
+  def on_interrupt
+    @job&.stop
+  end
+end
+```
+
+#### Why would I use it?
+
+A tool that started a subprocess, opened a connection, or wrote a
+partial file has something to undo when the call is cut short.
+`on_interrupt` is where that cleanup belongs, so the work does not keep
+running after the turn is over.
+
+#### Notes
+
+The hooks are cooperative: the runtime calls them and the tool decides
+what happens. Override `on_cancel` instead of `on_interrupt` when a
+cancellation needs to be told apart from an interrupt, and call `super`
+if both should clean up.

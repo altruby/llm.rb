@@ -111,7 +111,7 @@ for it instead of guessing.
 
 ```ruby
 LLM::Tool::Rg.new.call(patterns: ["def talk"], path: "lib")
-# => {ok: true, stdout: "lib/llm/context.rb:42:def talk", stderr: ""}
+# => {ok: true, stdout: "lib/llm/context.rb:42:def talk", stderr: "", duration: "0.0 seconds"}
 ```
 
 #### How it works
@@ -207,6 +207,8 @@ or manage the tool loop manually through
 On interrupt, the running child process is killed. The `ruby` tool
 uses the same Ruby that launched llm.rb. The `git` tool wraps the
 subcommands `log`, `diff`, `commit`, `checkout`, `branch`, and `show`.
+Each command tool also returns a `duration` field, a string such as
+`"0.4 seconds"`, that reports how long the command ran.
 
 ### Bounded output
 
