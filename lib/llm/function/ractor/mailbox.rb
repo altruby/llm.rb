@@ -31,9 +31,14 @@ class LLM::Function
     end
 
     ##
+    # A cancel for a task whose ractor has gone is a no-op, the same way a
+    # cancel for a call that has already returned is one: there is nothing
+    # left to interrupt, and the raise belongs to nobody.
     # @return [nil]
     def interrupt!
       task.send([:interrupt])
+      nil
+    rescue ::Ractor::ClosedError
       nil
     end
 

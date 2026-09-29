@@ -51,9 +51,22 @@ class LLM::Function
             waiters << reply
           end
         in [:interrupt]
-          @tool&.send(:interrupt)
+          interrupt_tool
         end
       end
+    end
+
+    ##
+    # Forwards an interrupt to the tool's ractor.
+    #
+    # A tool whose ractor has gone has nothing left to interrupt, and this
+    # ractor has to stay alive to answer whoever is waiting on it, so the
+    # raise a ractor that has terminated leaves behind is the one thing
+    # this must not let through.
+    # @return [void]
+    def interrupt_tool
+      @tool&.send(:interrupt)
+    rescue ::Ractor::ClosedError
     end
 
     def spawn
