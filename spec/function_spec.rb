@@ -304,7 +304,16 @@ RSpec.describe LLM::Function do
       Class.new(LLM::Tool) do
         name "probe"
 
+        class << self
+          attr_accessor :instances
+        end
+        self.instances = 0
+
         attr_reader :interrupted, :ran
+
+        def initialize
+          self.class.instances += 1
+        end
 
         def call
           @ran = true
@@ -333,6 +342,41 @@ RSpec.describe LLM::Function do
         definition = tool_class.function
         definition.runner
         expect(definition.dup.runner).not_to equal(definition.runner)
+      end
+
+      it "resolves before the task it returns exists" do
+        expect { function.task(:thread) }.to change { tool_class.instances }.by(1)
+      end
+
+      context "when the tool is blocked by a guard" do
+        before do
+          function.guard = ->(function:) { function.return(error: true, type: "guard_error", message: "stop") }
+        end
+
+        it "does not resolve the runner" do
+          expect { function.task(:thread) }.not_to change { tool_class.instances }
+        end
+      end
+    end
+
+    describe "when the tool cannot be built" do
+      let(:tool_class) do
+        Class.new(LLM::Tool) do
+          name "required"
+
+          def initialize(client)
+            @client = client
+          end
+
+          def call
+            {"ok" => true}
+          end
+        end
+      end
+
+      it "returns an in-band error" do
+        result = function.task(:thread).wait.to_h
+        expect(result[:value]).to include(error: true, type: "ArgumentError")
       end
     end
 

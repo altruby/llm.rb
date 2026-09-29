@@ -252,6 +252,13 @@ class LLM::Function
   #   task = tool.task(:thread)
   #   result = task.value
   #
+  # @note
+  #   An in-process strategy resolves the tool here, so a task that has
+  #   not been spawned already holds a live instance, and
+  #   {LLM::Function::Array#task} builds one for every pending function at
+  #   once. A tool that cannot be built carries the same in-band error the
+  #   guard produces rather than raising, so a constructor's failure
+  #   answers the model on every strategy.
   # @param [Symbol] strategy
   #   Controls concurrency strategy:
   #   - `:sequential`: Call the function sequentially
@@ -277,12 +284,17 @@ class LLM::Function
     # check-then-create: reached from two threads at once it builds two,
     # runs the call on one and tells the hook on the other.
     #
+    # `:async` is in the list because its reactor runs on a background
+    # thread, which is the exposure `:thread` has. The cost is that the
+    # tool is built on the calling thread rather than inside the reactor,
+    # so a tool whose `initialize` wants a current `Async::Task` or a
+    # scheduler-installed fiber does not get one.
+    #
     # A guarded task runs nothing, so it resolves nothing. `:fork` and
     # `:ractor` stay lazy on purpose, because there the tool is built in
     # the child process or the ractor and this instance is not the one
     # that runs.
-    in_process = %i[sequential thread fiber async].include?(strategy)
-    runner if in_process && !options[:guarded]
+    options = options.merge(guarded: options[:guarded] || resolve(strategy))
     case strategy
     when :sequential
       Sequential::Task.new(self, options)
@@ -333,10 +345,14 @@ class LLM::Function
   #
   # An in-process strategy has already resolved the runner in {#task}, on
   # the thread that built the task, so this reads a memo rather than
-  # creating one.
+  # creating one. Where there is no tool to tell - one that cannot be
+  # built, or a function whose task was never made - this is a no-op
+  # rather than a raise, because the call path is where a constructor's
+  # failure belongs.
   # @return [nil]
   def interrupt!
-    _runner = runner
+    _runner = runner_or_nil
+    return nil unless _runner
     hook = %i[on_cancel on_interrupt].find { _runner.respond_to?(_1) }
     _runner.public_send(hook) if hook
     nil
@@ -429,6 +445,12 @@ class LLM::Function
   #
   # The tracer is assigned when the instance is resolved, so a tracer set
   # after that does not reach it.
+  #
+  # The instance belongs to this function object rather than to a call. The
+  # per-call copy is the one {LLM::Message#functions} makes, and that is
+  # what keeps the usual path to one call per instance; a second {#task} on
+  # one function, or a retry, reuses the instance and whatever its ivars
+  # hold.
   # @return [Object]
   def runner
     @_runner ||= begin
@@ -439,6 +461,37 @@ class LLM::Function
   end
 
   private
+
+  ##
+  # Resolves the runner for a strategy whose tool runs in this process, and
+  # answers with an in-band error when the tool cannot be built.
+  #
+  # {#call_function} resolves inside its own rescue, and that rescue is what
+  # answers the model with an error rather than raising into the turn.
+  # Resolving earlier keeps that promise by producing the return the guard
+  # would have produced.
+  # @param [Symbol] strategy
+  # @return [LLM::Function::Return, nil]
+  def resolve(strategy)
+    return nil unless %i[sequential thread fiber async].include?(strategy)
+    runner
+    nil
+  rescue => ex
+    Return.new(id, name, {error: true, type: ex.class.name, message: ex.message})
+  end
+
+  ##
+  # The runner, or nil when it cannot be built.
+  #
+  # An interrupt has nothing to tell if there is no tool to tell, and a
+  # cancel is the wrong place to raise a constructor's failure, which the
+  # call path answers in-band.
+  # @return [Object, nil]
+  def runner_or_nil
+    runner
+  rescue StandardError
+    nil
+  end
 
   ##
   # A duplicate resolves its own runner.
