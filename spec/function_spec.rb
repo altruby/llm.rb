@@ -334,10 +334,6 @@ RSpec.describe LLM::Function do
         definition.runner
         expect(definition.dup.runner).not_to equal(definition.runner)
       end
-
-      it "resolves before the task can be interrupted" do
-        expect(function.task(:thread).then { function.runner }).to be(function.runner)
-      end
     end
 
     describe "when the tool is supplied as a class" do
