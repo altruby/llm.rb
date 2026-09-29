@@ -89,10 +89,28 @@ module LLM::ActiveRecord
       end
 
       ##
+      # Returns the messages this record holds.
+      #
+      # A record that stores its state as jsonb reads them from the column,
+      # as a relation: the conversation can be filtered, counted and ordered
+      # in the database, and nothing here needs a provider to be built. Every
+      # other format loads the runtime and hands back the messages it holds.
+      #
+      # The two do not agree about what is visible. The relation reads what is
+      # persisted rather than what the runtime holds in memory, it is
+      # unordered - conversation order is `position`, not `id` - and its rows
+      # are {LLM::ActiveRecord::Message} records until
+      # {LLM::ActiveRecord::Message#unwrap!} turns them back into
+      # {LLM::Message} objects.
       # @see LLM::Context#messages
-      # @return [Array<LLM::Message>]
+      # @return [ActiveRecord::Relation, LLM::Buffer]
       def messages
-        ctx.messages
+        options = self.class.llm_plugin_options
+        if options[:format] == :jsonb
+          LLM::ActiveRecord::Message.for(agent: self)
+        else
+          ctx.messages
+        end
       end
 
       ##

@@ -39,6 +39,30 @@ RSpec.describe "acts_as_llm" do
 
   include_examples "inherited wrapper callbacks"
 
+  describe "#messages" do
+    it "reads the messages from the runtime" do
+      expect(record.messages).to be_a(LLM::Buffer)
+    end
+
+    context "when the format is json rather than jsonb" do
+      let(:context) do
+        Class.new(model) do
+          acts_as_llm(format: :json)
+
+          private
+
+          def set_provider
+            LLM.openai(key: "secret")
+          end
+        end
+      end
+
+      it "still reads them from the runtime" do
+        expect(record.messages).to be_a(LLM::Buffer)
+      end
+    end
+  end
+
   context "with a live OpenAI completion",
           vcr: {cassette_name: "openai/chat/completion_contract"} do
     let(:context) do

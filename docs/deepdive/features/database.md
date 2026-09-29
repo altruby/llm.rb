@@ -407,6 +407,25 @@ you write across every agent is not covered by default; index the state
 column for those, for example with a GIN index on
 `data jsonb_path_ops`.
 
+A record whose `format` is `:jsonb` also returns this view from
+`#messages`, so a conversation can be read without building a runtime:
+no provider, and no credentials. What it returns differs from the
+runtime's own `#messages` in three ways. It reads what is persisted
+rather than the state a context holds in memory and has not saved. It
+is unordered, and conversation order is `position` rather than `id`, so
+order it explicitly. And its rows are
+[`LLM::ActiveRecord::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord/Message.html)
+records rather than
+[`LLM::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html)
+objects, until
+[`#unwrap!`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord/Message.html#unwrap!-instance_method)
+turns them back.
+
+Every other format loads the runtime and returns the messages it
+holds, as it always did, and that is the default. Sequel has no
+equivalent: its plugin persists the same state, and there is no view to
+read it back in the database.
+
 ### Sequel
 
 #### Overview

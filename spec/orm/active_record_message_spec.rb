@@ -84,6 +84,24 @@ RSpec.describe LLM::ActiveRecord::Message do
     end
   end
 
+  describe "#messages" do
+    it "reads the messages without building a runtime" do
+      expect(agent.messages.count).to eq(2)
+    end
+
+    it "returns a relation" do
+      expect(agent.messages).to be_a(ActiveRecord::Relation)
+    end
+
+    it "keeps the conversation order" do
+      expect(agent.messages.order(:position).pluck(:role)).to eq(%w[user assistant])
+    end
+
+    it "hands back rows the runtime can unwrap" do
+      expect(agent.messages.order(:position).first.unwrap!).to be_a(LLM::Message)
+    end
+  end
+
   describe "fields" do
     let(:row) { relation.order(:position).last }
     let(:first_row) { relation.order(:position).first }
