@@ -36,16 +36,21 @@ for serialization and
 for deserialization. Save writes the current state, restore loads
 it back and picks up where the conversation left off.
 
-The wrappers automate this, and where they write is the boundary
-between one request and the next rather than the end of a turn.
-[`LLM::Step`](https://r.uby.dev/api-docs/llm.rb/LLM/Step.html)
-is prepended onto the stream, and it saves the conversation through
-the record the context is bound to each time
+The ORM wrappers write on a different boundary than the file does, and
+the two are worth telling apart.
+[`LLM::Step`](https://r.uby.dev/api-docs/llm.rb/LLM/Step.html) is
+prepended onto the stream, and it saves the conversation through the
+record the context is bound to each time
 [`LLM::Stream#on_step`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_step-instance_method)
-fires - after a response is in the conversation and before the tools
-it asked for run. A turn that asks for three tools and then answers
-saves four times, and a turn interrupted in the middle can be
-continued from its last completed request rather than started over.
+fires - after a response is in the conversation and before the tools it
+asked for run. A turn that runs tools before it answers is therefore
+saved more than once, and an application that writes it down can
+continue an interrupted turn instead of redoing it.
+
+A `path:` has no record behind it to write to, so that one saves once
+per turn. The difference is what each is for: the column is a
+checkpoint after every completed request, and the file is a session at
+the end of one.
 
 #### Why would I use it?
 
@@ -68,7 +73,11 @@ underlying serialization as filesystem persistence.
 The [`LLM::Agent#path`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#path)
 attribute provides transparent auto-persistence. Set a file path once
 and the agent restores conversation history from that file on startup
-and saves it back after every completed request. No manual
+and saves it back after every
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
+or
+[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
+turn. No manual
 [`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save)/
 [`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore)
 calls needed.
@@ -79,7 +88,11 @@ direct instances via the `path:` keyword argument.
 #### How it works
 
 When a `path` is set, the agent loads existing state from the file
-during initialization. After each completed request, the updated
+during initialization. After each turn
+([`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
+or
+[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)),
+the updated
 state is written back automatically. If the file does not exist yet,
 the agent starts with a blank conversation and creates the file on
 the first save.
