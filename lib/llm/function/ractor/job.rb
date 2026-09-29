@@ -87,16 +87,32 @@ class LLM::Function
         # holds is not this one.
         runner = runner_class.new
         ::Thread.new do
-          ::Ractor.receive == :interrupt or next
           ##
-          # The tool is told first, so a tool that releases a resource
-          # has done so by the time the raise lands on it, and so that
-          # a tool which rescues `LLM::Interrupt` reads what its hook
-          # wrote. The window decides whether the raise is the tool's
-          # to handle, or whether the tool has already been and gone.
-          LLM::Function.interrupt(runner)
-          window.interrupt!
-        rescue ::Ractor::Error
+          # Only the receive is guarded: it raises when the ractor this
+          # one talks to has gone, and nothing else here should be
+          # answerable to that rescue. A hook that raises must not be
+          # swallowed by it, and must not take the raise with it either -
+          # hence the `ensure` below, which delivers whatever the hook
+          # does.
+          kind = begin
+            ::Ractor.receive
+          rescue ::Ractor::Error
+            next
+          end
+          next unless kind == :interrupt
+          begin
+            ##
+            # The tool is told first, so a tool that releases a resource
+            # has done so by the time the raise lands on it, and so that
+            # a tool which rescues `LLM::Interrupt` reads what its hook
+            # wrote.
+            LLM::Function.interrupt_runner(runner)
+          ensure
+            ##
+            # The window decides whether the raise is the tool's to
+            # handle, or whether the tool has already been and gone.
+            window.interrupt!
+          end
         end
         ##
         # Everything the call needs is prepared outside the window, so

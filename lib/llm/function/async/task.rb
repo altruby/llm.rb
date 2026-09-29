@@ -45,8 +45,9 @@ module LLM::Function::Async
     # queue that will never fill.
     #
     # The tool's hook runs from inside that block, so it runs on the
-    # reactor's thread and before anything is pushed to the queue - which is
-    # what keeps the caller from being told before the tool is.
+    # reactor's thread, and the result is held in a local until it has: a
+    # hook that runs after the queue was pushed is a hook the caller can
+    # race past.
     # @return [nil]
     def spawn
       return if @guarded
@@ -58,15 +59,27 @@ module LLM::Function::Async
         @scheduler = Fiber.scheduler
         raise LLM::Interrupt if @cancelled
         task.defer_cancel do
-          @queue << function.call
-        ensure
-          ##
-          # The hook runs on the reactor's thread rather than on the one
-          # that cancelled. See the note on
-          # `LLM::Function::Thread::Task#spawn` for why it cannot run before
-          # the call's frame has ended, and what `@delivered` means.
-          function.interrupt! if @delivered
+          result = begin
+            function.call
+          ensure
+            ##
+            # The hook runs on the reactor's thread rather than on the one
+            # that cancelled. See the note on
+            # `LLM::Function::Thread::Task#spawn` for why it cannot run
+            # before the call's frame has ended, and what `@delivered`
+            # means.
+            function.interrupt! if @delivered
+          end
+          @queue << result
         end
+      rescue LLM::Interrupt => e
+        ##
+        # A block-level rescue runs after the `defer_cancel` block's
+        # `ensure`, so the tool is told first and the caller second. This is
+        # also what answers a cancel that arrives before `spawn`: the block
+        # raises before it reaches a tool, and there is no result to push.
+        @queue << e
+        raise
       end
       nil
     end

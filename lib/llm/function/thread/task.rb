@@ -42,6 +42,12 @@ module LLM::Function::Thread
         # it means. It is set only where the raise was issued into a live
         # thread: a cancel that arrives before the call starts, or after it
         # has finished, interrupted nothing and tells nobody.
+        #
+        # The hook runs before this thread ends, so it has run before
+        # `#wait` can return - which is the other half of telling the tool
+        # before the caller. A hook that raises becomes what this thread
+        # returns instead, so the error reaches the caller in place of the
+        # call's result.
         function.interrupt! if @delivered
       end
       @thread.report_on_exception = false
