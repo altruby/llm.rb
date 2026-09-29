@@ -845,6 +845,11 @@ module LLM
     # a conversation written before the mark existed keeps its stale
     # instructions rather than losing a message. Stale is recoverable.
     #
+    # An agent with no instructions returns first. The caller reaches
+    # this through `apply_instructions`, which already returns early for
+    # the same reason, and the guard is repeated here so that the method
+    # cannot replace a message with nil however it is reached.
+    #
     # Comparing content rather than the message is deliberate.
     # {LLM::Message#==} compares everything a message carries apart from
     # its id, which drags fields that have nothing to do with
@@ -855,6 +860,7 @@ module LLM
     # @api private
     # @return [void]
     def refresh_instructions!
+      return unless @instructions
       message = @ctx.messages.first
       return unless message&.extra&.key?(:instructions)
       return if message.content == @instructions
