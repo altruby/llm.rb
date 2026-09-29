@@ -40,40 +40,51 @@ class LLM::Prompt
   #  The message
   # @param [Symbol] role
   #  The role (eg user, system)
+  # @param [Hash, nil] extra
+  #  Fields carried alongside the message. A caller that composes a
+  #  message of its own can mark it here, and the runtime reads the
+  #  mark back rather than inferring it from the role.
   # @return [void]
-  def talk(content, role: @provider.user_role)
+  def talk(content, role: @provider.user_role, extra: nil)
     role = case role.to_sym
     when :system then @provider.system_role
     when :user then @provider.user_role
     when :developer then @provider.developer_role
     else role
     end
-    @buffer << LLM::Message.new(role, content)
+    message = extra ? LLM::Message.new(role, content, extra) : LLM::Message.new(role, content)
+    @buffer << message
   end
   alias_method :chat, :talk
 
   ##
   # @param [String] content
   #  The message content
+  # @param [Hash, nil] extra
+  #  Fields carried alongside the message
   # @return [void]
-  def user(content)
-    talk(content, role: @provider.user_role)
+  def user(content, extra: nil)
+    talk(content, role: @provider.user_role, extra:)
   end
 
   ##
   # @param [String] content
   #  The message content
+  # @param [Hash, nil] extra
+  #  Fields carried alongside the message
   # @return [void]
-  def system(content)
-    talk(content, role: @provider.system_role)
+  def system(content, extra: nil)
+    talk(content, role: @provider.system_role, extra:)
   end
 
   ##
   # @param [String] content
   #  The message content
+  # @param [Hash, nil] extra
+  #  Fields carried alongside the message
   # @return [void]
-  def developer(content)
-    talk(content, role: @provider.developer_role)
+  def developer(content, extra: nil)
+    talk(content, role: @provider.developer_role, extra:)
   end
 
   ##
