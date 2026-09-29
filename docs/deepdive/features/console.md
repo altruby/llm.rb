@@ -66,9 +66,9 @@ should use the `console` names.
 When `bin/llm.rb` starts, it looks for an `AGENTS.md` file in the
 current working directory. If one exists, its contents become the
 agent's instructions for the session, so a project can describe how it
-wants the agent to work without passing flags. The instructions are
-injected once, so a resumed session that already has a system message
-keeps the one it has.
+wants the agent to work without passing flags. The agent brings its
+instructions up to date before each request, so a resumed session runs
+on the current file rather than the one it was saved with.
 
 The user-message label is exposed through
 [`LLM::Console#sender`](https://r.uby.dev/api-docs/llm.rb/LLM/Console.html#sender-instance_method),

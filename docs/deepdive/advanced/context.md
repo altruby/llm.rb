@@ -424,7 +424,9 @@ The block receives the prompt object when it takes an argument, and
 otherwise runs in the prompt's context:
 [`LLM::Prompt#to_a`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#to_a)
 returns the messages in order, and two prompts are equal when their
-messages match.
+messages match. Each of `system`, `user`, `developer`, and `talk`
+accepts an `extra:` hash, which is attached to the message it builds,
+so a caller can carry a field of its own alongside the content.
 
 #### Why would I use it?
 

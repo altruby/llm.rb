@@ -21,8 +21,9 @@ the model responds, and if it requests tools the agent
 executes them automatically and feeds the results back. The tool
 loop can be bounded with
 [`LLM::Agent.tool_budget`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#tool_budget-class_method)
-(see the Tool budget section). Instructions are injected once
-unless a system message is already present.
+(see the Tool budget section). Instructions are injected once and
+brought up to date from the agent before each request, unless the
+prompt already carries a system message of the caller's own.
 
 #### Why would I use it?
 
