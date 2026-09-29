@@ -299,6 +299,63 @@ RSpec.describe LLM::Function do
     end
   end
 
+  describe "when a tool implements an interrupt hook" do
+    it "resolves one runner instance per call" do
+      klass = Class.new(LLM::Tool) do
+        name "resolves"
+
+        def call
+          {"ok" => true}
+        end
+      end
+      first = klass.function.dup
+      second = klass.function.dup
+      expect(first.runner).to equal(first.runner)
+      expect(first.runner).not_to equal(second.runner)
+    end
+
+    it "tells a tool that was supplied as a class" do
+      told = []
+      klass = Class.new(LLM::Tool) do
+        name "told"
+
+        define_method(:call) { {"ok" => true} }
+        define_method(:on_interrupt) { told << object_id }
+      end
+      fn = klass.function.dup.tap do |f|
+        f.id = "call_1"
+        f.arguments = {}
+      end
+      fn.task(:sequential).interrupt!
+      expect(told).to eq([fn.runner.object_id])
+    end
+
+    it "tells the instance that is running the call" do
+      running = Queue.new
+      told = Queue.new
+      klass = Class.new(LLM::Tool) do
+        name "running"
+
+        define_method(:call) do
+          running << true
+          sleep 10
+          {"ok" => true}
+        end
+        define_method(:on_interrupt) { told << object_id }
+      end
+      fn = klass.function.dup.tap do |f|
+        f.id = "call_1"
+        f.arguments = {}
+      end
+      task = fn.task(:thread)
+      task.spawn
+      running.pop
+      task.interrupt!
+      expect { task.wait }.to raise_error(LLM::Interrupt)
+      expect(told.pop).to eq(fn.runner.object_id)
+    end
+  end
+
   describe LLM::Function::Sequential::Group do
     describe "when interrupting a sequential group" do
       subject(:group) { LLM::Function::Sequential::Group.new([function.task(:sequential)]) }
