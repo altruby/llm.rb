@@ -225,12 +225,16 @@ module LLM
       ##
       # The request completed, so the conversation is whole: this is the
       # boundary between one request and the next, and a stream is told about
-      # it. `LLM::Step` goes onto the stream first, so a conversation bound to
-      # a record is written down as it goes. The callback is emitted even when
-      # the stream is disabled - a disabled stream has no output to report but
-      # a step still ended, and the transport drops the stream before the
-      # request runs, so this is the one event it would otherwise never see.
-      stream.extend(LLM::Step).on_step(self, res)
+      # it. `LLM::Step` is prepended onto the stream's singleton class first,
+      # so a conversation bound to a record is written down as it goes - and
+      # so a stream that defines `on_step` for itself cannot shadow the write,
+      # because it is reached by the module's `super` instead. The callback is
+      # emitted even when the stream is disabled: a disabled stream has no
+      # output to report but a step still ended, and the transport drops the
+      # stream before the request runs, so this is the one event it would
+      # otherwise never see.
+      stream.singleton_class.prepend(LLM::Step)
+      stream.on_step(self, res)
       res
     ensure
       @owner = nil
