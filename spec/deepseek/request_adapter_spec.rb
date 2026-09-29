@@ -31,8 +31,30 @@ RSpec.describe "LLM::DeepSeek::RequestAdapter::Completion" do
 
       let(:ctx) { LLM::Context.new(provider) }
 
-      it "raises a prompt error" do
-        expect { payload }.to raise_error(LLM::PromptError, /image_url/)
+      it "adapts the image url" do
+        expect(payload).to eq(
+          role: "user",
+          content: [{type: :image_url, image_url: {url: "https://example.com/cat.png"}}]
+        )
+      end
+    end
+
+    context "with a local image" do
+      let(:message) do
+        LLM::Message.new("user", [ctx.local_file(image)])
+      end
+
+      let(:ctx) { LLM::Context.new(provider) }
+      let(:image) { File.join(Dir.getwd, "spec", "fixtures", "images", "bluebook.png") }
+
+      it "adapts the image as a base64 encoded data uri" do
+        expect(payload).to eq(
+          role: "user",
+          content: [{
+            type: :image_url,
+            image_url: {url: "data:image/png;base64,#{LLM.File(image).to_b64}"}
+          }]
+        )
       end
     end
 
@@ -55,8 +77,37 @@ RSpec.describe "LLM::DeepSeek::RequestAdapter::Completion" do
 
       let(:ctx) { LLM::Context.new(provider) }
 
-      it "raises a prompt error" do
-        expect { payload }.to raise_error(LLM::PromptError, /local_file/)
+      it "raises a prompt error that says it is not an image" do
+        expect { payload }.to raise_error(LLM::PromptError, /is not an image/)
+      end
+    end
+
+    context "with remote file content" do
+      let(:message) do
+        LLM::Message.new("user", [ctx.remote_file(remote_file)])
+      end
+
+      let(:ctx) { LLM::Context.new(provider) }
+      let(:remote_file) do
+        LLM::Object.from("file?" => true, "id" => "file_123", "mime_type" => "image/png")
+      end
+
+      it "raises a prompt error that says there is no files api" do
+        expect { payload }.to raise_error(LLM::PromptError, /no Files API/)
+      end
+    end
+
+    context "with response content" do
+      let(:message) do
+        LLM::Message.new("user", [response])
+      end
+
+      let(:response) do
+        response!(choices: [LLM::Message.new("assistant", "hello")])
+      end
+
+      it "raises a prompt error that says there is no files api" do
+        expect { payload }.to raise_error(LLM::PromptError, /no Files API/)
       end
     end
 
