@@ -29,7 +29,10 @@ class LLM::Tool
     # @param description [String]
     #   The description of a property
     # @param options [Hash]
-    #   A hash of options for the parameter
+    #   A hash of options for the parameter. Each option is applied to the
+    #   leaf the type resolves to, so any setting a leaf accepts works here,
+    #   such as `required:`, `default:`, `enum:`, and the range settings
+    #   `min:` and `max:` that an integer, number, or string leaf supports.
     # @option options [Boolean] :required
     #   Whether or not the parameter is required
     # @option options [Object] :default
@@ -84,13 +87,10 @@ class LLM::Tool
       end
 
       def setup(leaf, description, options)
-        required = options.fetch(:required, false)
-        default = options.fetch(:default, nil)
-        enum = options.fetch(:enum, nil)
-        leaf.required if required
-        leaf.description(description) if description
-        leaf.default(default) if default
-        leaf.enum(*enum) if enum
+        options = {description:}.merge(options)
+        options.each do |name, value|
+          (value == true) ? leaf.public_send(name) : leaf.public_send(name, *value)
+        end
         leaf
       end
 
