@@ -26,6 +26,7 @@ class LLM::Function
     def initialize(thread: ::Thread.main)
       @thread = thread
       @mutex = Mutex.new
+      @changed = ConditionVariable.new
       @state = :idle
     end
 
@@ -36,18 +37,12 @@ class LLM::Function
     # It waits while the window has not opened, and returns without
     # raising once it has closed. In between, the raise it issues lands on
     # the tool.
-    #
-    # The wait is a poll, and it is a poll because this class is used
-    # inside a ractor too. With a condition variable there the waiter is
-    # never woken on Ruby 3.3: the interrupt this exists for arrives while
-    # the window is idle, and it waits out its timeout being raised for a
-    # window that has opened beside it. `sleep` is the one wait a ractor
-    # is known to keep, and every ractor tool in this project's examples
-    # already relies on it.
     # @return [void]
     def interrupt!
-      sleep(0.001) while idle?
-      return unless running?
+      @mutex.synchronize do
+        @changed.wait(@mutex) while @state == :idle
+        return unless @state == :running
+      end
       @thread.raise(LLM::Interrupt)
     end
 
@@ -60,27 +55,23 @@ class LLM::Function
     # scheduled, the tool is running.
     # @return [void]
     def running!
-      @mutex.synchronize { @state = :running }
+      @mutex.synchronize do
+        @state = :running
+        @changed.broadcast
+      end
     end
 
     ##
     # Called from the tool's thread, once it has returned - in the happy
     # path before the result is written, and in `ensure` for every other.
-    # A waiter holding an interrupt then finds there is nothing to
-    # interrupt.
+    # Wakes anyone holding an interrupt, who then finds there is nothing
+    # to interrupt.
     # @return [void]
     def finished!
-      @mutex.synchronize { @state = :finished }
-    end
-
-    private
-
-    def idle?
-      @mutex.synchronize { @state == :idle }
-    end
-
-    def running?
-      @mutex.synchronize { @state == :running }
+      @mutex.synchronize do
+        @state = :finished
+        @changed.broadcast
+      end
     end
   end
 end
