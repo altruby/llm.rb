@@ -15,6 +15,21 @@
 
 ## What's next
 
+### Breaking
+
+#### Migration
+
+| Old | New |
+|-----|-----|
+| Ruby 3.3 or later | Ruby 3.4 or later |
+
+* **drop Ruby 3.3 support** <br>
+  The gem now requires Ruby 3.4 or later: `required_ruby_version` is
+  `>= 3.4.0`, the CI matrix runs 3.4 and 4.0, and RuboCop targets 3.4.
+  Ruby 3.3 cannot hold an interrupt for a ractor-backed tool call, so a
+  cancel that arrives before the tool starts is not delivered there. Ruby
+  3.4 and 4.0 both deliver it.
+
 ### Console
 
 * **console: erase with the backspace key on OpenBSD** <br>
@@ -28,13 +43,26 @@
 
 * **function: deliver an interrupt to the tool, not to whatever is running** <br>
   [`LLM::Function::Window`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Window.html)
-  is the stretch of a call that an interrupt belongs to. The `:fork` strategy
-  now raises `LLM::Interrupt` on the thread that runs the tool, and only while
-  the tool runs: a cancel that arrives before the tool starts is held until it
-  does, so the tool's own `rescue` can handle it, and one that arrives after the
-  tool has returned is a no-op, which no longer throws the result away. Before
-  this, the interrupt was raised on the child process's main thread wherever
-  that thread had got to.
+  is the stretch of a call that an interrupt belongs to. The `:fork` and
+  `:ractor` strategies now raise `LLM::Interrupt` on the thread that runs
+  the tool, and only while the tool runs: a cancel that arrives before the
+  tool starts is held until it does, so the tool's own `rescue` can handle
+  it, and one that arrives after the tool has returned is a no-op, which no
+  longer throws the result away. Before this, the interrupt was raised on
+  the child process's or the ractor's main thread wherever that thread had
+  got to.
+
+* **function: answer a ractor-backed task once its ractor has gone** <br>
+  A `:ractor` tool's result is handed to a ractor the task holds it in,
+  rather than asked of the ractor that ran the tool, which answers `alive?`
+  while the tool runs and goes once the result is in. A wait that arrives
+  after the tool has run is therefore answered, every wait after the first is
+  answered from memory, the way
+  [`LLM::Function::Thread::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Thread/Task.html#wait-instance_method)
+  answers from the thread's value. The task's own `alive?` answers `false`
+  once it has been waited on, and a cancel returns `nil`. Before this, a wait
+  that arrived once the tool had run raised `Ractor::ClosedError`, or never
+  came back at all, and a cancel raised the same error.
 
 ### Provider
 
