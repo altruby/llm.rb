@@ -84,6 +84,21 @@
   side effects happening and its result written to a queue nobody read, and the
   reactor thread stayed alive until a group's `wait` stopped it.
 
+* **function: run the interrupt hook on every strategy** <br>
+  A tool that implements
+  [`LLM::Tool#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_interrupt-instance_method)
+  or
+  [`LLM::Tool#on_cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_cancel-instance_method)
+  is now told on every concurrency strategy. `:thread`, `:fiber`, and `:async`
+  run the hook on the thread or fiber that ran the call, `:fork` and `:ractor`
+  run it inside the child or the ractor before the interrupt is delivered, and
+  a sequential group's cancel tells every task it holds. Before this, `:async`,
+  `:fork`, and `:ractor` never ran the hook, the others ran it on the thread
+  that cancelled, and a class-backed tool ran it on no strategy at all, because
+  `interrupt!` read the hook off the tool's definition and a class answers
+  `respond_to?` with false for an instance method. A hook that raises becomes
+  what the caller sees in place of the call's result.
+
 ### Provider
 
 * **deepseek: support image attachments in chat completions** <br>
