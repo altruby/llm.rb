@@ -4,10 +4,11 @@ module LLM
   ##
   # Writes the conversation down when a request completes.
   #
-  # {LLM::Step LLM::Step} is extended onto a stream by {LLM::Context#talk}
-  # before it emits a step, so a conversation bound to a record is saved as it
-  # goes: a turn that is interrupted - by a crash, by a deploy, or by a
-  # provider that refuses - can be continued rather than started over.
+  # {LLM::Step LLM::Step} is prepended onto a stream's singleton class by
+  # {LLM::Context#talk} before it emits a step, so a conversation bound to a
+  # record is saved as it goes: a turn that is interrupted - by a crash, by a
+  # deploy, or by a provider that refuses - can be continued rather than
+  # started over.
   #
   # It saves through the record the context is bound to ({LLM::Context#record}),
   # and it knows both the ORMs llm.rb speaks: an ActiveRecord model is saved
@@ -17,9 +18,9 @@ module LLM
   # neither has a record that carries neither plugin, so the step is passed
   # along untouched.
   #
-  # All of this is one method on purpose. The module is extended onto an object
-  # the caller owns, and a helper would be one more name on that object for as
-  # long as it lives.
+  # All of this is one method on purpose. The module is put onto an object the
+  # caller owns, and a helper would be one more name on that object for as long
+  # as it lives.
   #
   # The write is best effort. A failure is warned about rather than raised,
   # because this runs inside the request that has just completed, and a stale
