@@ -13,7 +13,7 @@ jobs:
     name: Linux (Ruby ${{ matrix.ruby-version }})
     strategy:
       matrix:
-        ruby-version: ['3.3', '3.4', '4.0']
+        ruby-version: ['3.4', '4.0']
         json-parser: ['JSON', 'Oj', 'Yajl']
 
     services:
@@ -83,6 +83,7 @@ jobs:
 #        copyback: false
 #        run: |
 #          pkg_add ruby-3.3.11
+#          pkg_add rubygem-bundler
 #          bundle33 install
 #          bundle33 exec rake
 
