@@ -309,20 +309,20 @@ RSpec.describe LLM::Function do
         end
         self.instances = 0
 
-        attr_reader :interrupted, :ran
+        attr_reader :ran, :told
 
         def initialize
           self.class.instances += 1
         end
 
         def call
-          @ran = true
+          @ran = Thread.current.object_id
           sleep 10
           {"ok" => true}
         end
 
         def on_interrupt
-          @interrupted = true
+          @told = Thread.current.object_id
         end
       end
     end
@@ -390,7 +390,7 @@ RSpec.describe LLM::Function do
       before { task.interrupt! }
 
       it "tells the tool" do
-        expect(function.runner.interrupted).to be(true)
+        expect(function.runner.told).not_to be_nil
       end
     end
 
@@ -403,8 +403,9 @@ RSpec.describe LLM::Function do
         task.interrupt!
       end
 
-      it "tells the tool" do
-        expect(function.runner.interrupted).to be(true)
+      it "tells the tool on the thread that runs the call" do
+        task.wait rescue LLM::Interrupt
+        expect(function.runner.told).to eq(function.runner.ran)
       end
     end
 
@@ -425,8 +426,9 @@ RSpec.describe LLM::Function do
 
       after { reactor&.stop }
 
-      it "tells the tool" do
-        expect(function.runner.interrupted).to be(true)
+      it "tells the tool on the thread that runs the call" do
+        task.wait rescue LLM::Interrupt
+        expect(function.runner.told).to eq(function.runner.ran)
       end
     end
 
