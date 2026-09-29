@@ -299,6 +299,116 @@ RSpec.describe LLM::Function do
     end
   end
 
+  describe "when a tool implements a cooperative hook" do
+    let(:tool_class) do
+      Class.new(LLM::Tool) do
+        name "probe"
+
+        class << self
+          attr_accessor :instances
+        end
+        self.instances = 0
+
+        attr_reader :interrupted, :ran
+
+        def initialize
+          self.class.instances += 1
+        end
+
+        def call
+          @ran = true
+          sleep 10
+          {"ok" => true}
+        end
+
+        def on_interrupt
+          @interrupted = true
+        end
+      end
+    end
+    let(:function) do
+      tool_class.function.dup.tap do |fn|
+        fn.id = "call_1"
+        fn.arguments = {}
+      end
+    end
+
+    describe "when resolving the runner" do
+      it "resolves one instance per function" do
+        expect(function.runner).to equal(function.runner)
+      end
+
+      it "resolves a separate instance per copy" do
+        definition = tool_class.function
+        definition.runner
+        expect(definition.dup.runner).not_to equal(definition.runner)
+      end
+
+      it "resolves before the task it returns exists" do
+        expect { function.task(:thread) }.to change { tool_class.instances }.by(1)
+      end
+
+      context "when the tool is blocked by a guard" do
+        before do
+          function.guard = ->(function:) { function.return(error: true, type: "guard_error", message: "stop") }
+        end
+
+        it "does not resolve the runner" do
+          expect { function.task(:thread) }.not_to change { tool_class.instances }
+        end
+      end
+    end
+
+    describe "when the tool cannot be built" do
+      let(:tool_class) do
+        Class.new(LLM::Tool) do
+          name "required"
+
+          def initialize(client)
+            @client = client
+          end
+
+          def call
+            {"ok" => true}
+          end
+        end
+      end
+
+      it "returns an in-band error" do
+        result = function.task(:thread).wait.to_h
+        expect(result[:value]).to include(error: true, type: "ArgumentError")
+      end
+
+      it "does not raise from interrupt!" do
+        expect { function.interrupt! }.not_to raise_error
+      end
+    end
+
+    describe "when the tool is supplied as a class" do
+      let(:task) { function.task(:sequential) }
+
+      before { task.interrupt! }
+
+      it "tells the tool" do
+        expect(function.runner.interrupted).to be(true)
+      end
+    end
+
+    describe "when the tool is running a call" do
+      let(:task) { function.task(:thread) }
+
+      before do
+        task.spawn
+        Timeout.timeout(2) { sleep 0.05 until function.runner.ran }
+        task.interrupt!
+      end
+
+      it "tells the tool" do
+        expect(function.runner.interrupted).to be(true)
+      end
+    end
+  end
+
   describe LLM::Function::Sequential::Group do
     describe "when interrupting a sequential group" do
       subject(:group) { LLM::Function::Sequential::Group.new([function.task(:sequential)]) }
