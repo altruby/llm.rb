@@ -57,6 +57,14 @@ module LLM
     private_constant :UNDEFINED
 
     ##
+    # Marks the message an agent injects as its own, so that a later
+    # turn can tell it from a message the caller composed. The role
+    # cannot do that: it is true of whatever the caller put there.
+    # @api private
+    INSTRUCTIONS = {instructions: true}.freeze
+    private_constant :INSTRUCTIONS
+
+    ##
     # Ugh :)
     # @api private
     FIELDS = %i[record
@@ -813,11 +821,11 @@ module LLM
       # up to date, which is what `inject_instructions?` tests for.
       refresh_instructions! unless carries_system_message?(new_prompt)
       if LLM::Prompt === new_prompt
-        new_prompt.system(@instructions) if inject_instructions?(new_prompt)
+        new_prompt.system(@instructions, extra: INSTRUCTIONS) if inject_instructions?(new_prompt)
         new_prompt
       else
         prompt do
-          _1.system(@instructions) if inject_instructions?
+          _1.system(@instructions, extra: INSTRUCTIONS) if inject_instructions?
           _1.user(new_prompt)
         end
       end
@@ -826,26 +834,30 @@ module LLM
     ##
     # Brings the instructions stored in the conversation up to date.
     #
-    # The message is the agent's own and it is the first in the
-    # conversation, which is the position {LLM::Compactor::Truncate}
-    # keeps it in. Its role does not identify it: the role is the
-    # provider's, so this asks the provider which one instructions are
-    # given rather than asking the message whether it is a system
-    # message. `#system?` compares against the string "system", and a
-    # provider whose system role is `:user` would never match it.
+    # The message is identified by the mark the agent put on it when it
+    # injected it, and not by its role or its position. A role is true
+    # of whatever the caller put there - on a provider whose system role
+    # is `:user`, the first message of a conversation the caller seeded
+    # is a user message too - so a rule written on either of those
+    # replaces a message that was never the agent's to replace.
+    #
+    # A message with no mark is left alone, which is the safe direction:
+    # a conversation written before the mark existed keeps its stale
+    # instructions rather than losing a message. Stale is recoverable.
     #
     # Comparing content rather than the message is deliberate.
     # {LLM::Message#==} compares everything a message carries apart from
     # its id, which drags fields that have nothing to do with
-    # instructions into the comparison.
+    # instructions into the comparison. The mark is carried onto the
+    # replacement so that the turn after this one can still find it.
     # @api private
     # @return [void]
     def refresh_instructions!
       message = @ctx.messages.first
-      return unless message && message.role.to_s == @llm.system_role.to_s
+      return unless message&.extra&.key?(:instructions)
       return if message.content == @instructions
       @ctx.messages.replace(
-        [LLM::Message.new(@llm.system_role, @instructions), *@ctx.messages.drop(1)]
+        [LLM::Message.new(message.role, @instructions, message.extra), *@ctx.messages.drop(1)]
       )
     end
 
@@ -856,22 +868,29 @@ module LLM
     # prompt rather than about the context, and it is the one a refresh
     # needs. The context half says "do not inject again", which is not
     # the same question as "whose instructions are these".
+    #
+    # The role asked about is the provider's: a prompt's `system` is
+    # built with the role the provider gives instructions, which is not
+    # the string "system" everywhere.
     # @param [LLM::Prompt, Object] prompt
     # @return [Boolean]
     def carries_system_message?(prompt)
-      LLM::Prompt === prompt && prompt.to_a.any?(&:system?)
+      role = @llm.system_role.to_s
+      LLM::Prompt === prompt && prompt.to_a.any? { _1.role.to_s == role }
     end
 
     ##
     # Returns true when agent instructions should be injected for the turn.
-    # Instructions are injected once unless a system message is already
-    # present in the existing context or the prompt being sent.
+    # Instructions are injected once unless a message with the provider's
+    # system role is already present in the existing context or the prompt
+    # being sent.
     # @param [LLM::Prompt, nil] prompt
     # @return [Boolean]
     def inject_instructions?(prompt = nil)
-      return false if @ctx.messages.any?(&:system?)
+      role = @llm.system_role.to_s
+      return false if @ctx.messages.any? { _1.role.to_s == role }
       return true if prompt.nil?
-      !prompt.to_a.any?(&:system?)
+      !prompt.to_a.any? { _1.role.to_s == role }
     end
 
     ##
