@@ -223,16 +223,9 @@ module LLM
       end
       @messages.concat([res.choices[-1]].compact)
       ##
-      # The request completed, so the conversation is whole: this is the
-      # boundary between one request and the next, and a stream is told about
-      # it. `LLM::Step` is prepended onto the stream's singleton class first,
-      # so a conversation bound to a record is written down as it goes - and
-      # so a stream that defines `on_step` for itself cannot shadow the write,
-      # because it is reached by the module's `super` instead. The callback is
-      # emitted even when the stream is disabled: a disabled stream has no
-      # output to report but a step still ended, and the transport drops the
-      # stream before the request runs, so this is the one event it would
-      # otherwise never see.
+      # The conversation is whole, so `LLM::Step` is prepended - above any
+      # `on_step` the stream defines for itself, so the write cannot be
+      # shadowed - and the stream is told that a step ended.
       stream.singleton_class.prepend(LLM::Step)
       stream.on_step(self, res)
       res

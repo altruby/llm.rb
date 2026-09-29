@@ -39,7 +39,7 @@ module LLM
     # @return [nil]
     def on_step(ctx, res)
       record = ctx.record
-      if record && record.class.respond_to?(:llm_plugin_options)
+      if record and record.class.respond_to?(:llm_plugin_options)
         options = record.class.llm_plugin_options
         if defined?(::ActiveRecord::Base) and ::ActiveRecord::Base === record
           LLM::ActiveRecord::Utils.save!(record, ctx, options)
