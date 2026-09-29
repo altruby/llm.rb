@@ -50,6 +50,8 @@ an `embed` method:
 - Ollama (`qwen3:latest`)
 - Google (`gemini-embedding-2`)
 - Mistral (`mistral-embed`)
+- OpenRouter (`openai/text-embedding-3-small`)
+- Bedrock (the model is given per call)
 
 ### Vector stores (OpenAI)
 

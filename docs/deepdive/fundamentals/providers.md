@@ -92,6 +92,43 @@ missing model or registry raises `LLM::NoSuchModelError` or
 `LLM::NoSuchRegistryError`, which the runtime rescues to default
 gracefully (for example, an unknown context window reads as `nil`).
 
+### Model listings
+
+#### Overview
+
+The registry is the catalog llm.rb ships. A provider can also list the
+models it serves right now, which shows a model added since your copy
+of `data/` was written, or one available to your account alone.
+
+#### How it works
+
+A provider with a models endpoint exposes it through `llm.models`, and
+`all` returns the list:
+
+```ruby
+require "llm"
+
+llm = LLM.openai(key: ENV["KEY"])
+llm.models.all.each { puts _1.id }
+```
+
+OpenAI, Anthropic, Google, Bedrock, and Ollama implement it. Bedrock
+lists the foundation models in the configured region and accepts
+`byProvider:` to narrow the list; Ollama lists the models pulled into
+the local daemon.
+
+#### Why would I use it?
+
+A shipped catalog goes stale between releases. Asking the provider
+keeps a model picker current and reveals models the catalog does not
+know about.
+
+#### Notes
+
+Not every provider implements a models endpoint; calling `models` on
+one that does not raises `NotImplementedError`. Unlike the registry,
+the call needs credentials.
+
 ### Request headers
 
 #### Overview

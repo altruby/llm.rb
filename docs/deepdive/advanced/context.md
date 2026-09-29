@@ -81,9 +81,10 @@ Pass `retry_budget:` to retry a request that was rate limited
 Each retry sleeps a growing interval (2s, 4s, 6s, ...) and notifies
 the stream through
 [`LLM::Stream#on_retry`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_retry-instance_method)
-before trying again. An `LLM::Agent` enables a budget of 5 by
-default (or 8 on the Alibaba provider, which rate limits more
-often), so most users never touch this directly.
+before trying again. The budget lives on the provider, where it
+defaults to 5 (8 on Alibaba, which rate limits more often), and an
+agent that sets none of its own takes the provider's, so most users
+never touch this directly.
 
 ### Identity
 

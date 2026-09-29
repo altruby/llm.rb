@@ -61,6 +61,12 @@ is defined explicitly and serializes through the configured JSON
 adapter via
 [`LLM.json.dump`](https://r.uby.dev/api-docs/llm.rb/LLM.html#json-class_method).
 
+The adapter is `LLM::JSONAdapter::JSON`, the standard library, by
+default. Set `LLM.json = :oj` or `LLM.json = :yajl` to use a faster
+backend when the matching gem is present; every adapter normalizes
+strings to valid UTF-8 before it serializes, so the choice affects
+speed rather than behavior.
+
 ### Reading and writing
 
 #### Overview

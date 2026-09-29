@@ -245,9 +245,12 @@ of hanging.
 
 The retry budget applies to rate-limited requests
 (`LLM::RateLimitError`) and timeouts (`Timeout::Error`, covering
-`Net::OpenTimeout` and `Net::ReadTimeout`), other errors are never
-retried. The budget defaults to five for agents, while a raw
+`Net::OpenTimeout` and `Net::ReadTimeout`); other errors are never
+retried. The budget lives on the provider, where it defaults to five
+(eight on Alibaba, which rate limits more often), and an agent that
+sets none of its own takes the provider's. A raw
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
-defaults to zero (`retry_budget: 0`). A 429 is refused before any
-content streams, so retrying the same request loses nothing. Pass
-`retry_budget: 0` to disable retries on an agent.
+defaults to zero (`retry_budget: 0`), so retries are opt-in there. A
+429 is refused before any content streams, so retrying the same
+request loses nothing. Pass `retry_budget: 0` to disable retries on
+an agent.

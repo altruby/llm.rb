@@ -68,6 +68,9 @@ is the best place to start if you are new to llm.rb.
 - [Built-in tools](deepdive/features/builtin_tools.md)
 - [Concurrency](deepdive/features/concurrency.md)
 - [Embeddings](deepdive/features/embeddings.md)
+- [Files](deepdive/features/files.md)
+- [Moderations](deepdive/features/moderations.md)
+- [Responses](deepdive/features/responses.md)
 - [Database](deepdive/features/database.md)
 - [Console](deepdive/features/console.md)
 
@@ -88,6 +91,7 @@ is the best place to start if you are new to llm.rb.
 
 ## Reference
 
+- [LLM::Response](deepdive/reference/response.md)
 - [LLM::Object](deepdive/reference/object.md)
 - [LLM::Cost](deepdive/reference/cost.md)
 - [Tracer](deepdive/reference/tracer.md)

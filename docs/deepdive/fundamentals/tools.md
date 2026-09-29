@@ -435,6 +435,12 @@ needs most. See the
 The tools that spawn subprocesses use the optional `test-cmd.rb`
 gem for process management and interrupt handling.
 
+`LLM::Tool.subclasses` lists the direct subclasses of
+[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html), so a
+tool defined under an intermediate base class is not in the list.
+[`LLM::Tool.registry`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#registry-class_method)
+lists every tool that has a name, wherever it sits in the hierarchy.
+
 ### Interrupts
 
 #### Overview

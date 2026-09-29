@@ -178,3 +178,53 @@ DSL builds, so the result is used the same way.
 An unsupported `type`, an unresolvable `$ref`, or a `$ref` that does
 not start with `#/` raises `TypeError`. When a schema omits `type`,
 the parser infers it from `const`, `enum`, or `default`.
+
+### Deferred types
+
+#### Overview
+
+A property or parameter type can be given as a block, in which case the
+type is worked out when the schema is serialized rather than when the
+class that declares it is defined. That is how a type that only exists
+at runtime, such as the values a store holds right now, is described.
+
+#### How it works
+
+Pass a block in place of the type. It is called each time the schema is
+serialized, and whatever it returns is resolved in turn, so it can
+return a leaf, a class, or an array of either:
+
+```ruby
+class Article < LLM::Schema
+  property :kind, proc { LLM::Schema::Enum[*Article.kinds] }, "The article kind"
+  required %i[kind]
+end
+```
+
+The same works for a tool parameter:
+
+```ruby
+class Publish < LLM::Tool
+  name "publish"
+  parameter :kind, proc { LLM::Schema::Enum[*Article.kinds] }, "The article kind"
+  required %i[kind]
+
+  def call(kind:)
+    Article.publish(kind:)
+  end
+end
+```
+
+#### Why would I use it?
+
+A schema is a class-level definition, but the choices it offers are
+sometimes only known when a request is made. A deferred type lets the
+schema be declared once and still send the values that are current at
+the time of the request.
+
+#### Notes
+
+The block is called on every serialization, so it runs once per
+request and sees the latest values. Everything a leaf accepts, such as
+`required`, `default`, and `enum`, is applied to the resolved leaf
+after the block returns.
