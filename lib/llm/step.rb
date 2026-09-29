@@ -5,10 +5,9 @@ module LLM
   # Writes the conversation down when a request completes.
   #
   # {LLM::Step LLM::Step} is prepended onto a stream's singleton class by
-  # {LLM::Context#talk} before it emits a step, so a conversation bound to a
-  # record is saved as it goes: a turn that is interrupted - by a crash, by a
-  # deploy, or by a provider that refuses - can be continued rather than
-  # started over.
+  # {LLM::Stream.try}, so a conversation bound to a record is saved as it goes:
+  # a turn that is interrupted - by a crash, by a deploy, or by a provider that
+  # refuses - can be continued rather than started over.
   #
   # It saves through the record the context is bound to ({LLM::Context#record}),
   # and it knows both the ORMs llm.rb speaks: an ActiveRecord model is saved
@@ -22,7 +21,7 @@ module LLM
   # caller owns, and a helper would be one more name on that object for as long
   # as it lives.
   #
-  # The write is best effort: a failure is swallowed rather than raised, because
+  # The write is best effort, and a failure is reported rather than raised:
   # this runs inside the request that has just completed, and a stale checkpoint
   # is a smaller failure than a turn that ends because the database was busy.
   #
@@ -48,7 +47,8 @@ module LLM
         end
       end
       super
-    rescue
+    rescue => e
+      warn "llm.rb: could not save the conversation: #{e.class}: #{e.message}"
       nil
     end
   end
