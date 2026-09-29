@@ -200,6 +200,17 @@ module LLM::Sequel
     end
 
     ##
+    # @note The same call {#messages} makes here, and here for the sake of the
+    #   name: on {LLM::ActiveRecord} the two differ for a jsonb record, and a
+    #   wrapper that answered to a name the other one does not is the next
+    #   reader's surprise.
+    # @see LLM::Context#messages
+    # @return [LLM::Buffer]
+    def messages!
+      ctx.messages
+    end
+
+    ##
     # @note The bang is used because Sequel reserves `model` for the
     #   underlying model class on instances.
     # @see LLM::Context#model

@@ -419,11 +419,12 @@ records rather than
 [`LLM::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html)
 objects, until
 [`#unwrap!`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord/Message.html#unwrap!-instance_method)
-turns them back.
+turns them back. `#messages!` is the runtime's own list, whatever the
+format is, so a jsonb record reaches it in one call.
 
-Every other format loads the runtime and returns the messages it
-holds, as it always did, and that is the default. Sequel has no
-equivalent: its plugin persists the same state, and there is no view to
+Every other format answers `#messages` with the runtime's messages, as
+it always did, and that is the default. Sequel has no equivalent to any
+of this: its plugin persists the same state, and there is no view to
 read it back in the database.
 
 ### Sequel

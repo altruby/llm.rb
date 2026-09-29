@@ -25,7 +25,23 @@ RSpec.describe LLM::ActiveRecord::Message do
     end
   end
 
+  let(:provider_model) do
+    LLM::Test::Harness.build_active_record_model(
+      :spec_active_record_message_providers, adapter: :postgres, jsonb: true
+    ) do
+      self.table_name = "spec_active_record_message_providers"
+      acts_as_llm(format: :jsonb)
+
+      private
+
+      def set_provider
+        LLM.openai(key: "secret")
+      end
+    end
+  end
+
   let(:agent) { model.create!(data: {messages:}) }
+  let(:provider_record) { provider_model.create!(data: {messages:}) }
   let(:other_agent) { model.create!(data: {messages: other_messages}) }
   let(:assistant_id) { messages.last[:id] }
   let(:relation) { described_class.for(agent:) }
@@ -99,6 +115,16 @@ RSpec.describe LLM::ActiveRecord::Message do
 
     it "hands back rows the runtime can unwrap" do
       expect(agent.messages.order(:position).first.unwrap!).to be_a(LLM::Message)
+    end
+  end
+
+  describe "#messages!" do
+    it "reads the messages from the runtime" do
+      expect(provider_record.messages!).to be_a(LLM::Buffer)
+    end
+
+    it "reads them even though #messages answers with the view" do
+      expect(provider_record.messages).to be_a(ActiveRecord::Relation)
     end
   end
 

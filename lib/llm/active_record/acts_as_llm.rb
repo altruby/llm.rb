@@ -101,7 +101,8 @@ module LLM::ActiveRecord
       # unordered - conversation order is `position`, not `id` - and its rows
       # are {LLM::ActiveRecord::Message} records until
       # {LLM::ActiveRecord::Message#unwrap!} turns them back into
-      # {LLM::Message} objects.
+      # {LLM::Message} objects. {#messages!} is the runtime's own collection,
+      # for a caller who wants that instead.
       # @see LLM::Context#messages
       # @return [ActiveRecord::Relation, LLM::Buffer]
       def messages
@@ -111,6 +112,20 @@ module LLM::ActiveRecord
         else
           ctx.messages
         end
+      end
+
+      ##
+      # Returns the messages the runtime holds, whatever the storage format is.
+      #
+      # This is what {#messages} answers with for every format but jsonb, and
+      # it is the way back to it for a jsonb record. The difference between
+      # the two is what each reads: this reads what the context holds,
+      # including state that has not been saved, where {#messages} reads the
+      # column.
+      # @see LLM::Context#messages
+      # @return [LLM::Buffer]
+      def messages!
+        ctx.messages
       end
 
       ##
