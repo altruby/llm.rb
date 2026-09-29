@@ -43,8 +43,12 @@ class LLM::Function
     end
 
     ##
+    # A task that has been waited on is not alive, and it answers that
+    # from the result it holds rather than by asking a ractor that has
+    # gone with the answering of the wait.
     # @return [Boolean]
     def alive?
+      return false if @result
       @mailbox&.alive? || false
     end
 
@@ -57,14 +61,22 @@ class LLM::Function
     alias_method :cancel!, :interrupt!
 
     ##
+    # The result, once there is one, is answered from memory, the way
+    # {LLM::Function::Thread::Task#wait} answers from the thread's value.
+    # A ractor answers one round trip and goes with the answering of it,
+    # so a second trip is not one it can be asked for: the ractor is on
+    # its way out, and a request that races that is either refused or
+    # accepted and never read.
     # @return [LLM::Function::Return]
     def wait
       return @guarded if @guarded
-      spawn unless @mailbox
-      id, name, value = mailbox.wait
-      result = Return.new(id, name, value)
-      @tracer&.on_tool_finish(result:, span: @span)
-      result
+      @result ||= begin
+        spawn unless @mailbox
+        id, name, value = mailbox.wait
+        result = Return.new(id, name, value)
+        @tracer&.on_tool_finish(result:, span: @span)
+        result
+      end
     end
     alias_method :value, :wait
 
