@@ -223,10 +223,8 @@ module LLM
       end
       @messages.concat([res.choices[-1]].compact)
       ##
-      # The conversation is whole, so `LLM::Step` is prepended - above any
-      # `on_step` the stream defines for itself, so the write cannot be
-      # shadowed - and the stream is told that a step ended.
-      stream.singleton_class.prepend(LLM::Step)
+      # The conversation is whole, and `LLM::Stream.try` has already put
+      # `LLM::Step` onto the stream, so this is all that is left.
       stream.on_step(self, res)
       res
     ensure
