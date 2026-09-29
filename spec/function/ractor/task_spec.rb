@@ -3,14 +3,15 @@
 require "setup"
 
 ##
-# What a second wait answers, and where it comes from.
+# Where a wait's answer comes from.
 #
 # A ractor answers one round trip and goes with the answering of it, so
-# `Mailbox#wait` is not a request a terminated ractor can be asked twice.
-# The task remembers what it has been given instead, the way
-# `LLM::Function::Thread::Task#wait` answers from the thread's value, so
-# a second `wait` - and the `alive?` that follows one - is answered from
-# memory rather than from a ractor that has gone.
+# `Mailbox#wait` is not a request a terminated ractor can be asked. The
+# task's own ractor is not asked for the result at all: the job hands the
+# result to a ractor of the task's own before that ractor ends, and the
+# wait takes it from there, whether it arrives before or after the task's
+# ractor has gone. A wait after the first is answered from memory, the way
+# `LLM::Function::Thread::Task#wait` answers from the thread's value.
 #
 # **Every wait has a deadline.** A raise cannot be relied on to interrupt
 # a wait on a ractor, so each of them runs on a thread of its own and is
@@ -63,6 +64,23 @@ RSpec.describe LLM::Function::Ractor::Task do
     it "answers alive? from the result it has" do
       within { task.wait }
       expect(within { task.alive? }).to be(false)
+    end
+  end
+
+  describe "a wait that arrives after the result is in" do
+    it "is answered by the ractor the result was delivered to" do
+      task.spawn
+      ##
+      # The tool is quick and the wait is late: by the time it comes, the
+      # task's own ractor has answered the round trip it was there for
+      # and gone with it. Before this change the wait went to that ractor,
+      # and what came back was the refusal `Ractor#send` gives a port that
+      # has closed - or, the race's other outcome, a wait that never came
+      # back at all.
+      sleep 0.05
+      expect(within { task.wait }.to_h).to eq(
+        id: "call_1", name: "quick", value: {ok: true}
+      )
     end
   end
 end

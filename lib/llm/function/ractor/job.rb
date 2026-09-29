@@ -7,13 +7,16 @@ class LLM::Function
   class Ractor::Job
     ##
     # @param [::Ractor] mailbox
+    # @param [::Ractor] result
+    #  The ractor the result is handed to, which the task holds it in.
     # @param [Class] runner_class
     # @param [String, nil] id
     # @param [String] name
     # @param [Hash, Array, nil] arguments
     # @return [LLM::Function::Ractor::Job]
-    def initialize(mailbox, runner_class, id, name, arguments)
+    def initialize(mailbox, result, runner_class, id, name, arguments)
       @mailbox = mailbox
+      @result = result
       @runner_class = runner_class
       @id = id
       @name = name
@@ -29,27 +32,21 @@ class LLM::Function
 
     private
 
+    ##
+    # The loop owes one thing: the result, handed to the ractor the task
+    # holds it in before this one ends. It answers `alive?` while the tool
+    # runs, forwards interrupts to the tool, hands the result over, and
+    # goes - so a wait cannot arrive at a ractor that is on its way out,
+    # which is what asking this one for a result used to do.
+    # @return [void]
     def wait
-      done = false
-      result = nil
-      waiters = []
       loop do
         case ::Ractor.receive
         in [:done, *data]
-          result ||= data
-          done = true
-          waiters.each { _1.send(result) }
-          break unless waiters.empty?
-          waiters.clear
+          @result.send(data)
+          break
         in [:alive?, reply]
-          reply.send(!done)
-        in [:wait, reply]
-          if done
-            reply.send(result)
-            break
-          else
-            waiters << reply
-          end
+          reply.send(true)
         in [:interrupt]
           interrupt_tool
         end
@@ -60,9 +57,10 @@ class LLM::Function
     # Forwards an interrupt to the tool's ractor.
     #
     # A tool whose ractor has gone has nothing left to interrupt, and this
-    # ractor has to stay alive to answer whoever is waiting on it, so the
-    # raise a ractor that has terminated leaves behind is the one thing
-    # this must not let through.
+    # loop is the thing that owes the result to the ractor the task waits
+    # on. A raise here takes the loop with it before the result has been
+    # handed over, so that a forward to a ractor that has gone turns the
+    # failure that used to name it into a wait that never comes back.
     # @return [nil]
     def interrupt_tool
       @tool&.send(:interrupt)
