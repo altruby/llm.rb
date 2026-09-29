@@ -11,6 +11,9 @@ module LLM::Function::Fiber
   # {#wait}. Interrupting a running task raises
   # {LLM::Interrupt} on the fiber, which stops it at the next
   # yield point.
+  #
+  # A tool that implements `on_interrupt` is told on that fiber, once the
+  # call has ended, rather than on the thread that cancelled it.
   class Task < LLM::Function::Task
     ##
     # @param [LLM::Function] fn
@@ -26,7 +29,16 @@ module LLM::Function::Fiber
       if Fiber.scheduler.nil?
         raise ArgumentError, "Fiber concurrency requires Fiber.scheduler"
       else
-        @fiber = Fiber.schedule { function.call }
+        @fiber = Fiber.schedule do
+          function.call
+        ensure
+          ##
+          # The hook runs on the fiber the call runs on, once the call has
+          # ended, rather than on the thread that cancelled. See the note on
+          # `LLM::Function::Thread::Task#spawn` for why it cannot run before
+          # the call's frame has ended, and what `@delivered` means.
+          function.interrupt! if @delivered
+        end
         nil
       end
     end
@@ -40,8 +52,10 @@ module LLM::Function::Fiber
     ##
     # @return [nil]
     def interrupt!
-      @fiber&.raise(LLM::Interrupt) if @fiber&.alive?
-      function.interrupt!
+      if @fiber&.alive?
+        @delivered = true
+        @fiber.raise(LLM::Interrupt)
+      end
       nil
     end
     alias_method :cancel!, :interrupt!

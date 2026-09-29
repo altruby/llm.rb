@@ -43,6 +43,10 @@ module LLM::Function::Async
     # which one that saves its work does, is torn down with `Cancel`, which
     # nothing here catches and nothing pushes, leaving a caller blocked on a
     # queue that will never fill.
+    #
+    # The tool's hook runs from inside that block, so it runs on the
+    # reactor's thread and before anything is pushed to the queue - which is
+    # what keeps the caller from being told before the tool is.
     # @return [nil]
     def spawn
       return if @guarded
@@ -53,10 +57,16 @@ module LLM::Function::Async
         @task = task
         @scheduler = Fiber.scheduler
         raise LLM::Interrupt if @cancelled
-        task.defer_cancel { @queue << function.call }
-      rescue LLM::Interrupt => e
-        @queue << e
-        raise
+        task.defer_cancel do
+          @queue << function.call
+        ensure
+          ##
+          # The hook runs on the reactor's thread rather than on the one
+          # that cancelled. See the note on
+          # `LLM::Function::Thread::Task#spawn` for why it cannot run before
+          # the call's frame has ended, and what `@delivered` means.
+          function.interrupt! if @delivered
+        end
       end
       nil
     end
@@ -74,11 +84,11 @@ module LLM::Function::Async
     # it lets it raise, and either way the block above is what the caller
     # hears from - its value, or the exception it forwards.
     #
-    # The tool is told before the fiber is raised on, so a tool that
-    # releases a resource in `on_interrupt` has done so by the time its own
-    # `rescue` runs. The hook belongs to the task rather than to the window,
-    # so a cancel that arrives before the tool starts still tells it - and
-    # the block raises rather than running a call the cancel declined.
+    # The tool is told from inside the reactor, not here, so that a tool
+    # whose state belongs to the reactor's thread sees that thread.
+    # `@delivered` is set where the raise is issued into a live fiber: a
+    # cancel that arrives before the task starts, or after it has finished,
+    # interrupted nothing and tells nobody.
     #
     # Nothing is done to the reactor here. Where it is stopped is `#wait`'s
     # own `ensure`, the only point at which it is known to be idle, and the
@@ -94,8 +104,8 @@ module LLM::Function::Async
     def interrupt!
       @alive = false
       @cancelled = true
-      function.interrupt!
       if @task&.fiber&.alive?
+        @delivered = true
         @scheduler.fiber_interrupt(@task.fiber, LLM::Interrupt.new)
       elsif @task.nil? && @queue
         ##
