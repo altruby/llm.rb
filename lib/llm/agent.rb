@@ -191,6 +191,7 @@ module LLM
     # @param [#to_json, nil] schema
     #  The schema
     # @return [#to_json, nil]
+    #  Returns the current schema when no argument is provided
     def self.schema(schema = nil, &block)
       return @schema if schema.nil? and !block
       @schema = block || schema
@@ -201,6 +202,7 @@ module LLM
     # @param [Array<LLM::Function>, nil] tools
     #  One or more tools
     # @return [Array<LLM::Function>]
+    #  Returns the current tools when no argument is provided
     def self.tools(*tools, &block)
       return @tools || [] if tools.empty? and !block
       if block
@@ -217,6 +219,7 @@ module LLM
     # @param [Array<String>, nil] skills
     #  One or more skill directories
     # @return [Array<String>, nil]
+    #  Returns the current skills when no argument is provided
     def self.skills(*skills, &block)
       return @skills if skills.empty? and !block
       if block
@@ -265,6 +268,7 @@ module LLM
     # @param [String, nil] instructions
     #  The system instructions
     # @return [String, nil]
+    #  Returns the current instructions when no argument is provided
     def self.instructions(instructions = nil)
       return @instructions if instructions.nil?
       @instructions = instructions
@@ -438,9 +442,8 @@ module LLM
       # rate limit rather than failing outright.
       params[:retry_budget] = llm.retry_budget if params[:retry_budget].equal?(UNDEFINED)
       ##
-      # The context is bound to the same record the agent is, so that
-      # code written against a context alone - `LLM::Step`, for one -
-      # can find the record through `ctx.record` and save to it.
+      # The context is bound to the same record the agent holds, so code
+      # written against a context alone can find it through `ctx.record`.
       @ctx = LLM::Context.new(llm, params.merge(record: @record).compact)
       @path and File.readable?(@path) ? @ctx.restore(path:) : nil
     end
@@ -469,7 +472,7 @@ module LLM
 
     ##
     # Returns the agent's description
-    # @return [String]
+    # @return [String, nil]
     def description
       @description
     end
@@ -677,7 +680,8 @@ module LLM
     end
 
     ##
-    # @see LLM::Registry
+    # @see LLM::Context#registry
+    # @return [LLM::Registry]
     def registry
       @ctx.registry
     end
