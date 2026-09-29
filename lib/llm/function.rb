@@ -175,6 +175,20 @@ class LLM::Function
   end
 
   ##
+  # A duplicate resolves its own runner.
+  #
+  # The copy a task runs belongs to one call, and the instance that call
+  # resolves belongs to that copy - never to the definition it was
+  # duplicated from, which is shared and globally registered.
+  # @param [LLM::Function] other
+  # @return [void]
+  # @api private
+  def initialize_copy(other)
+    super
+    @_runner = nil
+  end
+
+  ##
   # Set (or get) the function name
   # @param [String] name The function name
   # @return [void]
@@ -310,11 +324,17 @@ class LLM::Function
   ##
   # Notifies the function runner that the call was interrupted.
   # This is cooperative and only applies to runners that implement
-  # `on_interrupt`.
+  # `on_cancel` or `on_interrupt`.
+  #
+  # Resolved through {#runner} rather than read off `@runner`, so that a
+  # class-backed tool is told on the object the call will run on. Read off
+  # the definition instead, a class answers `respond_to?` with false for
+  # both hooks, and a tool that implements one is never told.
   # @return [nil]
   def interrupt!
-    hook = %i[on_cancel on_interrupt].find { @runner.respond_to?(_1) }
-    @runner.public_send(hook) if hook
+    _runner = runner
+    hook = %i[on_cancel on_interrupt].find { _runner.respond_to?(_1) }
+    _runner.public_send(hook) if hook
     nil
   end
   alias_method :cancel!, :interrupt!
@@ -393,11 +413,18 @@ class LLM::Function
 
   ##
   # Returns the bound function runner instance.
+  #
+  # Resolved once and kept, so that the object an interrupt has to reach is
+  # the object that runs the call. A class-backed tool would otherwise build
+  # an instance here and discard it, leaving {#interrupt!} with a class to
+  # send the hook to.
   # @return [Object]
   def runner
-    runner = Class === @runner ? @runner.new : @runner
-    runner.tracer = @tracer if runner.respond_to?(:tracer=)
-    runner
+    @_runner ||= begin
+      _runner = Class === @runner ? @runner.new : @runner
+      _runner.tracer = @tracer if _runner.respond_to?(:tracer=)
+      _runner
+    end
   end
 
   private
