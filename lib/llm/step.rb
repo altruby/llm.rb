@@ -24,6 +24,9 @@ module LLM
   # The write is best effort: a failure is swallowed rather than raised, because
   # this runs inside the request that has just completed, and a stale checkpoint
   # is a smaller failure than a turn that ends because the database was busy.
+  # Only the write is covered, so a stream's own `on_step` is reached whether or
+  # not the write lands - a step that a tracer hears about does not depend on a
+  # database having been free.
   #
   # @see LLM::Stream#on_step
   # @see LLM::ActiveRecord::Utils.save!
@@ -40,15 +43,17 @@ module LLM
       record = ctx.record
       if record and record.class.respond_to?(:llm_plugin_options)
         options = record.class.llm_plugin_options
-        if defined?(::ActiveRecord::Base) and ::ActiveRecord::Base === record
-          LLM::ActiveRecord::Utils.save!(record, ctx, options)
-        elsif defined?(::Sequel::Model) and ::Sequel::Model === record
-          LLM::Sequel::Plugin::Utils.save!(record, ctx, options)
+        begin
+          if defined?(::ActiveRecord::Base) and ::ActiveRecord::Base === record
+            LLM::ActiveRecord::Utils.save!(record, ctx, options)
+          elsif defined?(::Sequel::Model) and ::Sequel::Model === record
+            LLM::Sequel::Plugin::Utils.save!(record, ctx, options)
+          end
+        rescue
+          nil
         end
       end
       super
-    rescue
-      nil
     end
   end
 end
