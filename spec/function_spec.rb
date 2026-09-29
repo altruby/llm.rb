@@ -83,7 +83,7 @@ RSpec.describe LLM::Function do
 
     describe "when interrupting a task" do
       before do
-        skip "not supported by yajl or oj" unless ENV.fetch("JSON_PARSER", "json") == "json"
+        skip "not supported by yajl or oj" unless ENV.fetch("JSON_PARSER", "json").downcase == "json"
       end
 
       let(:tool) do
