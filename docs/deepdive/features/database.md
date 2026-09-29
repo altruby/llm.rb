@@ -34,13 +34,18 @@ and
 for serialization and
 [`LLM::Context#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#restore)
 for deserialization. Save writes the current state, restore loads
-it back and picks up where the conversation left off. The ORM
-wrappers automate this; each
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
-or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
-call persists the
-updated state back to the column automatically.
+it back and picks up where the conversation left off.
+
+The wrappers automate this, and where they write is the boundary
+between one request and the next rather than the end of a turn.
+[`LLM::Step`](https://r.uby.dev/api-docs/llm.rb/LLM/Step.html)
+is prepended onto the stream, and it saves the conversation through
+the record the context is bound to each time
+[`LLM::Stream#on_step`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_step-instance_method)
+fires - after a response is in the conversation and before the tools
+it asked for run. A turn that asks for three tools and then answers
+saves four times, and a turn interrupted in the middle can be
+continued from its last completed request rather than started over.
 
 #### Why would I use it?
 
@@ -63,11 +68,7 @@ underlying serialization as filesystem persistence.
 The [`LLM::Agent#path`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#path)
 attribute provides transparent auto-persistence. Set a file path once
 and the agent restores conversation history from that file on startup
-and saves it back after every
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
-or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
-turn. No manual
+and saves it back after every completed request. No manual
 [`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save)/
 [`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore)
 calls needed.
@@ -78,11 +79,7 @@ direct instances via the `path:` keyword argument.
 #### How it works
 
 When a `path` is set, the agent loads existing state from the file
-during initialization. After each turn
-([`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
-or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)),
-the updated
+during initialization. After each completed request, the updated
 state is written back automatically. If the file does not exist yet,
 the agent starts with a blank conversation and creates the file on
 the first save.
@@ -242,12 +239,10 @@ first call, a fresh agent is created and the conversation starts
 from scratch.
 
 On subsequent calls, the stored state is restored and the
-conversation continues. Every
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
-or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
-call persists the
-updated state back to the column automatically.
+conversation continues. The column is written after each completed
+request rather than at the end of a turn, so a turn that runs tools
+before it answers is saved more than once - and a turn that is
+interrupted can be resumed from its last completed request.
 
 The `data_column:` option lets you use a different column name.
 The `format:` option controls the storage type. Use `:string` for
@@ -327,7 +322,7 @@ agent.talk "perform research"
 #### Why would I use it?
 
 The ActiveRecord wrapper integrates with your existing models.
-Agent state is automatically persisted after each conversation turn
+Agent state is automatically persisted after each completed request,
 using the same `create!`, `save!`, and query methods you already
 use.
 
@@ -447,11 +442,8 @@ the plugin in the model class. The `data` column stores
 the full agent state as JSON, same structure as ActiveRecord.
 On first call, a fresh agent is created. On subsequent calls,
 the stored state is restored and the conversation continues.
-Every
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
-or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
-call persists the updated state.
+The state is written after each completed request, as it is under
+ActiveRecord.
 
 The `data_column:` and `format:` options work identically to
 ActiveRecord. For `:jsonb`, Sequel loads the `pg_json` extension
