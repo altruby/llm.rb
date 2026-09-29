@@ -38,7 +38,14 @@ class LLM::Function
         id: @id, name: @name,
         arguments: @arguments, model: @model
       )
-      @mailbox = Ractor::Mailbox.new(build_task)
+      ##
+      # The result is delivered to a ractor of this task's own rather
+      # than through its mailbox. The mailbox ractor answers `alive?`
+      # while the tool runs and goes once the result is in, so a wait
+      # that arrives after it has gone has nobody to answer it. This one
+      # receives the result once and holds it until it is asked.
+      result = ::Ractor.new { ::Ractor.receive }
+      @mailbox = Ractor::Mailbox.new(build_task(result), result)
       self
     end
 
@@ -61,12 +68,10 @@ class LLM::Function
     alias_method :cancel!, :interrupt!
 
     ##
-    # The result, once there is one, is answered from memory, the way
+    # The first wait is answered by the ractor the result was delivered
+    # to, which has it whether or not the task's own ractor is still
+    # there. Every wait after that is answered from memory, the way
     # {LLM::Function::Thread::Task#wait} answers from the thread's value.
-    # A ractor answers one round trip and goes with the answering of it,
-    # so a second trip is not one it can be asked for: the ractor is on
-    # its way out, and a request that races that is either refused or
-    # accepted and never read.
     # @return [LLM::Function::Return]
     def wait
       return @guarded if @guarded
@@ -88,9 +93,9 @@ class LLM::Function
 
     private
 
-    def build_task
-      ::Ractor.new(@runner_class, @id, @name, @arguments) do |runner_class, id, name, arguments|
-        LLM::Function::Ractor::Job.new(::Ractor.current, runner_class, id, name, arguments).call
+    def build_task(result)
+      ::Ractor.new(result, @runner_class, @id, @name, @arguments) do |result, runner_class, id, name, arguments|
+        LLM::Function::Ractor::Job.new(::Ractor.current, result, runner_class, id, name, arguments).call
       end
     end
   end
