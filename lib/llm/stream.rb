@@ -47,8 +47,7 @@ module LLM
     # an instance of {LLM::Stream LLM::Stream} or a
     # subclass of it.
     #
-    # Acceptable inputs include: {LLM::Stream LLM::Stream}
-    # objects, IO objects who implement `#<<`, true, false,
+    # Acceptable inputs include: {LLM::Stream LLM::Stream} objects, IO objects who implement `#<<`, true, false,
     # and nil. Anything else raises a TypeError.
     #
     # @raise [TypeError]
@@ -149,6 +148,26 @@ module LLM
     #  The completed tool return.
     # @return [nil]
     def on_tool_return(tool, result)
+      nil
+    end
+
+    ##
+    # Called when a request in a turn has completed.
+    #
+    # This is the boundary between one request and the next: the response
+    # is in the context's message history, and a turn that asked for tools
+    # runs them after this while a turn that is finished ends here.
+    #
+    # It is emitted once per successful request, so a request that is
+    # retried after a rate limit or a timeout calls this when it lands and
+    # not once per attempt. It is also emitted when the stream is disabled:
+    # a disabled stream has no output to report, but it is still told that
+    # a step ended.
+    #
+    # @param [LLM::Response] res
+    #  The response for the request that completed.
+    # @return [nil]
+    def on_step(res)
       nil
     end
 
