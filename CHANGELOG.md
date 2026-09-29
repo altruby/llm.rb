@@ -39,6 +39,13 @@
   terminal's terminfo describes the key. All three erase. Before this only 127
   did, so the backspace key did nothing on the OpenBSD console.
 
+### Fix
+
+* **fork: require xchan.rb `~> 0.24`** <br>
+  The `:fork` concurrency strategy now requires the `xchan.rb` gem at `~> 0.24`
+  instead of `~> 0.23`, and the gemspec's development dependency follows. An
+  application that uses `:fork` needs `xchan.rb` 0.24 or later.
+
 ### Function
 
 * **function: deliver an interrupt to the tool, not to whatever is running** <br>
@@ -97,12 +104,25 @@
   `qwen3.5-flash`, `qwen3.7-flash`, and `qwen3.8-omni-flash`, and gives
   `qwen3.7-plus` attachments, structured output, and a lower price; OpenAI adds
   `gpt-daybreak-blue-latest` and `gpt-daybreak-red-latest`; Bedrock adds
-  `openai.gpt-6-sol` and `openai.gpt-6-luna`; and DeepInfra adds
-  `tencent/Hy4-preview` and the Xiaomi MiMo V2.6 Pro and V2.6 Flash models.
+  `openai.gpt-6-sol`, `openai.gpt-6-luna`, and
+  `global.anthropic.claude-sonnet-5-5`; and DeepInfra adds `tencent/Hy4-preview`
+  and the Xiaomi MiMo V2.6 Pro and V2.6 Flash models.
   Bedrock also corrects the context and output limits of fifteen models, Google
   lowers the limits of `gemini-2.5-computer-use-preview-10-2025` and
-  `gemini-3-pro-image`, and OpenRouter adds four models, drops six, and reprices
+  `gemini-3-pro-image`, and OpenRouter adds five models, drops six, and reprices
   many of the DeepSeek, Z.ai, and Qwen entries.
+
+### Schema
+
+* **schema: apply every `parameter` option to the leaf** <br>
+  [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) now applies each
+  option given to `parameter` to the leaf its type resolves to, so settings such
+  as `min:`, `max:`, `multiple_of:`, and `const:` reach the schema instead of
+  being dropped. Before this only `required`, `default`, and `enum` were read, so
+  `parameter :age, Integer, "Age", min: 1, max: 9` sent a plain integer and lost
+  the range. A `default:` of `false` survives now as well, where the old code
+  discarded a false default, and `required: false` marks the parameter optional
+  rather than being ignored.
 
 ## v15.5.0
 
