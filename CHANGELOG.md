@@ -27,8 +27,8 @@
   The gem now requires Ruby 3.4 or later: `required_ruby_version` is
   `>= 3.4.0`, the CI matrix runs 3.4 and 4.0, and RuboCop targets 3.4.
   Ruby 3.3 cannot hold an interrupt for a ractor-backed tool call, so a
-  cancel that arrives before the tool starts is not delivered there. Ruby
-  3.4 and 4.0 both deliver it.
+  cancel that arrives before the tool starts is not delivered there, while
+  Ruby 3.4 and 4.0 both deliver it.
 
 ### Console
 
@@ -55,18 +55,18 @@
 * **function: answer a ractor-backed task once its ractor has gone** <br>
   A `:ractor` tool's result is handed to a ractor the task holds it in,
   rather than asked of the ractor that ran the tool, which answers `alive?`
-  while the tool runs and goes once the result is in. A wait that arrives
-  after the tool has run is therefore answered, every wait after the first is
-  answered from memory, the way
+  while the tool runs and goes once the result is in. So a wait that arrives
+  after the tool has run is answered, a second wait is answered from memory,
+  the way
   [`LLM::Function::Thread::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Thread/Task.html#wait-instance_method)
-  answers from the thread's value, `alive?` answers `false` once the task has
-  been waited on, and a cancel returns `nil` rather than raising, which is
-  what lets
+  answers from the thread's value, and `alive?` answers `false` once the task
+  has been waited on. A cancel returns `nil` rather than raising, which is what
+  lets
   [`LLM::Function::Ractor::Group#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Ractor/Group.html#interrupt!-instance_method)
-  reach every task it holds. Before this, a wait that arrived once the tool
-  had run raised `Ractor::ClosedError`, or never came back at all, a cancel
-  raised the same error, and a group's cancel stopped at the first task that
-  had already returned, leaving the calls after it uncancelled.
+  reach every task it holds. Before this, a wait that arrived once the tool had
+  run raised `Ractor::ClosedError` or never came back, a cancel raised the same
+  error, and a group's cancel stopped at the first task that had already
+  returned, leaving the calls after it uncancelled.
 
 ### Provider
 
