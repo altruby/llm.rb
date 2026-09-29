@@ -59,14 +59,14 @@
   after the tool has run is therefore answered, every wait after the first is
   answered from memory, the way
   [`LLM::Function::Thread::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Thread/Task.html#wait-instance_method)
-  answers from the thread's value, and a cancel returns `nil` rather than
-  raising. The task's own `alive?` answers `false` once it has been waited on,
-  and
+  answers from the thread's value, `alive?` answers `false` once the task has
+  been waited on, and a cancel returns `nil` rather than raising, which is
+  what lets
   [`LLM::Function::Ractor::Group#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Ractor/Group.html#interrupt!-instance_method)
-  now reaches every task it holds. Before this, a wait that arrived once the
-  tool had run raised `Ractor::ClosedError`, or never came back at all, a
-  cancel raised the same error, and a group's cancel stopped at the first
-  task that had already returned, leaving the calls after it uncancelled.
+  reach every task it holds. Before this, a wait that arrived once the tool
+  had run raised `Ractor::ClosedError`, or never came back at all, a cancel
+  raised the same error, and a group's cancel stopped at the first task that
+  had already returned, leaving the calls after it uncancelled.
 
 ### Provider
 
