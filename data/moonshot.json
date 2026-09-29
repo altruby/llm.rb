@@ -55,7 +55,8 @@
         "input": 3,
         "output": 15,
         "cache_read": 0.3
-      }
+      },
+      "canonical_model_id": "moonshotai/kimi-k3"
     },
     "kimi-k2.7-code-highspeed": {
       "id": "kimi-k2.7-code-highspeed",
@@ -93,7 +94,8 @@
         "input": 1.9,
         "output": 8,
         "cache_read": 0.38
-      }
+      },
+      "canonical_model_id": "moonshotai/kimi-k2.7-code"
     },
     "kimi-k2.6": {
       "id": "kimi-k2.6",
@@ -173,7 +175,8 @@
         "input": 0.95,
         "output": 4,
         "cache_read": 0.19
-      }
+      },
+      "canonical_model_id": "moonshotai/kimi-k2.7-code"
     }
   }
 }

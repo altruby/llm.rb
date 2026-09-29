@@ -46,7 +46,8 @@
         "output": 5,
         "cache_read": 0.1,
         "cache_write": 1.25
-      }
+      },
+      "canonical_model_id": "anthropic/claude-haiku-4-5"
     },
     "claude-opus-4-5": {
       "id": "claude-opus-4-5",
@@ -95,7 +96,8 @@
         "output": 25,
         "cache_read": 0.5,
         "cache_write": 6.25
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-4-5"
     },
     "claude-sonnet-4-5": {
       "id": "claude-sonnet-4-5",
@@ -136,7 +138,8 @@
         "output": 15,
         "cache_read": 0.3,
         "cache_write": 3.75
-      }
+      },
+      "canonical_model_id": "anthropic/claude-sonnet-4-5"
     },
     "claude-opus-5-5": {
       "id": "claude-opus-5-5",
@@ -203,7 +206,8 @@
         "output": 20,
         "cache_read": 0.2,
         "cache_write": 5
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-5-5"
     },
     "claude-fable-5-1": {
       "id": "claude-fable-5-1",
@@ -250,7 +254,8 @@
         "output": 50,
         "cache_read": 0.25,
         "cache_write": 12.5
-      }
+      },
+      "canonical_model_id": "anthropic/claude-fable-5-1"
     },
     "claude-opus-4-5-20251101": {
       "id": "claude-opus-4-5-20251101",
@@ -366,7 +371,8 @@
         "output": 25,
         "cache_read": 0.5,
         "cache_write": 6.25
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-5"
     },
     "claude-fable-5": {
       "id": "claude-fable-5",
@@ -712,6 +718,54 @@
         "cache_read": 0.3,
         "cache_write": 3.75
       }
+    },
+    "claude-sonnet-5-5": {
+      "id": "claude-sonnet-5-5",
+      "name": "Claude Sonnet 5.5",
+      "description": "Fast Claude model for everyday coding, agents, and knowledge work",
+      "family": "claude-sonnet",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "effort",
+          "values": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ]
+        }
+      ],
+      "tool_call": true,
+      "structured_output": true,
+      "temperature": false,
+      "knowledge": "2026-06",
+      "release_date": "2026-09-28",
+      "last_updated": "2026-09-28",
+      "modalities": {
+        "input": [
+          "text",
+          "image",
+          "pdf"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": false,
+      "limit": {
+        "context": 1000000,
+        "output": 128000
+      },
+      "cost": {
+        "input": 2,
+        "output": 10,
+        "cache_read": 0.2,
+        "cache_write": 2.5
+      },
+      "canonical_model_id": "anthropic/claude-sonnet-5-5"
     },
     "claude-opus-4-7": {
       "id": "claude-opus-4-7",

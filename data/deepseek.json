@@ -57,7 +57,8 @@
         "output": 0.6,
         "reasoning": 0.6,
         "cache_read": 0.003
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-v4.1-flash"
     },
     "deepseek-flash": {
       "id": "deepseek-flash",
@@ -107,7 +108,8 @@
         "output": 0.6,
         "reasoning": 0.6,
         "cache_read": 0.003
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-v4.1-flash"
     },
     "deepseek-v4-pro": {
       "id": "deepseek-v4-pro",
@@ -155,7 +157,8 @@
         "output": 0.87,
         "reasoning": 0.87,
         "cache_read": 0.003625
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-v4-pro-0813"
     },
     "deepseek-v4-flash": {
       "id": "deepseek-v4-flash",
@@ -206,7 +209,8 @@
         "output": 0.6,
         "reasoning": 0.6,
         "cache_read": 0.003
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-v4.1-flash"
     }
   }
 }

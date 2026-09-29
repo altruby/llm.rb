@@ -277,7 +277,8 @@
             }
           }
         ]
-      }
+      },
+      "canonical_model_id": "bytedance-seed/seed-2.0-lite"
     },
     "bytedance-seed/seed-2-1-turbo": {
       "id": "bytedance-seed/seed-2-1-turbo",
@@ -370,7 +371,8 @@
             }
           }
         ]
-      }
+      },
+      "canonical_model_id": "bytedance-seed/seed-2.0-mini"
     },
     "bytedance-seed/seed-2.0-code": {
       "id": "bytedance-seed/seed-2.0-code",
@@ -425,7 +427,8 @@
             }
           }
         ]
-      }
+      },
+      "canonical_model_id": "bytedance-seed/seed-2.0-code"
     },
     "bytedance-seed/seed-1.6": {
       "id": "bytedance-seed/seed-1.6",
@@ -515,9 +518,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 1,
-        "output": 9,
-        "cache_read": 0.3
+        "input": 0.4,
+        "output": 10,
+        "cache_read": 0.4
       }
     },
     "poolside/laguna-s-2.1:free": {
@@ -624,7 +627,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "poolside/laguna-xs-2.1"
     },
     "poolside/laguna-xs-2.1": {
       "id": "poolside/laguna-xs-2.1",
@@ -660,7 +664,8 @@
         "input": 0.06,
         "output": 0.12,
         "cache_read": 0.03
-      }
+      },
+      "canonical_model_id": "poolside/laguna-xs-2.1"
     },
     "prism-ml/ternary-bonsai-2-27b": {
       "id": "prism-ml/ternary-bonsai-2-27b",
@@ -701,7 +706,8 @@
       },
       "cost": {
         "input": 0.075,
-        "output": 0.5
+        "output": 0.5,
+        "cache_read": 0.0375
       }
     },
     "anthropic/claude-opus-4.1": {
@@ -742,7 +748,8 @@
         "output": 75,
         "cache_read": 1.5,
         "cache_write": 18.75
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-4-1"
     },
     "anthropic/claude-opus-4.5": {
       "id": "anthropic/claude-opus-4.5",
@@ -782,7 +789,8 @@
         "output": 25,
         "cache_read": 0.5,
         "cache_write": 6.25
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-4-5"
     },
     "anthropic/claude-opus-4.6": {
       "id": "anthropic/claude-opus-4.6",
@@ -852,7 +860,8 @@
           "cache_read": 1,
           "cache_write": 12.5
         }
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-4-6"
     },
     "anthropic/claude-opus-4.7": {
       "id": "anthropic/claude-opus-4.7",
@@ -920,7 +929,8 @@
           "cache_read": 1,
           "cache_write": 12.5
         }
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-4-7"
     },
     "anthropic/claude-opus-4.8": {
       "id": "anthropic/claude-opus-4.8",
@@ -970,7 +980,8 @@
         "output": 25,
         "cache_read": 0.5,
         "cache_write": 6.25
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-4-8"
     },
     "anthropic/claude-haiku-4.5": {
       "id": "anthropic/claude-haiku-4.5",
@@ -1010,7 +1021,8 @@
         "output": 5,
         "cache_read": 0.1,
         "cache_write": 1.25
-      }
+      },
+      "canonical_model_id": "anthropic/claude-haiku-4-5"
     },
     "anthropic/claude-opus-5": {
       "id": "anthropic/claude-opus-5",
@@ -1060,7 +1072,56 @@
         "output": 25,
         "cache_read": 0.5,
         "cache_write": 6.25
-      }
+      },
+      "canonical_model_id": "anthropic/claude-opus-5"
+    },
+    "anthropic/claude-sonnet-5.5": {
+      "id": "anthropic/claude-sonnet-5.5",
+      "name": "Claude Sonnet 5.5",
+      "description": "Balanced Claude model for coding, analysis, agent workflows, and cost control",
+      "family": "claude-sonnet",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "effort",
+          "values": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ]
+        }
+      ],
+      "tool_call": true,
+      "structured_output": true,
+      "temperature": true,
+      "knowledge": "2026-06",
+      "release_date": "2026-09-28",
+      "last_updated": "2026-09-28",
+      "modalities": {
+        "input": [
+          "text",
+          "image",
+          "pdf"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": false,
+      "limit": {
+        "context": 1000000,
+        "output": 128000
+      },
+      "cost": {
+        "input": 2,
+        "output": 10,
+        "cache_read": 0.2,
+        "cache_write": 2.5
+      },
+      "canonical_model_id": "anthropic/claude-sonnet-5-5"
     },
     "anthropic/claude-fable-5.1": {
       "id": "anthropic/claude-fable-5.1",
@@ -1107,7 +1168,8 @@
         "output": 50,
         "cache_read": 0.25,
         "cache_write": 12.5
-      }
+      },
+      "canonical_model_id": "anthropic/claude-fable-5-1"
     },
     "anthropic/claude-sonnet-4.5": {
       "id": "anthropic/claude-sonnet-4.5",
@@ -1165,7 +1227,8 @@
           "cache_read": 0.6,
           "cache_write": 7.5
         }
-      }
+      },
+      "canonical_model_id": "anthropic/claude-sonnet-4-5"
     },
     "anthropic/claude-fable-5": {
       "id": "anthropic/claude-fable-5",
@@ -1212,7 +1275,8 @@
         "output": 50,
         "cache_read": 1,
         "cache_write": 12.5
-      }
+      },
+      "canonical_model_id": "anthropic/claude-fable-5"
     },
     "anthropic/claude-sonnet-4": {
       "id": "anthropic/claude-sonnet-4",
@@ -1320,7 +1384,8 @@
         "output": 10,
         "cache_read": 0.2,
         "cache_write": 2.5
-      }
+      },
+      "canonical_model_id": "anthropic/claude-sonnet-5"
     },
     "anthropic/claude-sonnet-4.6": {
       "id": "anthropic/claude-sonnet-4.6",
@@ -1387,7 +1452,8 @@
           "cache_read": 0.6,
           "cache_write": 7.5
         }
-      }
+      },
+      "canonical_model_id": "anthropic/claude-sonnet-4-6"
     },
     "anthropic/claude-opus-5.5": {
       "id": "anthropic/claude-opus-5.5",
@@ -1434,6 +1500,91 @@
         "output": 20,
         "cache_read": 0.2,
         "cache_write": 5
+      },
+      "canonical_model_id": "anthropic/claude-opus-5-5"
+    },
+    "nex-agi/nex-n2.5-mini": {
+      "id": "nex-agi/nex-n2.5-mini",
+      "name": "Nex-N2.5-Mini",
+      "description": "Multimodal reasoning model for visual analysis, planning, and tool use",
+      "family": "agi",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "effort",
+          "values": [
+            "none",
+            "medium",
+            "high"
+          ]
+        }
+      ],
+      "tool_call": false,
+      "structured_output": true,
+      "temperature": true,
+      "release_date": "2026-09-08",
+      "last_updated": "2026-09-08",
+      "modalities": {
+        "input": [
+          "text",
+          "image"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 262144,
+        "output": 235929
+      },
+      "cost": {
+        "input": 0.025,
+        "output": 0.1,
+        "cache_read": 0.0025
+      }
+    },
+    "nex-agi/nex-n2.5-pro": {
+      "id": "nex-agi/nex-n2.5-pro",
+      "name": "Nex-N2.5-Pro",
+      "description": "Multimodal reasoning model for visual analysis, planning, and tool use",
+      "family": "agi",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "effort",
+          "values": [
+            "none",
+            "medium",
+            "high"
+          ]
+        }
+      ],
+      "tool_call": true,
+      "structured_output": true,
+      "temperature": true,
+      "release_date": "2026-09-08",
+      "last_updated": "2026-09-08",
+      "modalities": {
+        "input": [
+          "text",
+          "image"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 262144,
+        "output": 235929
+      },
+      "cost": {
+        "input": 0.075,
+        "output": 0.25,
+        "cache_read": 0.015
       }
     },
     "cohere/command-r-08-2024": {
@@ -1465,7 +1616,8 @@
       "cost": {
         "input": 0.15,
         "output": 0.6
-      }
+      },
+      "canonical_model_id": "cohere/command-r-08-2024"
     },
     "cohere/command-a-plus": {
       "id": "cohere/command-a-plus",
@@ -1599,7 +1751,8 @@
       "cost": {
         "input": 0.0375,
         "output": 0.15
-      }
+      },
+      "canonical_model_id": "cohere/command-r7b-12-2024"
     },
     "cohere/command-r-plus-08-2024": {
       "id": "cohere/command-r-plus-08-2024",
@@ -1630,7 +1783,8 @@
       "cost": {
         "input": 2.5,
         "output": 10
-      }
+      },
+      "canonical_model_id": "cohere/command-r-plus-08-2024"
     },
     "deepseek/deepseek-chat-v3.1": {
       "id": "deepseek/deepseek-chat-v3.1",
@@ -1709,10 +1863,11 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.021,
+        "input": 0.018,
         "output": 0.32,
-        "cache_read": 0.016
-      }
+        "cache_read": 0.018
+      },
+      "canonical_model_id": "deepseek/deepseek-v4-flash-0731"
     },
     "deepseek/deepseek-v4.1-flash": {
       "id": "deepseek/deepseek-v4.1-flash",
@@ -1752,13 +1907,14 @@
       "open_weights": true,
       "limit": {
         "context": 1048576,
-        "output": 384000
+        "output": 943718
       },
       "cost": {
-        "input": 0.035,
-        "output": 0.29,
-        "cache_read": 0.001
-      }
+        "input": 0.3,
+        "output": 1.2,
+        "cache_read": 0.006
+      },
+      "canonical_model_id": "deepseek/deepseek-v4.1-flash"
     },
     "deepseek/deepseek-v4-flash-vision-exp": {
       "id": "deepseek/deepseek-v4-flash-vision-exp",
@@ -1797,49 +1953,14 @@
       "open_weights": true,
       "limit": {
         "context": 1048576,
-        "output": 943717
+        "output": 262144
       },
       "cost": {
-        "input": 0.44,
-        "output": 1.32,
-        "cache_read": 0.014
-      }
-    },
-    "deepseek/deepseek-r1-distill-llama-70b": {
-      "id": "deepseek/deepseek-r1-distill-llama-70b",
-      "name": "R1 Distill Llama 70B",
-      "description": "DeepSeek reasoning model for multi-step analysis, math, coding, and tools",
-      "family": "deepseek-thinking",
-      "attachment": false,
-      "reasoning": true,
-      "reasoning_options": [
-        {
-          "type": "toggle"
-        }
-      ],
-      "tool_call": false,
-      "structured_output": false,
-      "temperature": true,
-      "knowledge": "2024-07-31",
-      "release_date": "2025-01-23",
-      "last_updated": "2025-01-23",
-      "modalities": {
-        "input": [
-          "text"
-        ],
-        "output": [
-          "text"
-        ]
+        "input": 0.2156,
+        "output": 0.6468,
+        "cache_read": 0.00686
       },
-      "open_weights": true,
-      "limit": {
-        "context": 8192,
-        "output": 7372
-      },
-      "cost": {
-        "input": 0.8,
-        "output": 0.8
-      }
+      "canonical_model_id": "deepseek/deepseek-v4-flash-vision-exp"
     },
     "deepseek/deepseek-v3.1-terminus": {
       "id": "deepseek/deepseek-v3.1-terminus",
@@ -1870,10 +1991,10 @@
       "open_weights": true,
       "limit": {
         "context": 163840,
-        "output": 32768
+        "output": 65536
       },
       "cost": {
-        "input": 0.27,
+        "input": 0.3,
         "output": 1,
         "cache_read": 0.135
       }
@@ -1907,7 +2028,8 @@
       "cost": {
         "input": 0.2574,
         "output": 1.0287
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-chat"
     },
     "deepseek/deepseek-v4-pro-0813": {
       "id": "deepseek/deepseek-v4-pro-0813",
@@ -1948,10 +2070,11 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.2523,
-        "output": 3.5,
-        "cache_read": 0.2518
-      }
+        "input": 0.4,
+        "output": 4.2,
+        "cache_read": 0.32
+      },
+      "canonical_model_id": "deepseek/deepseek-v4-pro-0813"
     },
     "deepseek/deepseek-v3.2-exp": {
       "id": "deepseek/deepseek-v3.2-exp",
@@ -1982,7 +2105,7 @@
       "open_weights": true,
       "limit": {
         "context": 163840,
-        "output": 65536
+        "output": 147456
       },
       "cost": {
         "input": 0.27,
@@ -2051,7 +2174,8 @@
       "cost": {
         "input": 0.7,
         "output": 2.5
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-r1"
     },
     "deepseek/deepseek-v4-pro": {
       "id": "deepseek/deepseek-v4-pro",
@@ -2098,7 +2222,8 @@
         "input": 0.95526,
         "output": 1.91052,
         "cache_read": 0.079605
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-v4-pro"
     },
     "deepseek/deepseek-r1-0528": {
       "id": "deepseek/deepseek-r1-0528",
@@ -2168,7 +2293,8 @@
         "input": 0.28,
         "output": 0.42,
         "cache_read": 0.028
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-v3.2"
     },
     "deepseek/deepseek-v4-flash": {
       "id": "deepseek/deepseek-v4-flash",
@@ -2215,7 +2341,8 @@
         "input": 0.14,
         "output": 0.28,
         "cache_read": 0.028
-      }
+      },
+      "canonical_model_id": "deepseek/deepseek-v4-flash"
     },
     "unbiased/pareto": {
       "id": "unbiased/pareto",
@@ -2246,7 +2373,8 @@
         "input": 2.5,
         "output": 7.5,
         "cache_read": 0.25
-      }
+      },
+      "canonical_model_id": "unbiased/pareto"
     },
     "tencent/hy3-preview": {
       "id": "tencent/hy3-preview",
@@ -2287,7 +2415,8 @@
         "input": 0.18,
         "output": 0.6,
         "cache_read": 0.06
-      }
+      },
+      "canonical_model_id": "tencent/hy3-preview"
     },
     "tencent/hunyuan-a13b-instruct": {
       "id": "tencent/hunyuan-a13b-instruct",
@@ -2425,7 +2554,8 @@
         "input": 0.132,
         "output": 0.528,
         "cache_read": 0.033
-      }
+      },
+      "canonical_model_id": "tencent/hy3"
     },
     "tencent/hy-mt2-7b": {
       "id": "tencent/hy-mt2-7b",
@@ -2496,7 +2626,8 @@
         "input": 0.834,
         "output": 2.501,
         "cache_read": 0.042
-      }
+      },
+      "canonical_model_id": "tencent/hy4-preview"
     },
     "anthracite-org/magnum-v4-72b": {
       "id": "anthracite-org/magnum-v4-72b",
@@ -2653,7 +2784,8 @@
       "cost": {
         "input": 0.1,
         "output": 0.32
-      }
+      },
+      "canonical_model_id": "meta/llama-3.3-70b-instruct"
     },
     "meta-llama/llama-3.1-8b-instruct": {
       "id": "meta-llama/llama-3.1-8b-instruct",
@@ -2685,7 +2817,8 @@
         "input": 0.05,
         "output": 0.08,
         "cache_read": 0.025
-      }
+      },
+      "canonical_model_id": "meta/llama-3.1-8b-instruct"
     },
     "meta-llama/llama-3.2-1b-instruct": {
       "id": "meta-llama/llama-3.2-1b-instruct",
@@ -2778,7 +2911,8 @@
       "cost": {
         "input": 0.4,
         "output": 0.4
-      }
+      },
+      "canonical_model_id": "meta/llama-3.1-70b-instruct"
     },
     "~google/gemini-flash-latest": {
       "id": "~google/gemini-flash-latest",
@@ -3008,8 +3142,9 @@
       "cost": {
         "input": 0.3,
         "output": 0.9,
-        "cache_read": 0.055
-      }
+        "cache_read": 0.05
+      },
+      "canonical_model_id": "zhipuai/glm-4.6v"
     },
     "z-ai/glm-4.5": {
       "id": "z-ai/glm-4.5",
@@ -3046,7 +3181,8 @@
         "input": 0.6,
         "output": 2.2,
         "cache_read": 0.11
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-4.5"
     },
     "z-ai/glm-5.3-prime": {
       "id": "z-ai/glm-5.3-prime",
@@ -3125,7 +3261,8 @@
         "input": 1.2,
         "output": 4,
         "cache_read": 0.24
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-5v-turbo"
     },
     "z-ai/glm-5.3-flash": {
       "id": "z-ai/glm-5.3-flash",
@@ -3168,7 +3305,8 @@
         "input": 0.15,
         "output": 0.5,
         "cache_read": 0.03
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-5.3-flash"
     },
     "z-ai/glm-4.6": {
       "id": "z-ai/glm-4.6",
@@ -3205,7 +3343,8 @@
         "input": 0.43,
         "output": 1.75,
         "cache_read": 0.08
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-4.6"
     },
     "z-ai/glm-5": {
       "id": "z-ai/glm-5",
@@ -3244,7 +3383,8 @@
         "input": 0.6,
         "output": 1.92,
         "cache_read": 0.12
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-5"
     },
     "z-ai/glm-4.5v": {
       "id": "z-ai/glm-4.5v",
@@ -3282,7 +3422,8 @@
         "input": 0.6,
         "output": 1.8,
         "cache_read": 0.11
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-4.5v"
     },
     "z-ai/glm-5.3-flashx": {
       "id": "z-ai/glm-5.3-flashx",
@@ -3364,7 +3505,8 @@
       "cost": {
         "input": 0.0605,
         "output": 0.4
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-4.7-flash"
     },
     "z-ai/glm-4.7": {
       "id": "z-ai/glm-4.7",
@@ -3404,7 +3546,8 @@
         "input": 0.6,
         "output": 2.2,
         "cache_read": 0.11
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-4.7"
     },
     "z-ai/glm-5.2": {
       "id": "z-ai/glm-5.2",
@@ -3444,13 +3587,14 @@
       "open_weights": true,
       "limit": {
         "context": 1048576,
-        "output": 131072
+        "output": 943718
       },
       "cost": {
-        "input": 0.6496,
-        "output": 2.0416,
-        "cache_read": 0.12064
-      }
+        "input": 0.3249,
+        "output": 4.4,
+        "cache_read": 0.2599
+      },
+      "canonical_model_id": "zhipuai/glm-5.2"
     },
     "z-ai/glm-5.1": {
       "id": "z-ai/glm-5.1",
@@ -3489,7 +3633,8 @@
         "input": 1.4,
         "output": 4.4,
         "cache_read": 0.26
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-5.1"
     },
     "z-ai/glm-5-turbo": {
       "id": "z-ai/glm-5-turbo",
@@ -3528,7 +3673,8 @@
         "input": 1.2,
         "output": 4,
         "cache_read": 0.24
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-5-turbo"
     },
     "z-ai/glm-4.5-air": {
       "id": "z-ai/glm-4.5-air",
@@ -3565,7 +3711,8 @@
         "input": 0.13,
         "output": 0.85,
         "cache_read": 0.025
-      }
+      },
+      "canonical_model_id": "zhipuai/glm-4.5-air"
     },
     "z-ai/glm-5.3": {
       "id": "z-ai/glm-5.3",
@@ -3600,13 +3747,14 @@
       "open_weights": true,
       "limit": {
         "context": 1310720,
-        "output": 131072
+        "output": 943717
       },
       "cost": {
-        "input": 0.37,
-        "output": 1.14,
-        "cache_read": 0.067
-      }
+        "input": 1.4,
+        "output": 4.4,
+        "cache_read": 0.26
+      },
+      "canonical_model_id": "zhipuai/glm-5.3"
     },
     "inference-net/schematron-v2-small": {
       "id": "inference-net/schematron-v2-small",
@@ -3711,7 +3859,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "thinkingmachines/inkling-small"
     },
     "thinkingmachines/inkling-small": {
       "id": "thinkingmachines/inkling-small",
@@ -3757,7 +3906,8 @@
         "input": 0.45,
         "output": 1.2,
         "cache_read": 0.1
-      }
+      },
+      "canonical_model_id": "thinkingmachines/inkling-small"
     },
     "thinkingmachines/inkling:free": {
       "id": "thinkingmachines/inkling:free",
@@ -3802,7 +3952,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "thinkingmachines/inkling"
     },
     "thinkingmachines/inkling": {
       "id": "thinkingmachines/inkling",
@@ -3848,7 +3999,8 @@
         "input": 1,
         "output": 4.05,
         "cache_read": 0.17
-      }
+      },
+      "canonical_model_id": "thinkingmachines/inkling"
     },
     "meituan/longcat-2.0": {
       "id": "meituan/longcat-2.0",
@@ -4224,8 +4376,7 @@
           "text",
           "image",
           "video",
-          "pdf",
-          "audio"
+          "pdf"
         ],
         "output": [
           "text"
@@ -4240,7 +4391,8 @@
         "input": 1.25,
         "output": 4.25,
         "cache_read": 0.15
-      }
+      },
+      "canonical_model_id": "meta/muse-spark-1.3"
     },
     "meta/muse-glimmer-30b": {
       "id": "meta/muse-glimmer-30b",
@@ -4284,7 +4436,8 @@
         "input": 0.3,
         "output": 1.2,
         "cache_read": 0.04
-      }
+      },
+      "canonical_model_id": "meta/muse-glimmer-30b"
     },
     "meta/muse-spark-1.1": {
       "id": "meta/muse-spark-1.1",
@@ -4314,9 +4467,8 @@
         "input": [
           "text",
           "image",
-          "video",
           "pdf",
-          "audio"
+          "video"
         ],
         "output": [
           "text"
@@ -4331,7 +4483,8 @@
         "input": 1.25,
         "output": 4.25,
         "cache_read": 0.15
-      }
+      },
+      "canonical_model_id": "meta/muse-spark-1.1"
     },
     "meta/muse-spark-1.2": {
       "id": "meta/muse-spark-1.2",
@@ -4362,8 +4515,7 @@
           "text",
           "image",
           "video",
-          "pdf",
-          "audio"
+          "pdf"
         ],
         "output": [
           "text"
@@ -4378,7 +4530,8 @@
         "input": 1.25,
         "output": 4.25,
         "cache_read": 0.15
-      }
+      },
+      "canonical_model_id": "meta/muse-spark-1.2"
     },
     "meta/muse-spark-1.2-contributor": {
       "id": "meta/muse-spark-1.2-contributor",
@@ -4409,8 +4562,7 @@
           "text",
           "image",
           "video",
-          "pdf",
-          "audio"
+          "pdf"
         ],
         "output": [
           "text"
@@ -4457,8 +4609,7 @@
           "text",
           "image",
           "video",
-          "pdf",
-          "audio"
+          "pdf"
         ],
         "output": [
           "text"
@@ -4608,11 +4759,11 @@
       "open_weights": false,
       "limit": {
         "context": 1310720,
-        "output": 128000
+        "output": 943718
       },
       "cost": {
-        "input": 0.045,
-        "output": 0.14,
+        "input": 0.02,
+        "output": 0.3,
         "cache_read": 0.01
       }
     },
@@ -4652,9 +4803,9 @@
         "output": 131072
       },
       "cost": {
-        "input": 0.37,
-        "output": 1.14,
-        "cache_read": 0.067
+        "input": 0.19,
+        "output": 4,
+        "cache_read": 0.19
       }
     },
     "arcee-ai/trinity-large-thinking": {
@@ -4687,7 +4838,8 @@
         "input": 0.25,
         "output": 0.8,
         "cache_read": 0.06
-      }
+      },
+      "canonical_model_id": "arcee-ai/trinity-large-thinking"
     },
     "~openai/gpt-terra-latest": {
       "id": "~openai/gpt-terra-latest",
@@ -5258,14 +5410,14 @@
         "output": 450000
       },
       "cost": {
-        "input": 1.6,
-        "output": 4.8,
-        "cache_read": 0.4,
+        "input": 2,
+        "output": 6,
+        "cache_read": 0.5,
         "tiers": [
           {
-            "input": 3.2,
-            "output": 9.6,
-            "cache_read": 0.8,
+            "input": 4,
+            "output": 12,
+            "cache_read": 1,
             "tier": {
               "type": "context",
               "size": 200000
@@ -5273,11 +5425,12 @@
           }
         ],
         "context_over_200k": {
-          "input": 3.2,
-          "output": 9.6,
-          "cache_read": 0.8
+          "input": 4,
+          "output": 12,
+          "cache_read": 1
         }
-      }
+      },
+      "canonical_model_id": "xai/grok-4.7"
     },
     "x-ai/grok-4.3": {
       "id": "x-ai/grok-4.3",
@@ -5337,7 +5490,8 @@
           "output": 5,
           "cache_read": 0.4
         }
-      }
+      },
+      "canonical_model_id": "xai/grok-4.3"
     },
     "x-ai/grok-4.5": {
       "id": "x-ai/grok-4.5",
@@ -5396,7 +5550,8 @@
           "output": 12,
           "cache_read": 0.6
         }
-      }
+      },
+      "canonical_model_id": "xai/grok-4.5"
     },
     "x-ai/grok-build-0.1": {
       "id": "x-ai/grok-build-0.1",
@@ -5446,7 +5601,8 @@
           "output": 4,
           "cache_read": 0.4
         }
-      }
+      },
+      "canonical_model_id": "xai/grok-build-0.1"
     },
     "x-ai/grok-4.20": {
       "id": "x-ai/grok-4.20",
@@ -5562,7 +5718,8 @@
           "output": 12,
           "cache_read": 1
         }
-      }
+      },
+      "canonical_model_id": "xai/grok-4.6"
     },
     "~anthropic/claude-opus-latest": {
       "id": "~anthropic/claude-opus-latest",
@@ -5658,9 +5815,6 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
             "low",
@@ -5673,7 +5827,7 @@
       ],
       "tool_call": true,
       "structured_output": true,
-      "temperature": false,
+      "temperature": true,
       "knowledge": "2026-01-31",
       "release_date": "2026-04-27",
       "last_updated": "2026-04-27",
@@ -5915,12 +6069,12 @@
       "open_weights": false,
       "limit": {
         "context": 1048576,
-        "output": 384000
+        "output": 943718
       },
       "cost": {
-        "input": 0.035,
-        "output": 0.29,
-        "cache_read": 0.001
+        "input": 0.02,
+        "output": 0.6,
+        "cache_read": 0.02
       }
     },
     "~deepseek/deepseek-pro-latest": {
@@ -5962,9 +6116,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.2523,
-        "output": 3.5,
-        "cache_read": 0.2518
+        "input": 0.15808,
+        "output": 1.9584,
+        "cache_read": 0.07488
       }
     },
     "~deepseek/deepseek-v4-flash-latest": {
@@ -6006,9 +6160,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.021,
-        "output": 0.32,
-        "cache_read": 0.016
+        "input": 0.012,
+        "output": 0.7,
+        "cache_read": 0.01
       }
     },
     "~x-ai/grok-latest": {
@@ -6050,14 +6204,14 @@
         "output": 450000
       },
       "cost": {
-        "input": 1.6,
-        "output": 4.8,
-        "cache_read": 0.4,
+        "input": 2,
+        "output": 6,
+        "cache_read": 0.5,
         "tiers": [
           {
-            "input": 3.2,
-            "output": 9.6,
-            "cache_read": 0.8,
+            "input": 4,
+            "output": 12,
+            "cache_read": 1,
             "tier": {
               "type": "context",
               "size": 200000
@@ -6065,9 +6219,9 @@
           }
         ],
         "context_over_200k": {
-          "input": 3.2,
-          "output": 9.6,
-          "cache_read": 0.8
+          "input": 4,
+          "output": 12,
+          "cache_read": 1
         }
       }
     },
@@ -6170,7 +6324,8 @@
         "input": 0.09,
         "output": 0.34,
         "cache_read": 0.05
-      }
+      },
+      "canonical_model_id": "google/gemma-4-31b-it"
     },
     "google/gemini-3.1-flash-image-preview": {
       "id": "google/gemini-3.1-flash-image-preview",
@@ -6215,7 +6370,8 @@
       "cost": {
         "input": 0.5,
         "output": 3
-      }
+      },
+      "canonical_model_id": "google/gemini-3.1-flash-image-preview"
     },
     "google/lyria-3-pro-preview": {
       "id": "google/lyria-3-pro-preview",
@@ -6247,7 +6403,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "google/lyria-3-pro-preview"
     },
     "google/gemma-3-27b-it": {
       "id": "google/gemma-3-27b-it",
@@ -6280,7 +6437,8 @@
         "input": 0.08,
         "output": 0.45,
         "cache_read": 0.04
-      }
+      },
+      "canonical_model_id": "google/gemma-3-27b-it"
     },
     "google/gemma-4-31b-it:free": {
       "id": "google/gemma-4-31b-it:free",
@@ -6317,7 +6475,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "google/gemma-4-31b-it"
     },
     "google/gemini-2.5-flash-image": {
       "id": "google/gemini-2.5-flash-image",
@@ -6352,7 +6511,8 @@
         "output": 2.5,
         "cache_read": 0.03,
         "cache_write": 0.083333
-      }
+      },
+      "canonical_model_id": "google/gemini-2.5-flash-image"
     },
     "google/gemma-4-26b-a4b-it:free": {
       "id": "google/gemma-4-26b-a4b-it:free",
@@ -6389,7 +6549,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "google/gemma-4-26b-a4b-it"
     },
     "google/gemma-2-27b-it": {
       "id": "google/gemma-2-27b-it",
@@ -6469,7 +6630,8 @@
         "reasoning": 3.75,
         "cache_read": 0.075,
         "cache_write": 0.041667
-      }
+      },
+      "canonical_model_id": "google/gemini-3.6-flash"
     },
     "google/gemma-4-26b-a4b-it": {
       "id": "google/gemma-4-26b-a4b-it",
@@ -6504,10 +6666,11 @@
         "output": 235929
       },
       "cost": {
-        "input": 0.0675,
-        "output": 0.225,
-        "cache_read": 0.0375
-      }
+        "input": 0.0765,
+        "output": 0.255,
+        "cache_read": 0.0425
+      },
+      "canonical_model_id": "google/gemma-4-26b-a4b-it"
     },
     "google/gemini-3-pro-image-preview": {
       "id": "google/gemini-3-pro-image-preview",
@@ -6544,7 +6707,8 @@
         "reasoning": 12,
         "cache_read": 0.2,
         "cache_write": 0.375
-      }
+      },
+      "canonical_model_id": "google/gemini-3-pro-image-preview"
     },
     "google/gemini-3.5-flash-lite": {
       "id": "google/gemini-3.5-flash-lite",
@@ -6593,7 +6757,8 @@
         "reasoning": 2.5,
         "cache_read": 0.03,
         "cache_write": 0.083333
-      }
+      },
+      "canonical_model_id": "google/gemini-3.5-flash-lite"
     },
     "google/gemini-3.1-flash-image": {
       "id": "google/gemini-3.1-flash-image",
@@ -6638,7 +6803,8 @@
       "cost": {
         "input": 0.5,
         "output": 3
-      }
+      },
+      "canonical_model_id": "google/gemini-3.1-flash-image"
     },
     "google/lyria-3-clip-preview": {
       "id": "google/lyria-3-clip-preview",
@@ -6670,7 +6836,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "google/lyria-3-clip-preview"
     },
     "google/gemini-3.1-pro-preview": {
       "id": "google/gemini-3.1-pro-preview",
@@ -6737,7 +6904,8 @@
           "output": 18,
           "cache_read": 0.4
         }
-      }
+      },
+      "canonical_model_id": "google/gemini-3.1-pro-preview"
     },
     "google/gemma-3-12b-it": {
       "id": "google/gemma-3-12b-it",
@@ -6769,7 +6937,8 @@
       "cost": {
         "input": 0.05,
         "output": 0.15
-      }
+      },
+      "canonical_model_id": "google/gemma-3-12b-it"
     },
     "google/gemini-3.5-flash": {
       "id": "google/gemini-3.5-flash",
@@ -6818,7 +6987,8 @@
         "reasoning": 9,
         "cache_read": 0.15,
         "cache_write": 0.083333
-      }
+      },
+      "canonical_model_id": "google/gemini-3.5-flash"
     },
     "google/gemini-2.5-pro": {
       "id": "google/gemini-2.5-pro",
@@ -6879,7 +7049,8 @@
           "output": 15,
           "cache_read": 0.25
         }
-      }
+      },
+      "canonical_model_id": "google/gemini-2.5-pro"
     },
     "google/gemini-3-pro-image": {
       "id": "google/gemini-3-pro-image",
@@ -6916,7 +7087,8 @@
         "reasoning": 12,
         "cache_read": 0.2,
         "cache_write": 0.375
-      }
+      },
+      "canonical_model_id": "google/gemini-3-pro-image"
     },
     "google/gemini-2.5-flash": {
       "id": "google/gemini-2.5-flash",
@@ -6959,7 +7131,8 @@
         "reasoning": 2.5,
         "cache_read": 0.03,
         "cache_write": 0.083333
-      }
+      },
+      "canonical_model_id": "google/gemini-2.5-flash"
     },
     "google/gemini-3.1-flash-lite-image": {
       "id": "google/gemini-3.1-flash-lite-image",
@@ -7004,7 +7177,8 @@
       "cost": {
         "input": 0.25,
         "output": 1.5
-      }
+      },
+      "canonical_model_id": "google/gemini-3.1-flash-lite-image"
     },
     "google/gemini-3.7-flash": {
       "id": "google/gemini-3.7-flash",
@@ -7052,7 +7226,8 @@
         "reasoning": 3.75,
         "cache_read": 0.075,
         "cache_write": 0.041667
-      }
+      },
+      "canonical_model_id": "google/gemini-3.7-flash"
     },
     "google/gemini-3.1-pro-preview-customtools": {
       "id": "google/gemini-3.1-pro-preview-customtools",
@@ -7119,7 +7294,8 @@
           "output": 18,
           "cache_read": 0.4
         }
-      }
+      },
+      "canonical_model_id": "google/gemini-3.1-pro-preview-customtools"
     },
     "google/gemini-3-flash-preview": {
       "id": "google/gemini-3-flash-preview",
@@ -7174,7 +7350,8 @@
         "reasoning": 3,
         "cache_read": 0.05,
         "cache_write": 0.083333
-      }
+      },
+      "canonical_model_id": "google/gemini-3-flash-preview"
     },
     "google/gemini-3.8-flash": {
       "id": "google/gemini-3.8-flash",
@@ -7221,7 +7398,8 @@
         "reasoning": 3.75,
         "cache_read": 0.075,
         "cache_write": 0.041667
-      }
+      },
+      "canonical_model_id": "google/gemini-3.8-flash"
     },
     "google/gemma-3-4b-it": {
       "id": "google/gemma-3-4b-it",
@@ -7253,7 +7431,8 @@
       "cost": {
         "input": 0.05,
         "output": 0.1
-      }
+      },
+      "canonical_model_id": "google/gemma-3-4b-it"
     },
     "google/gemini-2.5-flash-lite": {
       "id": "google/gemini-2.5-flash-lite",
@@ -7296,7 +7475,8 @@
         "reasoning": 0.4,
         "cache_read": 0.01,
         "cache_write": 0.083333
-      }
+      },
+      "canonical_model_id": "google/gemini-2.5-flash-lite"
     },
     "google/gemini-2.5-pro-preview": {
       "id": "google/gemini-2.5-pro-preview",
@@ -7408,7 +7588,8 @@
         "reasoning": 1.5,
         "cache_read": 0.025,
         "cache_write": 0.083333
-      }
+      },
+      "canonical_model_id": "google/gemini-3.1-flash-lite-preview"
     },
     "google/gemini-3.1-flash-lite": {
       "id": "google/gemini-3.1-flash-lite",
@@ -7460,7 +7641,8 @@
         "reasoning": 1.5,
         "cache_read": 0.025,
         "cache_write": 0.083333
-      }
+      },
+      "canonical_model_id": "google/gemini-3.1-flash-lite"
     },
     "writer/palmyra-x5": {
       "id": "writer/palmyra-x5",
@@ -7636,7 +7818,8 @@
       "cost": {
         "input": 0.019,
         "output": 0.03
-      }
+      },
+      "canonical_model_id": "mistral/mistral-nemo"
     },
     "mistralai/ministral-8b-2512": {
       "id": "mistralai/ministral-8b-2512",
@@ -7732,7 +7915,8 @@
         "input": 0.4,
         "output": 2,
         "cache_read": 0.04
-      }
+      },
+      "canonical_model_id": "mistral/devstral-2512"
     },
     "mistralai/mistral-saba": {
       "id": "mistralai/mistral-saba",
@@ -7947,7 +8131,8 @@
         "input": 0.15,
         "output": 0.6,
         "cache_read": 0.015
-      }
+      },
+      "canonical_model_id": "mistral/mistral-small-2603"
     },
     "mistralai/mistral-medium-3": {
       "id": "mistralai/mistral-medium-3",
@@ -8014,7 +8199,8 @@
         "input": 0.1,
         "output": 0.3,
         "cache_read": 0.01
-      }
+      },
+      "canonical_model_id": "mistral/voxtral-small-24b-2507"
     },
     "mistralai/mistral-large-2512": {
       "id": "mistralai/mistral-large-2512",
@@ -8048,7 +8234,8 @@
         "input": 0.5,
         "output": 1.5,
         "cache_read": 0.05
-      }
+      },
+      "canonical_model_id": "mistral/mistral-large-2512"
     },
     "mistralai/mistral-large-2407": {
       "id": "mistralai/mistral-large-2407",
@@ -8404,7 +8591,8 @@
           "output": 45,
           "cache_read": 1
         }
-      }
+      },
+      "canonical_model_id": "sakana/fugu-ultra"
     },
     "sakana/sakana-namazu": {
       "id": "sakana/sakana-namazu",
@@ -8446,42 +8634,8 @@
         "input": 0.95,
         "output": 4,
         "cache_read": 0.15
-      }
-    },
-    "inclusionai/ling-3.0-flash-fin:free": {
-      "id": "inclusionai/ling-3.0-flash-fin:free",
-      "name": "Ling 3.0 Flash Fin (free)",
-      "description": "Efficient model for low-latency assistance, extraction, and routine automation",
-      "family": "ling",
-      "attachment": false,
-      "reasoning": true,
-      "reasoning_options": [
-        {
-          "type": "toggle"
-        }
-      ],
-      "tool_call": true,
-      "structured_output": false,
-      "temperature": true,
-      "release_date": "2026-08-27",
-      "last_updated": "2026-08-27",
-      "modalities": {
-        "input": [
-          "text"
-        ],
-        "output": [
-          "text"
-        ]
       },
-      "open_weights": false,
-      "limit": {
-        "context": 262144,
-        "output": 32768
-      },
-      "cost": {
-        "input": 0,
-        "output": 0
-      }
+      "canonical_model_id": "sakana/sakana-namazu"
     },
     "inclusionai/ling-3.0-flash-sante:free": {
       "id": "inclusionai/ling-3.0-flash-sante:free",
@@ -8672,7 +8826,8 @@
         "input": 3,
         "output": 15,
         "cache_read": 0.3
-      }
+      },
+      "canonical_model_id": "moonshotai/kimi-k3"
     },
     "moonshotai/kimi-k2.6": {
       "id": "moonshotai/kimi-k2.6",
@@ -8713,7 +8868,8 @@
         "input": 0.65,
         "output": 3.41,
         "cache_read": 0.15
-      }
+      },
+      "canonical_model_id": "moonshotai/kimi-k2.6"
     },
     "moonshotai/kimi-k2-thinking": {
       "id": "moonshotai/kimi-k2-thinking",
@@ -8749,7 +8905,8 @@
         "input": 0.6,
         "output": 2.5,
         "cache_read": 0.15
-      }
+      },
+      "canonical_model_id": "moonshotai/kimi-k2-thinking"
     },
     "moonshotai/kimi-k2.5": {
       "id": "moonshotai/kimi-k2.5",
@@ -8790,7 +8947,8 @@
         "input": 0.45,
         "output": 2.25,
         "cache_read": 0.07
-      }
+      },
+      "canonical_model_id": "moonshotai/kimi-k2.5"
     },
     "moonshotai/kimi-k2-0905": {
       "id": "moonshotai/kimi-k2-0905",
@@ -8886,7 +9044,8 @@
         "input": 0.6562,
         "output": 3.3,
         "cache_read": 0.18
-      }
+      },
+      "canonical_model_id": "moonshotai/kimi-k2.7-code"
     },
     "rekaai/reka-flash-3": {
       "id": "rekaai/reka-flash-3",
@@ -8986,7 +9145,8 @@
         "input": 0.05,
         "output": 0.2,
         "cache_read": 0.03
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3-nano-30b-a3b"
     },
     "nvidia/nemotron-3.5-content-safety:free": {
       "id": "nvidia/nemotron-3.5-content-safety:free",
@@ -9022,7 +9182,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3.5-content-safety"
     },
     "nvidia/nemotron-3.5-lightning": {
       "id": "nvidia/nemotron-3.5-lightning",
@@ -9052,13 +9213,14 @@
       "open_weights": true,
       "limit": {
         "context": 1000000,
-        "output": 131072
+        "output": 32768
       },
       "cost": {
-        "input": 0.08,
-        "output": 0.2,
-        "cache_read": 0.04
-      }
+        "input": 0.06,
+        "output": 0.16,
+        "cache_read": 0.03
+      },
+      "canonical_model_id": "nvidia/nemotron-3.5-lightning"
     },
     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free": {
       "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
@@ -9099,7 +9261,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
     },
     "nvidia/nemotron-3-super-120b-a12b": {
       "id": "nvidia/nemotron-3-super-120b-a12b",
@@ -9144,7 +9307,8 @@
       "cost": {
         "input": 0.08,
         "output": 0.45
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3-super-120b-a12b"
     },
     "nvidia/nemotron-3-ultra-550b-a55b:free": {
       "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
@@ -9189,7 +9353,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3-ultra-550b-a55b"
     },
     "nvidia/nemotron-3-ultra-550b-a55b": {
       "id": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -9235,7 +9400,8 @@
         "input": 0.6,
         "output": 2.4,
         "cache_read": 0.12
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3-ultra-550b-a55b"
     },
     "nvidia/nemotron-3-super-120b-a12b:free": {
       "id": "nvidia/nemotron-3-super-120b-a12b:free",
@@ -9280,7 +9446,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3-super-120b-a12b"
     },
     "nvidia/nemotron-3.5-content-safety": {
       "id": "nvidia/nemotron-3.5-content-safety",
@@ -9316,7 +9483,8 @@
       "cost": {
         "input": 0.2,
         "output": 0.2
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3.5-content-safety"
     },
     "nvidia/nemotron-3.5-lightning:free": {
       "id": "nvidia/nemotron-3.5-lightning:free",
@@ -9351,7 +9519,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "nvidia/nemotron-3.5-lightning"
     },
     "xiaomi/mimo-v2.6-pro": {
       "id": "xiaomi/mimo-v2.6-pro",
@@ -9390,7 +9559,8 @@
         "input": 0.435,
         "output": 0.87,
         "cache_read": 0.0036
-      }
+      },
+      "canonical_model_id": "xiaomi/mimo-v2.6-pro"
     },
     "xiaomi/mimo-v2.5": {
       "id": "xiaomi/mimo-v2.5",
@@ -9433,7 +9603,8 @@
         "input": 0.14,
         "output": 0.28,
         "cache_read": 0.0028
-      }
+      },
+      "canonical_model_id": "xiaomi/mimo-v2.5"
     },
     "xiaomi/mimo-v2.6-pro-ultraspeed": {
       "id": "xiaomi/mimo-v2.6-pro-ultraspeed",
@@ -9472,7 +9643,8 @@
         "input": 4.35,
         "output": 8.7,
         "cache_read": 0.036
-      }
+      },
+      "canonical_model_id": "xiaomi/mimo-v2.6-pro-ultraspeed"
     },
     "xiaomi/mimo-v2.5-pro": {
       "id": "xiaomi/mimo-v2.5-pro",
@@ -9512,7 +9684,8 @@
         "input": 0.435,
         "output": 0.87,
         "cache_read": 0.0036
-      }
+      },
+      "canonical_model_id": "xiaomi/mimo-v2.5-pro"
     },
     "xiaomi/mimo-v2.6-flash": {
       "id": "xiaomi/mimo-v2.6-flash",
@@ -9551,7 +9724,8 @@
         "input": 0.14,
         "output": 0.28,
         "cache_read": 0.0028
-      }
+      },
+      "canonical_model_id": "xiaomi/mimo-v2.6-flash"
     },
     "undi95/remm-slerp-l2-13b": {
       "id": "undi95/remm-slerp-l2-13b",
@@ -9646,7 +9820,8 @@
         "input": 0.27,
         "output": 1.08,
         "cache_read": 0.027
-      }
+      },
+      "canonical_model_id": "minimax/MiniMax-M2.5"
     },
     "minimax/minimax-01": {
       "id": "minimax/minimax-01",
@@ -9709,7 +9884,8 @@
         "input": 0.3,
         "output": 1.2,
         "cache_read": 0.03
-      }
+      },
+      "canonical_model_id": "minimax/MiniMax-M2-Her"
     },
     "minimax/minimax-m2.7": {
       "id": "minimax/minimax-m2.7",
@@ -9735,13 +9911,14 @@
       "open_weights": true,
       "limit": {
         "context": 204800,
-        "output": 131072
+        "output": 176947
       },
       "cost": {
-        "input": 0.3,
-        "output": 1.2,
-        "cache_read": 0.06
-      }
+        "input": 0.21,
+        "output": 0.84,
+        "cache_read": 0.042
+      },
+      "canonical_model_id": "minimax/MiniMax-M2.7"
     },
     "minimax/minimax-m1": {
       "id": "minimax/minimax-m1",
@@ -9815,7 +9992,8 @@
         "input": 0.3,
         "output": 1.2,
         "cache_read": 0.06
-      }
+      },
+      "canonical_model_id": "minimax/MiniMax-M3"
     },
     "minimax/minimax-m2.1": {
       "id": "minimax/minimax-m2.1",
@@ -9850,7 +10028,8 @@
         "input": 0.3,
         "output": 1.2,
         "cache_read": 0.03
-      }
+      },
+      "canonical_model_id": "minimax/MiniMax-M2.1"
     },
     "minimax/minimax-m2": {
       "id": "minimax/minimax-m2",
@@ -9884,7 +10063,8 @@
       "cost": {
         "input": 0.3,
         "output": 1.2
-      }
+      },
+      "canonical_model_id": "minimax/MiniMax-M2"
     },
     "mancer/weaver": {
       "id": "mancer/weaver",
@@ -9946,7 +10126,8 @@
       "cost": {
         "input": 0.1,
         "output": 0.3
-      }
+      },
+      "canonical_model_id": "stepfun/step-3.5-flash"
     },
     "stepfun/step-3.7-flash": {
       "id": "stepfun/step-3.7-flash",
@@ -9990,7 +10171,8 @@
         "input": 0.2,
         "output": 1.15,
         "cache_read": 0.04
-      }
+      },
+      "canonical_model_id": "stepfun/step-3.7-flash"
     },
     "dots-studio/dots-3-note-preview:free": {
       "id": "dots-studio/dots-3-note-preview:free",
@@ -10601,7 +10783,8 @@
         "input": 0.21,
         "output": 1.9,
         "cache_read": 0.1
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-vl-235b-a22b-instruct"
     },
     "qwen/qwen3.7-max": {
       "id": "qwen/qwen3.7-max",
@@ -10638,7 +10821,8 @@
         "output": 4.425,
         "cache_read": 0.295,
         "cache_write": 1.84375
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.7-max"
     },
     "qwen/qwen3.8-27b": {
       "id": "qwen/qwen3.8-27b",
@@ -10678,13 +10862,14 @@
       "open_weights": true,
       "limit": {
         "context": 1000000,
-        "output": 131072
+        "output": 235929
       },
       "cost": {
-        "input": 0.42,
-        "output": 3,
-        "cache_read": 0.085
-      }
+        "input": 0.0647,
+        "output": 4.4,
+        "cache_read": 0.0517
+      },
+      "canonical_model_id": "alibaba/qwen3.8-27b"
     },
     "qwen/qwen3-vl-235b-a22b-thinking": {
       "id": "qwen/qwen3-vl-235b-a22b-thinking",
@@ -10717,7 +10902,8 @@
       "cost": {
         "input": 0.4,
         "output": 4
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-vl-235b-a22b-thinking"
     },
     "qwen/qwen3.8-2.4t-a95b": {
       "id": "qwen/qwen3.8-2.4t-a95b",
@@ -10758,7 +10944,8 @@
         "input": 2,
         "output": 6,
         "cache_read": 0.25
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.8-2.4t-a95b"
     },
     "qwen/qwen3.5-27b": {
       "id": "qwen/qwen3.5-27b",
@@ -10795,7 +10982,8 @@
       "cost": {
         "input": 0.195,
         "output": 1.56
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.5-27b"
     },
     "qwen/qwen3-next-80b-a3b-thinking": {
       "id": "qwen/qwen3-next-80b-a3b-thinking",
@@ -10827,7 +11015,8 @@
       "cost": {
         "input": 0.15,
         "output": 1.2
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-next-80b-a3b-thinking"
     },
     "qwen/qwen3-coder-next": {
       "id": "qwen/qwen3-coder-next",
@@ -10859,7 +11048,8 @@
         "input": 0.12,
         "output": 0.8,
         "cache_read": 0.07
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-coder-next"
     },
     "qwen/qwen3-coder": {
       "id": "qwen/qwen3-coder",
@@ -10927,7 +11117,8 @@
       "cost": {
         "input": 0.08,
         "output": 0.28
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-32b"
     },
     "qwen/qwen-plus": {
       "id": "qwen/qwen-plus",
@@ -10978,7 +11169,8 @@
           "cache_read": 0.156,
           "cache_write": 0.975
         }
-      }
+      },
+      "canonical_model_id": "alibaba/qwen-plus"
     },
     "qwen/qwen3.7-flash": {
       "id": "qwen/qwen3.7-flash",
@@ -11043,7 +11235,8 @@
             }
           }
         ]
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.7-flash"
     },
     "qwen/qwen3-max": {
       "id": "qwen/qwen3-max",
@@ -11098,7 +11291,8 @@
             }
           }
         ]
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-max"
     },
     "qwen/qwen3-coder-30b-a3b-instruct": {
       "id": "qwen/qwen3-coder-30b-a3b-instruct",
@@ -11129,7 +11323,8 @@
       "cost": {
         "input": 0.07,
         "output": 0.28
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-coder-30b-a3b-instruct"
     },
     "qwen/qwen3.8-omni-flash": {
       "id": "qwen/qwen3.8-omni-flash",
@@ -11171,7 +11366,8 @@
         "input": 0.15,
         "output": 0.47,
         "cache_read": 0.016
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.8-omni-flash"
     },
     "qwen/qwen3-vl-30b-a3b-instruct": {
       "id": "qwen/qwen3-vl-30b-a3b-instruct",
@@ -11271,7 +11467,8 @@
       "cost": {
         "input": 0.455,
         "output": 1.82
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-235b-a22b"
     },
     "qwen/qwen3.5-122b-a10b": {
       "id": "qwen/qwen3.5-122b-a10b",
@@ -11308,7 +11505,8 @@
       "cost": {
         "input": 0.26,
         "output": 2.08
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.5-122b-a10b"
     },
     "qwen/qwen-plus-2025-07-28": {
       "id": "qwen/qwen-plus-2025-07-28",
@@ -11391,7 +11589,8 @@
         "input": 0.15,
         "output": 1,
         "cache_read": 0.05
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.6-35b-a3b"
     },
     "qwen/qwen3-next-80b-a3b-instruct": {
       "id": "qwen/qwen3-next-80b-a3b-instruct",
@@ -11423,7 +11622,8 @@
         "input": 0.1,
         "output": 1.1,
         "cache_read": 0.07
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-next-80b-a3b-instruct"
     },
     "qwen/qwen3-vl-30b-a3b-thinking": {
       "id": "qwen/qwen3-vl-30b-a3b-thinking",
@@ -11510,7 +11710,8 @@
           "output": 3,
           "cache_write": 0.9375
         }
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.6-flash"
     },
     "qwen/qwen3-coder-flash": {
       "id": "qwen/qwen3-coder-flash",
@@ -11565,7 +11766,8 @@
             }
           }
         ]
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-coder-flash"
     },
     "qwen/qwen-2.5-coder-32b-instruct": {
       "id": "qwen/qwen-2.5-coder-32b-instruct",
@@ -11741,7 +11943,8 @@
             }
           }
         ]
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3-coder-plus"
     },
     "qwen/qwen3.5-9b": {
       "id": "qwen/qwen3.5-9b",
@@ -11778,7 +11981,8 @@
       "cost": {
         "input": 0.1,
         "output": 0.15
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.5-9b"
     },
     "qwen/qwen3.8-max-prime": {
       "id": "qwen/qwen3.8-max-prime",
@@ -11823,7 +12027,8 @@
         "input": 4,
         "output": 12,
         "cache_read": 0.5
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.8-max-prime"
     },
     "qwen/qwen3.5-plus-20260420": {
       "id": "qwen/qwen3.5-plus-20260420",
@@ -11919,7 +12124,8 @@
         "output": 0.47,
         "cache_read": 0.016,
         "cache_write": 0.2
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.8-flash"
     },
     "qwen/qwen3.5-35b-a3b": {
       "id": "qwen/qwen3.5-35b-a3b",
@@ -11956,7 +12162,8 @@
       "cost": {
         "input": 0.1625,
         "output": 1.3
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.5-35b-a3b"
     },
     "qwen/qwen3.6-max-preview": {
       "id": "qwen/qwen3.6-max-preview",
@@ -12004,7 +12211,8 @@
             }
           }
         ]
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.6-max-preview"
     },
     "qwen/qwen3-30b-a3b": {
       "id": "qwen/qwen3-30b-a3b",
@@ -12034,12 +12242,13 @@
       "open_weights": true,
       "limit": {
         "context": 131072,
-        "output": 16384
+        "output": 8192
       },
       "cost": {
-        "input": 0.12,
-        "output": 0.5
-      }
+        "input": 0.13,
+        "output": 0.52
+      },
+      "canonical_model_id": "alibaba/qwen3-30b-a3b"
     },
     "qwen/qwen3.5-397b-a17b": {
       "id": "qwen/qwen3.5-397b-a17b",
@@ -12077,7 +12286,8 @@
         "input": 0.55,
         "output": 3.5,
         "cache_read": 0.225
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.5-397b-a17b"
     },
     "qwen/qwen3-8b": {
       "id": "qwen/qwen3-8b",
@@ -12201,11 +12411,11 @@
       "open_weights": true,
       "limit": {
         "context": 262144,
-        "output": 235929
+        "output": 32000
       },
       "cost": {
-        "input": 0.1,
-        "output": 0.3
+        "input": 0.04815,
+        "output": 0.19305
       }
     },
     "qwen/qwen2.5-vl-72b-instruct": {
@@ -12422,7 +12632,8 @@
       "cost": {
         "input": 0.32,
         "output": 3.2
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.6-27b"
     },
     "qwen/qwen3.6-plus": {
       "id": "qwen/qwen3.6-plus",
@@ -12477,7 +12688,8 @@
           "output": 3.9,
           "cache_write": 1.625
         }
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.6-plus"
     },
     "qwen/qwen3-14b": {
       "id": "qwen/qwen3-14b",
@@ -12602,7 +12814,8 @@
           "cache_read": 0.192,
           "cache_write": 1.2
         }
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.7-plus"
     },
     "qwen/qwen3.8-27b:free": {
       "id": "qwen/qwen3.8-27b:free",
@@ -12647,7 +12860,8 @@
       "cost": {
         "input": 0,
         "output": 0
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.8-27b"
     },
     "qwen/qwen3.8-max-0902": {
       "id": "qwen/qwen3.8-max-0902",
@@ -12693,7 +12907,8 @@
         "output": 6,
         "cache_read": 0.25,
         "cache_write": 2.5
-      }
+      },
+      "canonical_model_id": "alibaba/qwen3.8-max-0902"
     },
     "morph/morph-v3-large": {
       "id": "morph/morph-v3-large",
@@ -12816,7 +13031,8 @@
           "output": 22.5,
           "cache_read": 0.5
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.4"
     },
     "openai/gpt-5.4-image-2": {
       "id": "openai/gpt-5.4-image-2",
@@ -12920,7 +13136,8 @@
           "input": 60,
           "output": 270
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.4-pro"
     },
     "openai/gpt-audio": {
       "id": "openai/gpt-audio",
@@ -12983,7 +13200,8 @@
       "cost": {
         "input": 0.5,
         "output": 1.5
-      }
+      },
+      "canonical_model_id": "openai/gpt-3.5-turbo"
     },
     "openai/gpt-6-astra-pro": {
       "id": "openai/gpt-6-astra-pro",
@@ -13105,7 +13323,8 @@
           "input": 60,
           "output": 270
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.5-pro"
     },
     "openai/gpt-5.4-nano": {
       "id": "openai/gpt-5.4-nano",
@@ -13152,7 +13371,8 @@
         "input": 0.2,
         "output": 1.25,
         "cache_read": 0.02
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.4-nano"
     },
     "openai/gpt-4o-2024-05-13": {
       "id": "openai/gpt-4o-2024-05-13",
@@ -13185,7 +13405,8 @@
       "cost": {
         "input": 5,
         "output": 15
-      }
+      },
+      "canonical_model_id": "openai/gpt-4o-2024-05-13"
     },
     "openai/gpt-4o-mini-2024-07-18": {
       "id": "openai/gpt-4o-mini-2024-07-18",
@@ -13264,7 +13485,8 @@
         "input": 1.75,
         "output": 14,
         "cache_read": 0.175
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.2-codex"
     },
     "openai/gpt-5.1-codex": {
       "id": "openai/gpt-5.1-codex",
@@ -13308,7 +13530,8 @@
         "input": 1.25,
         "output": 10,
         "cache_read": 0.13
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.1-codex"
     },
     "openai/gpt-4o": {
       "id": "openai/gpt-4o",
@@ -13342,7 +13565,8 @@
         "input": 2.5,
         "output": 10,
         "cache_read": 1.25
-      }
+      },
+      "canonical_model_id": "openai/gpt-4o"
     },
     "openai/gpt-chat-latest": {
       "id": "openai/gpt-chat-latest",
@@ -13452,16 +13676,16 @@
         "output": 128000
       },
       "cost": {
-        "input": 2,
-        "output": 10,
-        "cache_read": 0.2,
-        "cache_write": 2.5,
+        "input": 4,
+        "output": 20,
+        "cache_read": 0.4,
+        "cache_write": 5,
         "tiers": [
           {
-            "input": 4,
-            "output": 15,
-            "cache_read": 0.4,
-            "cache_write": 5,
+            "input": 8,
+            "output": 30,
+            "cache_read": 0.8,
+            "cache_write": 10,
             "tier": {
               "type": "context",
               "size": 272000
@@ -13469,12 +13693,13 @@
           }
         ],
         "context_over_200k": {
-          "input": 4,
-          "output": 15,
-          "cache_read": 0.4,
-          "cache_write": 5
+          "input": 8,
+          "output": 30,
+          "cache_read": 0.8,
+          "cache_write": 10
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.6-sol"
     },
     "openai/gpt-5-mini": {
       "id": "openai/gpt-5-mini",
@@ -13520,7 +13745,8 @@
         "input": 0.25,
         "output": 2,
         "cache_read": 0.025
-      }
+      },
+      "canonical_model_id": "openai/gpt-5-mini"
     },
     "openai/gpt-5.2-pro": {
       "id": "openai/gpt-5.2-pro",
@@ -13564,7 +13790,8 @@
       "cost": {
         "input": 21,
         "output": 168
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.2-pro"
     },
     "openai/o4-mini": {
       "id": "openai/o4-mini",
@@ -13603,7 +13830,8 @@
         "input": 1.1,
         "output": 4.4,
         "cache_read": 0.275
-      }
+      },
+      "canonical_model_id": "openai/o4-mini"
     },
     "openai/o3-mini": {
       "id": "openai/o3-mini",
@@ -13641,7 +13869,8 @@
         "input": 1.1,
         "output": 4.4,
         "cache_read": 0.55
-      }
+      },
+      "canonical_model_id": "openai/o3-mini"
     },
     "openai/gpt-4": {
       "id": "openai/gpt-4",
@@ -13672,7 +13901,8 @@
       "cost": {
         "input": 30,
         "output": 60
-      }
+      },
+      "canonical_model_id": "openai/gpt-4"
     },
     "openai/gpt-5.3-codex": {
       "id": "openai/gpt-5.3-codex",
@@ -13719,7 +13949,8 @@
         "input": 1.75,
         "output": 14,
         "cache_read": 0.175
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.3-codex"
     },
     "openai/gpt-4.1-nano": {
       "id": "openai/gpt-4.1-nano",
@@ -13753,7 +13984,8 @@
         "input": 0.1,
         "output": 0.4,
         "cache_read": 0.025
-      }
+      },
+      "canonical_model_id": "openai/gpt-4.1-nano"
     },
     "openai/gpt-5-nano": {
       "id": "openai/gpt-5-nano",
@@ -13799,7 +14031,8 @@
         "input": 0.05,
         "output": 0.4,
         "cache_read": 0.005
-      }
+      },
+      "canonical_model_id": "openai/gpt-5-nano"
     },
     "openai/o1": {
       "id": "openai/o1",
@@ -13838,7 +14071,8 @@
         "input": 15,
         "output": 60,
         "cache_read": 7.5
-      }
+      },
+      "canonical_model_id": "openai/o1"
     },
     "openai/gpt-5-pro": {
       "id": "openai/gpt-5-pro",
@@ -13880,7 +14114,8 @@
       "cost": {
         "input": 15,
         "output": 120
-      }
+      },
+      "canonical_model_id": "openai/gpt-5-pro"
     },
     "openai/gpt-3.5-turbo-instruct": {
       "id": "openai/gpt-3.5-turbo-instruct",
@@ -13945,7 +14180,8 @@
         "input": 2.5,
         "output": 10,
         "cache_read": 1.25
-      }
+      },
+      "canonical_model_id": "openai/gpt-4o-2024-08-06"
     },
     "openai/gpt-6-astra": {
       "id": "openai/gpt-6-astra",
@@ -14011,7 +14247,8 @@
           "cache_read": 2,
           "cache_write": 25
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-6-astra"
     },
     "openai/gpt-5.6-luna-pro": {
       "id": "openai/gpt-5.6-luna-pro",
@@ -14078,7 +14315,8 @@
           "cache_read": 0.04,
           "cache_write": 0.5
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.6-luna"
     },
     "openai/gpt-5.1": {
       "id": "openai/gpt-5.1",
@@ -14124,7 +14362,8 @@
         "input": 1.25,
         "output": 10,
         "cache_read": 0.125
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.1"
     },
     "openai/gpt-5-image-mini": {
       "id": "openai/gpt-5-image-mini",
@@ -14193,7 +14432,8 @@
         "input": 0.15,
         "output": 0.6,
         "cache_read": 0.075
-      }
+      },
+      "canonical_model_id": "openai/gpt-4o-mini"
     },
     "openai/o3-pro": {
       "id": "openai/o3-pro",
@@ -14231,7 +14471,8 @@
       "cost": {
         "input": 20,
         "output": 80
-      }
+      },
+      "canonical_model_id": "openai/o3-pro"
     },
     "openai/gpt-oss-20b": {
       "id": "openai/gpt-oss-20b",
@@ -14270,8 +14511,10 @@
       },
       "cost": {
         "input": 0.018,
-        "output": 0.09
-      }
+        "output": 0.09,
+        "cache_read": 0.009
+      },
+      "canonical_model_id": "openai/gpt-oss-20b"
     },
     "openai/gpt-oss-safeguard-20b": {
       "id": "openai/gpt-oss-safeguard-20b",
@@ -14312,7 +14555,8 @@
         "input": 0.075,
         "output": 0.3,
         "cache_read": 0.0375
-      }
+      },
+      "canonical_model_id": "openai/gpt-oss-safeguard-20b"
     },
     "openai/o3-mini-high": {
       "id": "openai/o3-mini-high",
@@ -14566,7 +14810,8 @@
         "input": 0.75,
         "output": 4.5,
         "cache_read": 0.075
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.4-mini"
     },
     "openai/gpt-5.6-luna": {
       "id": "openai/gpt-5.6-luna",
@@ -14633,7 +14878,8 @@
           "cache_read": 0.04,
           "cache_write": 0.5
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.6-luna"
     },
     "openai/gpt-5.1-codex-max": {
       "id": "openai/gpt-5.1-codex-max",
@@ -14678,7 +14924,8 @@
         "input": 1.25,
         "output": 10,
         "cache_read": 0.125
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.1-codex-max"
     },
     "openai/gpt-5.2": {
       "id": "openai/gpt-5.2",
@@ -14725,7 +14972,8 @@
         "input": 1.75,
         "output": 14,
         "cache_read": 0.175
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.2"
     },
     "openai/gpt-5.5": {
       "id": "openai/gpt-5.5",
@@ -14788,7 +15036,8 @@
           "output": 45,
           "cache_read": 1
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.5"
     },
     "openai/gpt-4.1": {
       "id": "openai/gpt-4.1",
@@ -14822,7 +15071,8 @@
         "input": 2,
         "output": 8,
         "cache_read": 0.5
-      }
+      },
+      "canonical_model_id": "openai/gpt-4.1"
     },
     "openai/gpt-4o-2024-11-20": {
       "id": "openai/gpt-4o-2024-11-20",
@@ -14856,7 +15106,8 @@
         "input": 2.5,
         "output": 10,
         "cache_read": 1.25
-      }
+      },
+      "canonical_model_id": "openai/gpt-4o-2024-11-20"
     },
     "openai/gpt-3.5-turbo-0613": {
       "id": "openai/gpt-3.5-turbo-0613",
@@ -14921,7 +15172,8 @@
         "input": 0.4,
         "output": 1.6,
         "cache_read": 0.1
-      }
+      },
+      "canonical_model_id": "openai/gpt-4.1-mini"
     },
     "openai/gpt-5.6-terra-pro": {
       "id": "openai/gpt-5.6-terra-pro",
@@ -14988,7 +15240,8 @@
           "cache_read": 0.4,
           "cache_write": 5
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.6-terra"
     },
     "openai/gpt-6-luna": {
       "id": "openai/gpt-6-luna",
@@ -15055,7 +15308,8 @@
           "cache_read": 0.02,
           "cache_write": 0.25
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-6-luna"
     },
     "openai/o4-mini-high": {
       "id": "openai/o4-mini-high",
@@ -15229,7 +15483,8 @@
           "cache_read": 0.4,
           "cache_write": 5
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.6-terra"
     },
     "openai/gpt-4-turbo": {
       "id": "openai/gpt-4-turbo",
@@ -15261,7 +15516,8 @@
       "cost": {
         "input": 10,
         "output": 30
-      }
+      },
+      "canonical_model_id": "openai/gpt-4-turbo"
     },
     "openai/gpt-oss-120b": {
       "id": "openai/gpt-oss-120b",
@@ -15302,7 +15558,8 @@
         "input": 0.15,
         "output": 0.6,
         "cache_read": 0.075
-      }
+      },
+      "canonical_model_id": "openai/gpt-oss-120b"
     },
     "openai/gpt-5.1-codex-mini": {
       "id": "openai/gpt-5.1-codex-mini",
@@ -15349,7 +15606,8 @@
         "input": 0.25,
         "output": 2,
         "cache_read": 0.03
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.1-codex-mini"
     },
     "openai/o3": {
       "id": "openai/o3",
@@ -15388,7 +15646,8 @@
         "input": 2,
         "output": 8,
         "cache_read": 0.5
-      }
+      },
+      "canonical_model_id": "openai/o3"
     },
     "openai/gpt-5": {
       "id": "openai/gpt-5",
@@ -15434,7 +15693,8 @@
         "input": 1.25,
         "output": 10,
         "cache_read": 0.125
-      }
+      },
+      "canonical_model_id": "openai/gpt-5"
     },
     "openai/gpt-5.6-sol": {
       "id": "openai/gpt-5.6-sol",
@@ -15501,7 +15761,8 @@
           "cache_read": 0.4,
           "cache_write": 5
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-5.6-sol"
     },
     "openai/gpt-6-sol": {
       "id": "openai/gpt-6-sol",
@@ -15568,7 +15829,8 @@
           "cache_read": 0.4,
           "cache_write": 5
         }
-      }
+      },
+      "canonical_model_id": "openai/gpt-6-sol"
     },
     "openai/o1-pro": {
       "id": "openai/o1-pro",
@@ -15606,7 +15868,8 @@
       "cost": {
         "input": 150,
         "output": 600
-      }
+      },
+      "canonical_model_id": "openai/o1-pro"
     },
     "microsoft/phi-4": {
       "id": "microsoft/phi-4",
