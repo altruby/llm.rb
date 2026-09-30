@@ -343,6 +343,14 @@ module LLM
         @queue = stream.queue
         @queue.wait
       end
+    rescue LLM::Interrupt
+      ##
+      # Once, not once per tool. A cancel reaches every tool that is
+      # running, and the caller hears one exception, so the phase is
+      # announced here - the frame every strategy's interrupt unwinds
+      # through - and before the caller is given it.
+      tracer.on_interrupt(scope: :tool)
+      raise
     ensure
       @queue = nil
       @stream = nil
