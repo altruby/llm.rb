@@ -156,6 +156,15 @@ Three more hooks cover a local tool call. `on_tool_start` fires before
 the tool runs and returns the span that `on_tool_finish` and
 `on_tool_error` receive.
 
+An interrupt is neither a finish nor an error, and it is reported to a
+hook of its own. `on_interrupt` is called with a `scope:` of `:request`
+or `:tool` before the caller is given the exception, so a tracer that
+records what happened to a turn records it while the work is still in
+flight. The hook receives the span that `on_request_start` returned and
+its `request_id`; a tool pass carries neither, because a tool's span
+belongs to the call. A cancel reaches every tool that is running, so the
+tool phase is announced once rather than once per tool.
+
 A tracer's own lifetime is bracketed as well. `on_exit` fires once,
 when the last scope that is open for that tracer ends. That scope can
 belong to a different thread than the one that opened the first: a tool
@@ -214,11 +223,13 @@ as hooks gain parameters.
 
 #### Notes
 
-The base class raises `NotImplementedError` for any hook it does not
-implement, so a tracer must cover every hook the runtime calls: the six
-request and tool hooks above. Accept `**` to absorb keywords you do not
-read, as the built-in tracers do, so a hook that gains a parameter does
-not break your subclass.
+The base class raises `NotImplementedError` for the six request and tool
+hooks above, so a tracer has to answer for each of them. `on_interrupt`
+is the exception: it does nothing by default, because an interrupt is
+delivered to whatever tracer happens to be bound, and a hook that raised
+would replace the interrupt every caller is written against. Accept `**`
+to absorb keywords you do not read, as the built-in tracers do, so a
+hook that gains a parameter does not break your subclass.
 
 ### PrettyLogger
 

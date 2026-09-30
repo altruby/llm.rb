@@ -196,14 +196,17 @@
   Update `data/` with current model listings, limits, and pricing. Alibaba adds
   `qwen3.5-flash`, `qwen3.7-flash`, and `qwen3.8-omni-flash`, and gives
   `qwen3.7-plus` attachments, structured output, and a lower price; OpenAI adds
-  `gpt-daybreak-blue-latest` and `gpt-daybreak-red-latest`; Bedrock adds
-  `openai.gpt-6-sol`, `openai.gpt-6-luna`, and
-  `global.anthropic.claude-sonnet-5-5`; and DeepInfra adds `tencent/Hy4-preview`
-  and the Xiaomi MiMo V2.6 Pro and V2.6 Flash models.
+  `gpt-daybreak-blue-latest`, `gpt-daybreak-red-latest`, and `gpt-6.1-sol`, and
+  gives `gpt-6-astra` an `ultrafast` mode; Bedrock adds `openai.gpt-6-sol`,
+  `openai.gpt-6-luna`, `global.anthropic.claude-sonnet-5-5`,
+  `anthropic.claude-sonnet-5-5`, and the Grok 4.7 entries in both the global
+  and US regions; DeepInfra adds `tencent/Hy4-preview` and the Xiaomi MiMo
+  V2.6 Pro and V2.6 Flash models, and marks four older entries deprecated.
   Bedrock also corrects the context and output limits of fifteen models, Google
   lowers the limits of `gemini-2.5-computer-use-preview-10-2025` and
-  `gemini-3-pro-image`, and OpenRouter adds five models, drops six, and reprices
-  many of the DeepSeek, Z.ai, and Qwen entries.
+  `gemini-3-pro-image`, and OpenRouter adds seven models, `openai/gpt-6.1-sol`
+  and `openai/gpt-6.1-sol-pro` among them, drops six, and reprices or corrects
+  the limits of many of the DeepSeek, Z.ai, Qwen, and Tencent entries.
 
 ### Schema
 
@@ -229,6 +232,42 @@
   there. It fires once per successful request, so a request retried after a
   rate limit or a timeout calls it when it lands and not once per attempt, and
   it fires even when the stream is disabled.
+
+### Tracers
+
+* **tracer: report a request that failed** <br>
+  [`LLM::Tracer#on_request_error`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_request_error-instance_method)
+  is now called wherever a request ends without a response, so a span that
+  [`LLM::Tracer#on_request_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_request_start-instance_method)
+  returned is closed. Before this, a request was reported only when a provider
+  turned an error response into an exception, so a dropped connection or a
+  socket read that failed left the tracer holding a span it had opened and never
+  closed, which in a trace reads the same as a process that died. A failure that
+  surfaces as one of the transport's own error classes is reported the same way
+  unless the request was interrupted, and the exception the caller receives is
+  unchanged.
+
+* **tracer: add `on_interrupt`, called when a request is interrupted** <br>
+  [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_interrupt-instance_method)
+  is a new hook, called with a `scope:` of `:request` or `:tool` before
+  `LLM::Interrupt` reaches the caller, so a tracer that has to record what
+  happened to a turn does it while the work is still in flight. An interrupt is
+  the third ending a scope can have, beside `on_request_finish` and
+  `on_request_error`, and it is not reported as a failure. Unlike the rest of
+  the lifecycle it does nothing by default, because an interrupt is delivered to
+  whatever tracer happens to be bound, and a hook that raised would replace the
+  interrupt every caller is written against. A request is announced with the
+  span that `on_request_start` returned and its `request_id`; a tool pass has
+  neither, so both arrive as `nil`.
+
+* **tracer: announce an interrupted tool phase once** <br>
+  [`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
+  now calls the hook once when an interrupt unwinds through it, rather than once
+  per tool, because a cancel reaches every tool that is running and the caller
+  hears a single exception, so the announcement belongs to the phase rather than
+  to a tool. The hook runs before the caller is given the interrupt. A `:ractor`
+  call that answers `cancelled: true` instead of raising is not announced,
+  because the phase was not interrupted; one call was retired.
 
 ## v15.5.0
 
