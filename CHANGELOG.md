@@ -25,249 +25,150 @@
 | `record.messages` returns the messages the runtime holds | a `:jsonb` record returns a relation of `LLM::ActiveRecord::Message` rows |
 
 * **drop Ruby 3.3 support** <br>
-  The gem now requires Ruby 3.4 or later: `required_ruby_version` is
-  `>= 3.4.0`, the CI matrix runs 3.4 and 4.0, and RuboCop targets 3.4.
-  Ruby 3.3 cannot hold an interrupt for a ractor-backed tool call, so a
-  cancel that arrives before the tool starts is not delivered there, while
-  Ruby 3.4 and 4.0 both deliver it.
+  The gem now requires Ruby 3.4 or later. Ruby 3.3 cannot hold an
+  interrupt for a ractor-backed tool call, so a cancel can arrive
+  before the tool starts and never be delivered.
 
 * **activerecord: read a `:jsonb` record's messages from the column** <br>
-  [`LLM::ActiveRecord`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord.html)
-  now answers `#messages` for a record whose `format` is `:jsonb` with an
-  [`ActiveRecord::Relation`](https://api.rubyonrails.org/classes/ActiveRecord/Relation.html)
-  over the column, through
-  [`LLM::ActiveRecord::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord/Message.html),
-  so a conversation can be filtered, counted, and ordered in SQL, and reading it
-  needs no provider and no credentials. Before this, every record loaded the
-  runtime and returned the messages it held, whatever the format. The relation
-  is not a drop-in replacement for that buffer: it reads what is persisted
-  rather than what a runtime holds in memory, it is unordered, so order by
-  `position`, and its rows answer `unwrap!` rather than being
-  [`LLM::Message`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html) objects.
-  Every other format, and Sequel, still loads the runtime.
+  The `#messages` of a `:jsonb` record is now a relation over the stored
+  messages, so a conversation can be filtered and counted in SQL without a
+  provider or credentials. Before, every record loaded the runtime; reach
+  that again with `#messages!`, and order the relation by `position`
+  because it is unordered.
 
 ### ActiveRecord
 
 * **activerecord: add `messages!` for the runtime's own messages** <br>
   [`LLM::ActiveRecord#messages!`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord.html#messages!-instance_method)
-  returns the messages the runtime holds whatever the storage format is, so a
-  jsonb record can still reach them now that its `#messages` answers with the
-  view over the column. It reads what the context holds, including state that
-  has not been saved, where `#messages` reads the column. The Sequel plugin
-  answers to `#messages!` too, where it is the same call as `#messages`.
+  returns the messages the runtime holds, including state that has not been
+  saved, where `#messages` reads the column. Use it to reach the live
+  conversation of a `:jsonb` record. The Sequel plugin answers to
+  `#messages!` too, where it is the same call as `#messages`.
 
 ### Agent
 
 * **agent: keep the instructions it injected in step** <br>
-  [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html) now brings
-  the instructions it injected up to date before a request goes out, so a
+  An agent now refreshes its instructions before each request, so a
   conversation restored from saved state runs on the agent's current
-  instructions rather than on the ones it was saved with. The message is
-  found by a mark the agent puts on it, so a message the caller composed is
-  never replaced, and the mark is written by
-  [`LLM::Message#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#to_h-instance_method)
-  and read back on a restore, which is the conversation the refresh exists
-  for. Before this, the instructions were injected once and the message
-  stayed as it was for the life of the conversation.
+  instructions instead of the ones it was saved with. A message the caller
+  composed is never touched.
 
 * **agent: identify its own instructions by the mark, not by the role** <br>
-  Fix a bug where the agent decided whether it had already injected its
-  instructions by looking for a message with the `system` role. Google gives
-  instructions the `user` role, so the agent did not recognise the message it
-  had already injected and added another copy of the instructions on every
-  turn. It now asks the provider which role instructions are given, and
-  identifies the message it wrote by its mark, because on Google the message
-  a caller seeds a conversation with is a user message too.
+  Fix a bug where an agent on Google added a fresh copy of its instructions
+  every turn, because it looked for a `system` message and Google gives
+  instructions the `user` role. It now marks the message it wrote and finds
+  it by that mark.
 
 ### Console
 
 * **console: erase with the backspace key on OpenBSD** <br>
-  The console now erases a character for every code a backspace key sends. A
-  terminal that follows the Linux convention sends DEL (127), the OpenBSD
-  console sends ^H (8), and curses sends its own `KEY_BACKSPACE` when the
-  terminal's terminfo describes the key. All three erase. Before this only 127
-  did, so the backspace key did nothing on the OpenBSD console.
+  The console now erases for every code a backspace key sends: DEL (127),
+  ^H (8), and curses's `KEY_BACKSPACE`. Before, only 127 worked, so
+  backspace did nothing on the OpenBSD console.
 
 ### Fix
 
 * **fork: require xchan.rb `~> 0.24`** <br>
-  The `:fork` concurrency strategy now requires the `xchan.rb` gem at `~> 0.24`
-  instead of `~> 0.23`, and the gemspec's development dependency follows. An
-  application that uses `:fork` needs `xchan.rb` 0.24 or later.
+  The `:fork` strategy now needs `xchan.rb` 0.24 or later, up from 0.23.
 
 ### Function
 
 * **function: deliver an interrupt to the tool, not to whatever is running** <br>
-  [`LLM::Function::Window`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Window.html)
-  is the stretch of a call that an interrupt belongs to. The `:fork` and `:ractor`
-  strategies now raise
+  A cancel now raises
   [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) on the
-  thread that runs the tool, and only while the tool runs: a cancel that arrives
-  before the tool starts is held until it does, so the tool's own `rescue` can
-  handle it, and one that arrives after the tool has returned is a no-op, which
-  no longer throws the result away. Before this, the interrupt was raised on the
-  child process's or the ractor's main thread wherever that thread had got to.
+  thread running the tool, and only while it runs: arriving early, it is held
+  until the tool starts, so the tool's own `rescue` sees it; arriving late, it
+  is a no-op instead of throwing the result away. Applies to `:fork` and
+  `:ractor`.
 
 * **function: answer a ractor-backed task once its ractor has gone** <br>
-  A `:ractor` tool's result is handed to a ractor the task holds it in,
-  rather than asked of the ractor that ran the tool, which answers `alive?`
-  while the tool runs and goes once the result is in. So a wait that arrives
-  after the tool has run is answered, a second wait is answered from memory,
-  the way
-  [`LLM::Function::Thread::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Thread/Task.html#wait-instance_method)
-  answers from the thread's value, and `alive?` answers `false` once the task
-  has been waited on. A cancel returns `nil` rather than raising, which is what
-  lets
-  [`LLM::Function::Ractor::Group#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Ractor/Group.html#interrupt!-instance_method)
-  reach every task it holds. Before this, a wait that arrived once the tool had
-  run raised `Ractor::ClosedError` or never came back, a cancel raised the same
-  error, and a group's cancel stopped at the first task that had already
-  returned, leaving the calls after it uncancelled.
+  A `:ractor` tool's result is now held by the task instead of asked of the
+  ractor that ran it, so a late wait is answered, a second wait comes from
+  memory, and a cancel returns `nil` instead of raising. A group's cancel now
+  reaches every task, not just the ones still running.
 
 * **function: tell an `:async` tool it was cancelled** <br>
-  A cancel now raises `LLM::Interrupt` on the fiber the tool runs in, through the
-  reactor's scheduler, so the tool is told and can answer with its own value. A
-  cancel that arrives before the tool started stops it from running, and the
-  reactor is stopped by whoever waits. Before this, the cancel pushed an
-  interrupt sentinel to the task's result queue and left the tool running, its
-  side effects happening and its result written to a queue nobody read, and the
-  reactor thread stayed alive until a group's `wait` stopped it.
+  A cancel now raises `LLM::Interrupt` on the fiber the tool runs in, so the
+  tool is told and can clean up. Before, the cancel was queued and the tool
+  kept running, its result written to a queue nobody read.
 
 * **function: run the interrupt hook on every strategy** <br>
   A tool that implements
   [`LLM::Tool#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_interrupt-instance_method)
-  or
-  [`LLM::Tool#on_cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_cancel-instance_method)
-  is now told on every concurrency strategy. `:thread`, `:fiber`, and `:async`
-  run the hook on the thread or fiber that ran the call, `:fork` and `:ractor`
-  run it inside the child or the ractor before the interrupt is delivered, and
-  a sequential group's cancel tells every task it holds. Before this, `:async`,
-  `:fork`, and `:ractor` never ran the hook, the others ran it on the thread
-  that cancelled, and a class-backed tool ran it on no strategy at all, because
-  `interrupt!` read the hook off the tool's definition and a class answers
-  `respond_to?` with false for an instance method. A hook that raises becomes
-  what the caller sees in place of the call's result.
+  is now told on every concurrency strategy. Before, `:async`, `:fork`, and
+  `:ractor` never ran it, and a class-backed tool ran it on no strategy at all.
 
 ### ORM
 
 * **orm: save a conversation after each request, not once per turn** <br>
-  [`LLM::Step`](https://r.uby.dev/api-docs/llm.rb/LLM/Step.html) is prepended
-  onto every stream by
-  [`LLM::Stream.try`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#try-class_method),
-  so a conversation bound to a record is written down as it goes and a turn
-  that is interrupted can be continued rather than started over. It saves
-  through
-  [`LLM::Context#record`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#record-instance_method),
-  an ActiveRecord model through `LLM::ActiveRecord::Utils.save!` and a Sequel
-  model through `LLM::Sequel::Plugin::Utils.save!`, and the write is best
-  effort, so a failure is swallowed rather than raised inside the request that
-  has just completed. Before this, `talk` and `ask` on both wrappers saved
-  once, when the whole turn had finished, so an interrupted turn persisted
-  nothing.
+  A record-backed conversation is now written down as it goes, so an
+  interrupted turn can be continued instead of started over. Before, the
+  wrappers saved once when the whole turn finished, so an interrupted turn
+  persisted nothing.
 
 ### Prompt
 
 * **prompt: let a message carry fields a caller attaches to it** <br>
   [`LLM::Prompt#system`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#system-instance_method),
-  [`#user`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#user-instance_method),
-  [`#developer`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#developer-instance_method),
-  and [`#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#talk-instance_method),
-  along with its `#chat` alias, now take an `extra:` keyword, so a message a
-  caller composes can carry fields of its own. The runtime reads those fields
-  back rather than inferring provenance from a role, which is how an agent
-  tells the instructions it injected from a message the caller wrote.
+  `#user`, `#developer`, and `#talk` (and its `#chat` alias) now take an
+  `extra:` keyword, so a caller can tag a message with fields of its own. The
+  runtime reads those fields back instead of guessing provenance from the role.
 
 ### Provider
 
 * **deepseek: support image attachments in chat completions** <br>
-  DeepSeek's vision models now take an image through the chat completions
-  adapter. A tagged prompt object of kind `:image_url` is sent as an `image_url`
-  content item, and a local image file is sent as a base64 encoded data URI.
-  Anything else is rejected with a reason of its own: a remote file or an
-  `LLM::Response` raises
+  DeepSeek's vision models now accept an image. A `:image_url` object is sent
+  as an `image_url` item, and a local image file as a base64 data URI.
+  Anything else is rejected with a reason: a remote file or an `LLM::Response`
+  raises
   [`LLM::PromptError`](https://r.uby.dev/api-docs/llm.rb/LLM/PromptError.html)
-  because DeepSeek has no Files API, so a file id cannot be resolved, and a
-  local file that is not an image raises because DeepSeek's models read images
-  only.
+  because DeepSeek has no Files API, and a non-image local file raises because
+  its models read images only.
 
 ### Registry
 
 * **refresh model metadata** <br>
-  Update `data/` with current model listings, limits, and pricing. Alibaba adds
-  `qwen3.5-flash`, `qwen3.7-flash`, and `qwen3.8-omni-flash`, and gives
-  `qwen3.7-plus` attachments, structured output, and a lower price; OpenAI adds
-  `gpt-daybreak-blue-latest`, `gpt-daybreak-red-latest`, and `gpt-6.1-sol`, and
-  gives `gpt-6-astra` an `ultrafast` mode; Bedrock adds `openai.gpt-6-sol`,
-  `openai.gpt-6-luna`, `global.anthropic.claude-sonnet-5-5`,
-  `anthropic.claude-sonnet-5-5`, and the Grok 4.7 entries in both the global
-  and US regions; DeepInfra adds `tencent/Hy4-preview` and the Xiaomi MiMo
-  V2.6 Pro and V2.6 Flash models, and marks four older entries deprecated.
-  Bedrock also corrects the context and output limits of fifteen models, Google
-  lowers the limits of `gemini-2.5-computer-use-preview-10-2025` and
-  `gemini-3-pro-image`, and OpenRouter adds seven models, `openai/gpt-6.1-sol`
-  and `openai/gpt-6.1-sol-pro` among them, drops six, and reprices or corrects
-  the limits of many of the DeepSeek, Z.ai, Qwen, and Tencent entries.
+  Update `data/` with current listings, limits, and pricing. Alibaba, OpenAI,
+  Bedrock, DeepInfra, Google, and OpenRouter gain models and correct limits or
+  prices, and OpenRouter drops six entries.
 
 ### Schema
 
 * **schema: apply every `parameter` option to the leaf** <br>
-  [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) now applies each
-  option given to `parameter` to the leaf its type resolves to, so settings such
-  as `min:`, `max:`, `multiple_of:`, and `const:` reach the schema instead of
-  being dropped. Before this only `required`, `default`, and `enum` were read, so
-  `parameter :age, Integer, "Age", min: 1, max: 9` sent a plain integer and lost
-  the range. A `default:` of `false` survives now as well, where the old code
-  discarded a false default, and `required: false` marks the parameter optional
-  rather than being ignored.
+  Every option given to `parameter` now reaches the schema, so `min:`, `max:`,
+  `multiple_of:`, and `const:` are no longer dropped, a `default: false`
+  survives, and `required: false` marks a parameter optional. Before, only
+  `required`, `default`, and `enum` were read, so a tool that declared a range
+  sent a plain number and lost it.
 
 ### Stream
 
 * **stream: add `on_step`, called when a request completes** <br>
   [`LLM::Stream#on_step`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_step-instance_method)
-  is a new callback, emitted from
-  [`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
-  once the prompt and the response are in the conversation. It marks the
-  boundary between one request and the next, which is the point a stream can
-  checkpoint the conversation at, because a provider will accept it again
-  there. It fires once per successful request, so a request retried after a
-  rate limit or a timeout calls it when it lands and not once per attempt, and
-  it fires even when the stream is disabled.
+  is a new callback, fired once the prompt and response are in the
+  conversation. It marks where one request ends and the next begins, which is
+  where a stream can checkpoint, and it fires once per successful request even
+  when streaming is off.
 
 ### Tracers
 
 * **tracer: report a request that failed** <br>
   [`LLM::Tracer#on_request_error`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_request_error-instance_method)
-  is now called wherever a request ends without a response, so a span that
-  [`LLM::Tracer#on_request_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_request_start-instance_method)
-  returned is closed. Before this, a request was reported only when a provider
-  turned an error response into an exception, so a dropped connection or a
-  socket read that failed left the tracer holding a span it had opened and never
-  closed, which in a trace reads the same as a process that died. A failure that
-  surfaces as one of the transport's own error classes is reported the same way
-  unless the request was interrupted, and the exception the caller receives is
-  unchanged.
+  is now called whenever a request ends without a response, so a span is always
+  closed. Before, only provider errors that became exceptions were reported, so
+  a dropped connection left a span open, which reads like a process that died.
 
 * **tracer: add `on_interrupt`, called when a request is interrupted** <br>
   [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_interrupt-instance_method)
-  is a new hook, called with a `scope:` of `:request` or `:tool` before
-  `LLM::Interrupt` reaches the caller, so a tracer that has to record what
-  happened to a turn does it while the work is still in flight. An interrupt is
-  the third ending a scope can have, beside `on_request_finish` and
-  `on_request_error`, and it is not reported as a failure. Unlike the other
-  request and tool hooks it does nothing by default, because an interrupt is
-  delivered to whatever tracer happens to be bound, and a hook that raised would
-  replace the interrupt every caller is written against. A request is announced
-  with the span that `on_request_start` returned and its `request_id`; a tool
-  pass has neither, so both arrive as `nil`.
+  is a new hook, called with `scope: :request` or `:tool` before
+  `LLM::Interrupt` reaches the caller, so a tracer can record an interrupted
+  turn. It does nothing by default, since a raise here would replace the
+  interrupt callers are written against.
 
 * **tracer: announce an interrupted tool phase once** <br>
   [`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
-  now calls the hook once when an interrupt unwinds through it, rather than once
-  per tool, because a cancel reaches every tool that is running and the caller
-  hears a single exception, so the announcement belongs to the phase rather than
-  to a tool. The hook runs before the caller is given the interrupt. A `:ractor`
-  call that answers `cancelled: true` instead of raising is not announced,
-  because the phase was not interrupted; one call was retired.
+  now calls `on_interrupt` once when an interrupt unwinds through it, rather
+  than once per tool, matching the single exception the caller receives.
 
 ## v15.5.0
 
