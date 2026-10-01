@@ -26,6 +26,7 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 |-----|-----|
 | Ruby 3.3 or later | Ruby 3.4 or later |
 | `record.messages` returns the messages the runtime holds | a `:jsonb` record returns a relation of `LLM::ActiveRecord::Message` rows |
+| a `set_tracer` method on an ORM model | `set tracer:` in the block, or `tracer:` on the wrapper |
 
 * **drop Ruby 3.3 support** <br>
   The gem now requires Ruby 3.4 or later. Ruby 3.3 cannot hold an
@@ -108,6 +109,13 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   interrupted turn can be continued instead of started over. Before, the
   wrappers saved once when the whole turn finished, so an interrupted turn
   persisted nothing.
+
+* **orm: drop the `set_tracer` callback** <br>
+  The wrappers no longer resolve a tracer from a `set_tracer` method on the
+  model. Declare it where an agent's other defaults are declared, with
+  `set tracer:` in the block, or pass it to the wrapper as `tracer:`, which
+  is what a context has. A model that implements `set_tracer` today loses
+  its tracer silently.
 
 ### Prompt
 
