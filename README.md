@@ -254,14 +254,24 @@ agent.talk "Run the tools in parallel"
 <summary>Cancellation</summary>
 <br>
 
-Abort a request mid-stream and interrupt any running tools with
+It is possible to abort a request mid-stream and interrupt
+running tool calls with
 [`LLM::Agent#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#interrupt!)
-(or `cancel!`), from any thread. The runtime raises
+(or `cancel!`) as long as it is done by another thread or fiber in
+the same process.
+
+The runtime raises
 [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html)
-on the caller and on every active tool. A forked tool gets interrupted over
-the control channel, a ractor via message passing, and pending tools
-are stopped before they run. The in-flight HTTP request is closed
-too, so a turn you no longer want stops without burning tokens.
+on the fiber making a request and on every active tool
+regardless of the active concurrency strategy. It works the
+same across all strategies although there can be subtle
+differences that usually go unnoticed.
+
+A tool can implement the `#on_interrupt` callback
+to be notified when a tool call has been interrupted
+and it can also rescue the `LLM::Interrupt` exception
+to free resources or perform other actions before the
+tool dies.
 
 ```ruby
 llm = LLM.deepseek(key: ENV["KEY"])
