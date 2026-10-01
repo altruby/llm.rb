@@ -27,6 +27,7 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 | Ruby 3.3 or later | Ruby 3.4 or later |
 | `record.messages` returns the messages the runtime holds | a `:jsonb` record returns a relation of `LLM::ActiveRecord::Message` rows |
 | a `set_tracer` method on an ORM model | `set tracer:` in the block, or `tracer:` on the wrapper |
+| a `:thread` or `:fiber` cancel that arrives before the tool starts is dropped | the cancel is held and raised once the tool starts |
 
 * **drop Ruby 3.3 support** <br>
   The gem now requires Ruby 3.4 or later. Ruby 3.3 cannot hold an
@@ -39,6 +40,13 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   provider or credentials. Before, every record loaded the runtime; reach
   that again with `#messages!`, and order the relation by `position`
   because it is unordered.
+
+* **function: hold a cancel on `:thread` and `:fiber` instead of dropping it** <br>
+  A cancel that arrived before the tool started used to be dropped, and the call
+  ran to completion. It is now held and raised once the tool starts, so a caller
+  that cancelled a task it had not yet spawned sees
+  [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) where
+  it used to see a return.
 
 ### ActiveRecord
 
@@ -101,6 +109,19 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   [`LLM::Tool#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_interrupt-instance_method)
   is now told on every concurrency strategy. Before, `:async`, `:fork`, and
   `:ractor` never ran it, and a class-backed tool ran it on no strategy at all.
+
+* **function: hold a cancel that arrives before a thread or fiber starts** <br>
+  Fix a bug where a cancel that arrived before a `:thread` or `:fiber` tool
+  started was dropped, and the call ran to completion as if nobody had asked it
+  to stop. The cancel is now held on the task and raised once the body is live,
+  so the tool's `on_interrupt` hook runs and the caller sees `LLM::Interrupt`.
+
+* **function: answer a task that has already answered** <br>
+  A second `#wait` on an `:async` or `:fork` task is answered from what the
+  first one took, which is what `Thread#value` does, so a task that has answered
+  answers again. Before, a second wait blocked on a queue nothing would fill, or
+  read a channel the task had already closed. An interrupt re-raises the same
+  exception rather than blocking.
 
 ### ORM
 
