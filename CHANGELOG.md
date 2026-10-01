@@ -28,6 +28,7 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 | `record.messages` returns the messages the runtime holds | a `:jsonb` record returns a relation of `LLM::ActiveRecord::Message` rows |
 | a `set_tracer` method on an ORM model | `set tracer:` in the block, or `tracer:` on the wrapper |
 | a `:thread` or `:fiber` cancel that arrives before the tool starts is dropped | the cancel is held and raised once the tool starts |
+| a cancel that arrives between two requests does nothing | the turn ends there, and the caller sees `LLM::Interrupt` |
 
 * **drop Ruby 3.3 support** <br>
   The gem now requires Ruby 3.4 or later. Ruby 3.3 cannot hold an
@@ -47,6 +48,17 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   that cancelled a task it had not yet spawned sees
   [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) where
   it used to see a return.
+
+* **interrupt: reach a turn that is between its requests** <br>
+  A cancel that arrived between two requests used to do nothing, because
+  there was nothing in flight to close and nothing running to raise into.
+  It now ends the turn where it is, raising `LLM::Interrupt` into the
+  caller the turn runs under and announcing `scope: :agent` to the tracer
+  first. `LLM::Agent#run_loop` records that caller for as long as the turn
+  lasts, and it answers `interrupt!` through
+  [`LLM::Agent::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent/Interrupt.html).
+  `LLM::Interrupt` is a `StandardError`, so a broad `rescue` catches it
+  wherever the turn had reached.
 
 ### ActiveRecord
 
@@ -192,10 +204,12 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 
 * **tracer: add `on_interrupt`, called when a request is interrupted** <br>
   [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_interrupt-instance_method)
-  is a new hook, called with `scope: :request` or `:tool` before
+  is a new hook, called with `scope: :request`, `:tool`, or `:agent` before
   `LLM::Interrupt` reaches the caller, so a tracer can record an interrupted
-  turn. It does nothing by default, since a raise here would replace the
-  interrupt callers are written against.
+  turn. An `:agent` scope means the interrupt landed between a turn's
+  requests, where there was nothing more precise to interrupt. It does
+  nothing by default, since a raise here would replace the interrupt
+  callers are written against.
 
 * **tracer: announce an interrupted tool phase once** <br>
   [`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
