@@ -263,9 +263,10 @@ the same process.
 The runtime raises
 [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html)
 on the fiber making a request and on every active tool
-regardless of the active concurrency strategy. It works the
-same across all strategies although there can be subtle
-differences that usually go unnoticed.
+regardless of the active concurrency strategy. Before that
+happens the request socket is forcibly closed so the request
+stops burning tokens. It works the same across all strategies
+although there can be subtle differences that usually go unnoticed.
 
 A tool can implement the `#on_interrupt` callback
 to be notified when a tool call has been interrupted
