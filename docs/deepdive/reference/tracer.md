@@ -224,8 +224,10 @@ as hooks gain parameters.
 #### Notes
 
 The base class raises `NotImplementedError` for the six request and tool
-hooks above, so a tracer has to answer for each of them. `on_interrupt`
-is the exception: it does nothing by default, because an interrupt is
+hooks above, so a tracer has to answer for each of them. The remaining
+hooks do nothing by default. `on_exit` does nothing because most tracers
+hold nothing that needs releasing, and `start_trace` and `stop_trace`
+are no-ops too. `on_interrupt` does nothing because an interrupt is
 delivered to whatever tracer happens to be bound, and a hook that raised
 would replace the interrupt every caller is written against. Accept `**`
 to absorb keywords you do not read, as the built-in tracers do, so a

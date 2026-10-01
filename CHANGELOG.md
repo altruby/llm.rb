@@ -253,12 +253,12 @@
   `LLM::Interrupt` reaches the caller, so a tracer that has to record what
   happened to a turn does it while the work is still in flight. An interrupt is
   the third ending a scope can have, beside `on_request_finish` and
-  `on_request_error`, and it is not reported as a failure. Unlike the rest of
-  the lifecycle it does nothing by default, because an interrupt is delivered to
-  whatever tracer happens to be bound, and a hook that raised would replace the
-  interrupt every caller is written against. A request is announced with the
-  span that `on_request_start` returned and its `request_id`; a tool pass has
-  neither, so both arrive as `nil`.
+  `on_request_error`, and it is not reported as a failure. Unlike the other
+  request and tool hooks it does nothing by default, because an interrupt is
+  delivered to whatever tracer happens to be bound, and a hook that raised would
+  replace the interrupt every caller is written against. A request is announced
+  with the span that `on_request_start` returned and its `request_id`; a tool
+  pass has neither, so both arrive as `nil`.
 
 * **tracer: announce an interrupted tool phase once** <br>
   [`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
