@@ -237,8 +237,8 @@ to install the agent wrapper. The method accepts a block for
 configuring agent defaults
 and an options hash for storage format. Most defaults such as
 `model`, `tools`, `instructions`, `schema`, and `concurrency` can
-be set through the block. Tracer and stream can also be set here
-rather than through legacy convention methods.
+be set through the block, and the tracer and stream can be set here
+too.
 
 #### How it works
 
@@ -272,10 +272,11 @@ can be
 configured here -- model, tools, instructions, schema, concurrency,
 tracer, stream, and confirm:
 
-Note that `tracer` and `stream` are set directly in the block
-rather than through legacy `set_tracer` / `set_context` convention
-methods. The block style is the recommended approach for all agent
-configuration. Only `set_provider` is required as a private method.
+The model implements two callbacks and the wrapper resolves them by
+name: `set_provider`, which is required, and `set_context`, which is
+optional. A tracer is not one of them - there is no `set_tracer` - so
+set it on the agent in the block, as the example below does, or give it
+to `acts_as_agent` as `tracer:`.
 
 ##### Migration with TEXT column
 
@@ -314,10 +315,10 @@ require "llm/active_record"
 
 class Agent < ApplicationRecord
   acts_as_agent(format: :jsonb) do |agent|
-    agent.model "deepseek-v4-pro"
-    agent.instructions "solve the user's query"
-    agent.tools [Research, FinalizeResearch, ActOnResearch]
-    agent.tracer -> { LLM::Tracer.logger(llm, io: $stdout) }
+    agent.set model: "deepseek-v4-pro",
+              instructions: "solve the user's query",
+              tools: [Research, FinalizeResearch, ActOnResearch],
+              tracer: proc { LLM::Tracer.logger(llm, io: $stdout) }
   end
 
   private
@@ -349,10 +350,11 @@ to your table.
 
 The model requires a `set_provider` private method that returns an
 [`LLM::Provider`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html)
-instance. Legacy `set_context` and `set_tracer` convention methods
-also work for backwards compatibility, but the block style
-(`agent.tracer ...`, `agent.stream ...`) is preferred for all
-agent-level configuration.
+instance, and may implement `set_context` to seed the context with
+parameters. Those two are the only callbacks `acts_as_llm` and
+`acts_as_agent` resolve. A tracer is set on the agent in the block -
+`agent.set tracer: proc { ... }` - or passed to the wrapper as
+`tracer:`.
 
 An agent built by `acts_as_agent` is bound to the record it was
 loaded from, and
@@ -465,9 +467,9 @@ automatically and handles JSON typecasting. The block yields an
 instance. Configure agent defaults in the block -- model, tools,
 instructions, tracer, stream, and confirm all go here:
 
-As with ActiveRecord, `tracer` and `stream` are configured in the
-block rather than through legacy convention methods. The block
-style is the recommended approach.
+As with ActiveRecord, the model implements `set_provider` and
+`set_context`, and a tracer is set on the agent in the block with
+`agent.set tracer:`, or passed to the plugin as `tracer:`.
 
 ##### Migration with TEXT column
 
@@ -502,10 +504,10 @@ require "llm/sequel/plugin"
 
 class Agent < Sequel::Model
   plugin(:agent, format: :jsonb) do |agent|
-    agent.model "deepseek-v4-pro"
-    agent.instructions "solve the user's query"
-    agent.tools [Research, FinalizeResearch, ActOnResearch]
-    agent.tracer -> { LLM::Tracer.logger(llm, io: $stdout) }
+    agent.set model: "deepseek-v4-pro",
+              instructions: "solve the user's query",
+              tools: [Research, FinalizeResearch, ActOnResearch],
+              tracer: proc { LLM::Tracer.logger(llm, io: $stdout) }
   end
 
   private
@@ -535,10 +537,11 @@ The `data_column` option defaults to `:data`.
 
 The model requires a `set_provider` private method that returns an
 [`LLM::Provider`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html)
-instance. Legacy `set_context` and `set_tracer` convention methods
-also work for backwards compatibility, but configuring tracer,
-stream, and other agent options in the block is the preferred
-approach.
+instance, and may implement `set_context` to seed the context with
+parameters. Those two are the only callbacks `plugin :llm` and
+`plugin :agent` resolve. A tracer is set on the agent in the block -
+`agent.set tracer: proc { ... }` - or passed to the plugin as
+`tracer:`.
 
 To persist a context instead of an agent, use `plugin :llm`. The
 model gains `#llm` (the provider) and `#ctx` (the context), and
