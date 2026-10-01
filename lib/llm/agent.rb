@@ -51,6 +51,8 @@ module LLM
   # @see LLM::Tool Tools that Agent can call on your behalf
   # @see LLM::Stream Stream callbacks for model output
   class Agent
+    require_relative "agent/interrupt"
+
     ##
     # @api private
     UNDEFINED = Object.new
@@ -954,8 +956,38 @@ module LLM
       # identifies the turn.
       tracer = @tracer || @llm.tracer
       tracer.start_trace(name: "llm.turn", trace_group_id: SecureRandom.uuid_v7)
+      ##
+      # Where the turn is running, for as long as it runs.
+      #
+      # A cancel reaches a request in flight and the tools that are
+      # running, and between those it reached nothing: the loop is
+      # between two requests, or waiting out a retry, or building the
+      # next one. What is left over is a raise into the caller the turn
+      # is running under, and this names it - recorded here rather than in
+      # `Context#talk`, because a turn is a loop and not a request.
+      #
+      # The scheduler is part of it, and read here rather than by the
+      # caller: a cancel runs on the canceller's thread, which is not the
+      # thread a scheduler was installed on. The fiber strategy names it
+      # for the same reason. The tracer is part of it too, because the
+      # caller announces the turn's last phase to it before raising.
+      #
+      # Set to nil below once the turn is over, and that is not a
+      # formality: a worker's thread is reused for the turn after this
+      # one, and a cancel that arrived late would otherwise land in
+      # whatever that thread is doing.
+      @ctx.instance_variable_set(
+        :@caller,
+        LLM::Object.from(
+          thread: Thread.current,
+          fiber: @llm.request_owner,
+          scheduler: Fiber.scheduler,
+          tracer:
+        ).extend(Interrupt)
+      )
       @llm.with_tracer(tracer, &run)
     ensure
+      @ctx.instance_variable_set(:@caller, nil)
       tracer&.stop_trace
     end
 

@@ -232,6 +232,7 @@ module LLM
     # Ask a question and return the content string directly.
     # Accepts `with:` for file attachments and a block for streaming.
     # This interface is compatible with RubyLLM's `ask` method.
+    #
     # @param [String] prompt
     # @param [Hash] options
     # @option options [String, Array<String>, nil] :with
@@ -357,8 +358,28 @@ module LLM
     end
 
     ##
-    # Interrupt the active request, if any.
-    # This is inspired by Go's context cancellation model.
+    # Interrupt a turn: the request in flight, the tools that are
+    # running, and - when it is neither of those - the caller the turn is
+    # running under.
+    #
+    # This is inspired by Go's context cancellation model, and the three
+    # are the whole of what a turn is doing. A request is closed at the
+    # socket, which is `llm.interrupt!(owner)`: the transport keys its
+    # live requests by the owner the request was made on, and answers
+    # that it has nothing to close when there is no request registered
+    # under it. A tool is a task, and every task that is running is
+    # raised into. Between the two there is nothing: the loop is between
+    # two requests, or waiting out a retry, or building the next one -
+    # and until {LLM::Agent#run_loop} recorded the caller it is running
+    # under, an interrupt there was a cancel that did nothing at all.
+    #
+    # The caller is the last resort rather than the first: the two precise
+    # interrupts are what close a socket and stop a tool, and what is left
+    # over is a turn that is running with nothing to point at. Ending that
+    # is what the caller is asked to do - it answers `interrupt!`, announces
+    # the phase to the tracer, and which of the thread, the fiber and the
+    # scheduler it holds receives the raise is its own business. See
+    # {LLM::Agent::Interrupt}.
     # @return [nil]
     def interrupt!
       llm.interrupt!(@owner)
@@ -366,6 +387,7 @@ module LLM
       pending_functions.each(&:interrupt!)
       @queue = nil
       @owner = nil
+      @caller&.interrupt!
       nil
     end
     alias_method :cancel!, :interrupt!
@@ -598,7 +620,7 @@ module LLM
     end
 
     ##
-    ##
+    #
     # Runs a network call, retrying it when the request is rate limited
     # ({LLM::RateLimitError}) or times out (`Timeout::Error`, which covers
     # `Net::OpenTimeout` and `Net::ReadTimeout`), up to the retry budget.
@@ -607,6 +629,13 @@ module LLM
     # refused before any content streams, so retrying the same request
     # loses nothing. The bare `retry` below re-runs the method body while
     # `attempts ||= 0` keeps the count across attempts.
+    #
+    # The sleep is interruptible, which is the reason it needs nothing
+    # else: a cancel that arrives here has no request in flight to close
+    # and no tool to raise into, so it is the caller that is raised into -
+    # and a thread or fiber that is sleeping receives it the way it would
+    # receive it anywhere else. A turn cancelled between two attempts
+    # does not make the next one.
     # @api private
     # @return [Object]
     def try
