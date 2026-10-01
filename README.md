@@ -78,8 +78,7 @@ agent.talk "hello world"
 Streams can be simple IO objects or subclasses of
 [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
 with structured callbacks for content,
-reasoning, tool calls, tool returns, the boundary a completed
-request marks, and compaction.
+reasoning, tool calls, tool returns, steps in a turn, and compaction.
 Streams can also observe message transformers, which rewrite
 outgoing messages before they reach the provider.
 
