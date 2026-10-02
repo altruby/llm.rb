@@ -29,6 +29,7 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 | a `set_tracer` method on an ORM model | `set tracer:` in the block, or `tracer:` on the wrapper |
 | a `:thread` or `:fiber` cancel that arrives before the tool starts is dropped | the cancel is held and raised once the tool starts |
 | a cancel that arrives between two requests does nothing | the turn ends there, and the caller sees `LLM::Interrupt` |
+| a bare `rescue`, or `rescue => ex`, catches a cancel | `LLM::Interrupt` is outside `StandardError`, so both forms pass it through |
 
 * **drop Ruby 3.3 support** <br>
   The gem now requires Ruby 3.4 or later. Ruby 3.3 cannot hold an
@@ -57,8 +58,19 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   first. `LLM::Agent#run_loop` records that caller for as long as the turn
   lasts, and it answers `interrupt!` through
   [`LLM::Agent::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent/Interrupt.html).
-  `LLM::Interrupt` is a `StandardError`, so a broad `rescue` catches it
-  wherever the turn had reached.
+  The raise lands in the thread or fiber the turn runs on, so it unwinds out
+  of the turn to whoever called it.
+
+* **interrupt: move `LLM::Interrupt` outside `StandardError`** <br>
+  `LLM::Interrupt` is now an `Exception` rather than an `LLM::Error`, so a
+  bare `rescue` and a `rescue => ex` pass a cancel through instead of
+  swallowing it. Before, a broad rescue in a tool, a tracer, or an
+  application could eat an interrupt, and the turn looked like one that had
+  ignored its cancel. It is not a `SignalException`, since an interrupt has
+  to be catchable and a signal is a framework's own condition. A caller that
+  handles a cancel names `LLM::Interrupt`; `#wait` and the tool's
+  `on_interrupt` hook are unchanged, and a task still carries the interrupt
+  back to the caller rather than raising it inside its reactor.
 
 ### ActiveRecord
 
