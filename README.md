@@ -235,8 +235,12 @@ isolation from its parent.
 A couple of concurrency strategies require optional, opt-in dependencies.
 The `async` strategy requires the [async](https://github.com/socketry/async)
 gem and the `fork` strategy requires the [xchan.rb](https://github.com/r-uby-dev/xchan.rb)
-gem. The `fiber` strategy requires a scheduler (`Fiber.scheduler`) but by
+gem (`~> 0.24`). The `fiber` strategy requires a scheduler (`Fiber.scheduler`) but by
 default Ruby does not provide one.
+
+The `:ractor` strategy is the least interchangeable of the six. It runs
+class-based tools only, and a tool's arguments have to be
+ractor-shareable.
 
 ```ruby
 require "llm"
@@ -349,6 +353,7 @@ llm.rb -n curb             # use libcurl as the HTTP transport
 llm.rb -x 900              # read timeout of 15 minutes
 llm.rb -t                  # temporary session, no persistence
 llm.rb -v                  # print the version
+llm.rb -h                  # print usage
 ```
 </details>
 <details>
@@ -763,6 +768,41 @@ agent.talk "Hello"
 
 
 <details>
+<summary>Usage and cost</summary>
+<br>
+
+Every context and agent reports what a conversation has spent and how
+much room is left, and the numbers answer different questions. A
+`token_usage` is the whole conversation, summed as an
+[LLM::Usage](https://r.uby.dev/api-docs/llm.rb/LLM/Usage.html), and it
+is what [LLM::Cost](https://r.uby.dev/api-docs/llm.rb/LLM/Cost.html)
+prices against the model registry:
+
+```ruby
+require "llm"
+
+llm = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm)
+agent.talk "Hello"
+
+agent.token_usage  # => LLM::Usage for the whole conversation
+agent.cost         # => LLM::Cost, priced from the registry
+```
+
+A `context_used` is one turn's worth - the live size of the most recent
+assistant message - so it is what a context window is really being
+spent on, and `context_usage` is that as a fraction of the window:
+
+```ruby
+agent.context_used    # => tokens in the latest turn
+agent.context_window  # => the model's limit, or nil when unknown
+agent.context_usage   # => Rational, eg Rational(100, 10_000)
+```
+
+</details>
+
+
+<details>
 <summary>Observability</summary>
 <br>
 
@@ -892,6 +932,11 @@ llm = LLM.moonshot(key: ENV["MOONSHOT_API_KEY"])
 llm = LLM.openrouter(key: ENV["OPENROUTER_API_KEY"])
 llm = LLM.alibaba(key: ENV["DASHSCOPE_API_KEY"]) # also: LLM.aliyun
 llm = LLM.mistral(key: ENV["MISTRAL_API_KEY"])
+llm = LLM.bedrock(
+  access_key_id: ENV["AWS_ACCESS_KEY_ID"],
+  secret_access_key: ENV["AWS_SECRET_ACCESS_KEY"],
+  region: ENV["AWS_REGION"]
+)
 ```
 </details>
 
