@@ -72,9 +72,20 @@ module LLM::Function::Fiber
               raise LLM::Interrupt
             end
             @queue << function.call
-          rescue => ex
+          rescue LLM::Interrupt, StandardError => ex
+            ##
+            # The interrupt is stored on the queue rather than raised on.
+            # `LLM::Interrupt` is a subclass of `Exception`, and one that is
+            # left to raise kills the scheduler's thread and takes the tasks
+            # running on it with it - the caller reads the queue and raises
+            # the interrupt on its own thread or fiber, and this task exits
+            # silently.
+            #
+            # The rescue names the interrupt rather than leaving it to a bare
+            # rescue, because a bare rescue - and `rescue => ex` - reaches
+            # only `StandardError`.
             @queue << ex
-            raise
+            raise unless LLM::Interrupt === ex
           ensure
             ##
             # The hook runs on the fiber the call runs on, once the call has

@@ -404,7 +404,16 @@ RSpec.describe LLM::Function do
       end
 
       it "tells the tool on the thread that runs the call" do
-        task.wait rescue LLM::Interrupt
+        ##
+        # The interrupt is the caller's to catch, and a modifier rescue -
+        # `task.wait rescue LLM::Interrupt` - is not a rescue at all: it
+        # catches a `StandardError` and answers with the constant. It is the
+        # interrupt that is named here, and only that.
+        begin
+          task.wait
+        rescue LLM::Interrupt
+          nil
+        end
         expect(function.runner.told).to eq(function.runner.ran)
       end
     end
@@ -427,7 +436,11 @@ RSpec.describe LLM::Function do
       after { reactor&.stop }
 
       it "tells the tool on the thread that runs the call" do
-        task.wait rescue LLM::Interrupt
+        begin
+          task.wait
+        rescue LLM::Interrupt
+          nil
+        end
         expect(function.runner.told).to eq(function.runner.ran)
       end
 
@@ -593,7 +606,14 @@ RSpec.describe LLM::Function do
 
       context "when wait runs on another thread" do
         let(:thread) do
-          Thread.new { group.wait rescue LLM::Interrupt; :interrupted }.tap do |t|
+          ##
+          # The interrupt is caught by name rather than by a modifier
+          # rescue, which reaches only `StandardError`.
+          Thread.new do
+            group.wait
+          rescue LLM::Interrupt
+            :interrupted
+          end.tap do |t|
             t.report_on_exception = false
           end
         end

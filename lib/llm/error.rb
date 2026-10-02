@@ -63,8 +63,19 @@ module LLM
   ContextWindowError = Class.new(InvalidRequestError)
 
   ##
-  # When a request is interrupted
-  Interrupt = Class.new(Error)
+  # When a request is interrupted.
+  #
+  # It sits outside `StandardError`, so that neither a bare `rescue` nor a
+  # `rescue => e` can swallow it by mistake: an interrupt is a request to
+  # stop, and a turn whose cancel was eaten looks like a turn that ignored
+  # one.
+  #
+  # It is not a `SignalException` either. A signal is a framework's own
+  # condition rather than a task's - RSpec re-raises one that escapes an
+  # example, and an async reactor ends its own thread rather than failing
+  # the task that raised it - and an interrupt has to be something a caller
+  # can catch.
+  Interrupt = Class.new(Exception)
 
   ##
   # When a concurrency strategy cannot execute a given tool
