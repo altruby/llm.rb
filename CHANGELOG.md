@@ -27,7 +27,7 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 | Ruby 3.3 or later | Ruby 3.4 or later |
 | `record.messages` returns the messages the runtime holds | a `:jsonb` record returns a relation of `LLM::ActiveRecord::Message` rows |
 | a `set_tracer` method on an ORM model | `set tracer:` in the block, or `tracer:` on the wrapper |
-| a `:thread` or `:fiber` cancel that arrives before the tool starts is dropped | the cancel is held and raised once the tool starts |
+| a `:thread`, `:fiber` or `:async` cancel that arrives before the tool starts is dropped | the cancel is held, and delivered inside the tool's call |
 | a cancel that arrives between two requests does nothing | the turn ends there, and the caller sees `LLM::Interrupt` |
 | a bare `rescue`, or `rescue => ex`, catches a cancel | `LLM::Interrupt` is outside `StandardError`, so both forms pass it through |
 
@@ -43,12 +43,15 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   that again with `#messages!`, and order the relation by `position`
   because it is unordered.
 
-* **function: hold a cancel on `:thread` and `:fiber` instead of dropping it** <br>
+* **function: hold a cancel on `:thread`, `:fiber` and `:async` instead of dropping it** <br>
   A cancel that arrived before the tool started used to be dropped, and the call
-  ran to completion. It is now held and raised once the tool starts, so a caller
-  that cancelled a task it had not yet spawned sees
+  ran to completion. It is now held until the call opens and delivered inside it,
+  so the tool is entered and a caller that cancelled a task it had not yet
+  spawned sees
   [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) where
-  it used to see a return.
+  it used to see a return. On `:async` and `:fiber` the raise is asked of the
+  scheduler rather than issued, so a tool that never yields still answers, and
+  that caller sees a return with the tool told it was asked about.
 
 * **interrupt: reach a turn that is between its requests** <br>
   A cancel that arrived between two requests used to do nothing, because
@@ -134,11 +137,16 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   is now told on every concurrency strategy. Before, `:async`, `:fork`, and
   `:ractor` never ran it, and a class-backed tool ran it on no strategy at all.
 
-* **function: hold a cancel that arrives before a thread or fiber starts** <br>
-  Fix a bug where a cancel that arrived before a `:thread` or `:fiber` tool
-  started was dropped, and the call ran to completion as if nobody had asked it
-  to stop. The cancel is now held on the task and raised once the body is live,
-  so the tool's `on_interrupt` hook runs and the caller sees `LLM::Interrupt`.
+* **function: hold a pre-start cancel on `:thread`, `:fiber` and `:async`** <br>
+  Fix a bug where a cancel that arrived before a `:thread`, `:fiber` or `:async`
+  tool started was dropped, and the call ran to completion as if nobody had
+  asked it to stop. The cancel is now held until the call opens and delivered
+  inside it, the way `:fork` and `:ractor` deliver one, so the tool is entered,
+  its own `rescue LLM::Interrupt` sees the interrupt, its `on_interrupt` hook
+  runs, and the caller sees `LLM::Interrupt`. On `:async` and `:fiber` the raise
+  is asked of the scheduler rather than issued, so a tool that never yields is
+  one the raise cannot reach: the caller is given the tool's result, and the
+  tool is told it was asked about rather than interrupted.
 
 * **function: answer a task that has already answered** <br>
   A second `#wait` on an `:async` or `:fork` task is answered from what the
@@ -156,6 +164,15 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   answers it in band rather than raising into the turn, the way the runtime
   answers a tool that raised: `{error: true, type: "EOFError", message: "the
   tool exited unexpectedly"}`. A second wait is given the same return.
+
+* **function: refuse a `:fiber` scheduler that cannot hold a cancel** <br>
+  The `:fiber` strategy now raises
+  [`LLM::FiberError`](https://r.uby.dev/api-docs/llm.rb/LLM/FiberError.html) when
+  `Fiber.scheduler` does not implement `fiber_interrupt`, because a cancel that
+  arrives before the call is held by asking the scheduler for a raise at the
+  call's first instruction. A scheduler that cannot be asked would be sent the
+  cancel before the call instead, where the tool never runs, so the strategy
+  refuses in the caller's hands, before a fiber is scheduled at all.
 
 ### ORM
 
