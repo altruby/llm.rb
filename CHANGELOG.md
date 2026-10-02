@@ -113,47 +113,30 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 ### Function
 
 * **function: deliver an interrupt to the tool, not to whatever is running** <br>
-  A cancel now raises
-  [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) on the
-  thread running the tool, and only while it runs: arriving early, it is held
-  until the tool starts, so the tool's own `rescue` sees it; arriving late, it
-  is a no-op instead of throwing the result away. Applies to `:fork` and
-  `:ractor`.
-
-* **function: answer a ractor-backed task once its ractor has gone** <br>
-  A `:ractor` tool's result is now held by the task instead of asked of the
-  ractor that ran it, so a late wait is answered, a second wait comes from
-  memory, and a cancel returns `nil` instead of raising. A group's cancel now
-  reaches every task, not just the ones still running.
-
-* **function: tell an `:async` tool it was cancelled** <br>
-  A cancel now raises `LLM::Interrupt` on the fiber the tool runs in, so the
-  tool is told and can clean up. Before, the cancel was queued and the tool
-  kept running, its result written to a queue nobody read.
-
-* **function: run the interrupt hook on every strategy** <br>
-  A tool that implements
+  A cancel is now aimed at the tool on every concurrency strategy. A running
+  tool is entered and
+  [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) raised
+  inside it, so its own `rescue` and its
   [`LLM::Tool#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_interrupt-instance_method)
-  is now told on every concurrency strategy. Before, `:async`, `:fork`, and
-  `:ractor` never ran it, and a class-backed tool ran it on no strategy at all.
-
-* **function: hold a pre-start cancel on `:thread`, `:fiber` and `:async`** <br>
-  Fix a bug where a cancel that arrived before a `:thread`, `:fiber` or `:async`
-  tool started was dropped, and the call ran to completion as if nobody had
-  asked it to stop. The cancel is now held until the call opens and delivered
-  inside it, the way `:fork` and `:ractor` deliver one, so the tool is entered,
-  its own `rescue LLM::Interrupt` sees the interrupt, its `on_interrupt` hook
-  runs, and the caller sees `LLM::Interrupt`. On `:async` and `:fiber` the raise
-  is asked of the scheduler rather than issued, so a tool that never yields is
-  one the raise cannot reach: the caller is given the tool's result, and the
-  tool is told it was asked about rather than interrupted.
+  hook see it, whether the tool was given as an instance or a class. A cancel
+  that arrives before the tool starts is held rather than dropped, and one that
+  arrives after it returns is a no-op that leaves the result alone. Before, the
+  raise landed wherever the target thread or fiber had got to, a pre-start
+  cancel was dropped on `:thread`, `:fiber`, and `:async`, and a tool's hook ran
+  on some strategies but not others. Two strategies keep a shape of their own:
+  `:fiber` and `:async` ask the fiber scheduler for the raise, so a tool that
+  never yields is one it cannot reach, and `:sequential` has nothing to raise
+  into, so it tells the tool through its hook alone.
 
 * **function: answer a task that has already answered** <br>
-  A second `#wait` on an `:async` or `:fork` task is answered from what the
-  first one took, which is what `Thread#value` does, so a task that has answered
-  answers again. Before, a second wait blocked on a queue nothing would fill, or
-  read a channel the task had already closed. An interrupt re-raises the same
-  exception rather than blocking.
+  A second `#wait` is answered from what the first one took, which is what
+  `Thread#value` does, so a task that has answered answers again. That covers an
+  `:async` queue the first wait drained, a `:fork` channel the task closed, and
+  a `:ractor` whose result is held by a ractor of the task's own rather than
+  asked of the ractor that ran the tool and has gone. A group's cancel reaches
+  every task it holds, and an interrupt re-raises the same exception rather than
+  blocking. Before, a second wait blocked on a queue nothing would fill, or read
+  a channel or ractor that had already closed.
 
 * **function: answer a forked call that ended without a result** <br>
   A `:fork` tool that died before it wrote anything used to leave
