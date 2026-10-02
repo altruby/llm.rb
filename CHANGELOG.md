@@ -232,6 +232,17 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   where a stream can checkpoint, and it fires once per successful request even
   when streaming is off.
 
+### Tools
+
+* **tools: wait for a command's status, not only for it to stop running** <br>
+  Fix a bug where an exec-backed tool could answer `ok: nil` for a command
+  that ran and printed its output.
+  [`LLM::Tool::Utils#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils.html#wait-instance_method)
+  left as soon as `running?` said the process was gone, and the status is not
+  decided at that moment, so `command.success?` was read before it had an
+  answer. It waits for the status now, and a command that was never found is
+  the exception, because there was nothing to reap.
+
 ### Tracers
 
 * **tracer: report a request that failed** <br>
