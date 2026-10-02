@@ -332,6 +332,22 @@
         "input": 272000,
         "output": 128000
       },
+      "experimental": {
+        "modes": {
+          "flex": {
+            "cost": {
+              "input": 0.1,
+              "output": 0.625,
+              "cache_read": 0.01
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 0.2,
         "output": 1.25,
@@ -417,6 +433,21 @@
         "output": 4096
       },
       "status": "deprecated",
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 8.75,
+              "output": 26.25
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 5,
         "output": 15
@@ -449,6 +480,22 @@
       "limit": {
         "context": 128000,
         "output": 16384
+      },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 4.25,
+              "output": 17,
+              "cache_read": 2.125
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          }
+        }
       },
       "cost": {
         "input": 2.5,
@@ -494,6 +541,34 @@
         "context": 400000,
         "input": 272000,
         "output": 128000
+      },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 0.45,
+              "output": 3.6,
+              "cache_read": 0.045
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          },
+          "flex": {
+            "cost": {
+              "input": 0.125,
+              "output": 1,
+              "cache_read": 0.0125
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
+          }
+        }
       },
       "cost": {
         "input": 0.25,
@@ -615,6 +690,34 @@
         "output": 100000
       },
       "status": "deprecated",
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 2,
+              "output": 8,
+              "cache_read": 0.5
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          },
+          "flex": {
+            "cost": {
+              "input": 0.55,
+              "output": 2.2,
+              "cache_read": 0.138
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 1.1,
         "output": 4.4,
@@ -767,6 +870,22 @@
         "input": 272000,
         "output": 128000
       },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 3.5,
+              "output": 28,
+              "cache_read": 0.35
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 1.75,
         "output": 14,
@@ -801,6 +920,22 @@
         "output": 32768
       },
       "status": "deprecated",
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 0.2,
+              "output": 0.8,
+              "cache_read": 0.05
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 0.1,
         "output": 0.4,
@@ -845,6 +980,22 @@
         "context": 400000,
         "input": 272000,
         "output": 128000
+      },
+      "experimental": {
+        "modes": {
+          "flex": {
+            "cost": {
+              "input": 0.025,
+              "output": 0.2,
+              "cache_read": 0.0025
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
+          }
+        }
       },
       "cost": {
         "input": 0.05,
@@ -1422,6 +1573,34 @@
         "input": 272000,
         "output": 128000
       },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 2.5,
+              "output": 20,
+              "cache_read": 0.25
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          },
+          "flex": {
+            "cost": {
+              "input": 0.625,
+              "output": 5,
+              "cache_read": 0.0625
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 1.25,
         "output": 10,
@@ -1455,6 +1634,22 @@
       "limit": {
         "context": 128000,
         "output": 16384
+      },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 0.25,
+              "output": 1,
+              "cache_read": 0.125
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          }
+        }
       },
       "cost": {
         "input": 0.15,
@@ -1654,6 +1849,18 @@
                 "service_tier": "priority"
               }
             }
+          },
+          "flex": {
+            "cost": {
+              "input": 0.375,
+              "output": 2.25,
+              "cache_read": 0.0375
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
           }
         }
       },
@@ -1797,6 +2004,34 @@
         "input": 272000,
         "output": 128000
       },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 3.5,
+              "output": 28,
+              "cache_read": 0.35
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          },
+          "flex": {
+            "cost": {
+              "input": 0.875,
+              "output": 7,
+              "cache_read": 0.0875
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 1.75,
         "output": 14,
@@ -1910,6 +2145,22 @@
         "context": 1047576,
         "output": 32768
       },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 3.5,
+              "output": 14,
+              "cache_read": 0.875
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 2,
         "output": 8,
@@ -1976,6 +2227,22 @@
       "limit": {
         "context": 1047576,
         "output": 32768
+      },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 0.7,
+              "output": 2.8,
+              "cache_read": 0.175
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          }
+        }
       },
       "cost": {
         "input": 0.4,
@@ -2382,6 +2649,34 @@
         "context": 200000,
         "output": 100000
       },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 3.5,
+              "output": 14,
+              "cache_read": 0.875
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          },
+          "flex": {
+            "cost": {
+              "input": 1,
+              "output": 4,
+              "cache_read": 0.25
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
+          }
+        }
+      },
       "cost": {
         "input": 2,
         "output": 8,
@@ -2426,6 +2721,34 @@
         "context": 400000,
         "input": 272000,
         "output": 128000
+      },
+      "experimental": {
+        "modes": {
+          "fast": {
+            "cost": {
+              "input": 2.5,
+              "output": 20,
+              "cache_read": 0.25
+            },
+            "provider": {
+              "body": {
+                "service_tier": "priority"
+              }
+            }
+          },
+          "flex": {
+            "cost": {
+              "input": 0.625,
+              "output": 5,
+              "cache_read": 0.0625
+            },
+            "provider": {
+              "body": {
+                "service_tier": "flex"
+              }
+            }
+          }
+        }
       },
       "cost": {
         "input": 1.25,

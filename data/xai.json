@@ -69,6 +69,33 @@
       },
       "canonical_model_id": "xai/grok-4.7"
     },
+    "grok-imagine-video-1.5-lite": {
+      "id": "grok-imagine-video-1.5-lite",
+      "name": "Grok Imagine Video 1.5 Lite",
+      "description": "Cost-efficient video model for text-to-video and image-to-video generation",
+      "family": "grok",
+      "attachment": true,
+      "reasoning": false,
+      "tool_call": false,
+      "temperature": false,
+      "release_date": "2026-10-01",
+      "last_updated": "2026-10-01",
+      "modalities": {
+        "input": [
+          "text",
+          "image"
+        ],
+        "output": [
+          "video"
+        ]
+      },
+      "open_weights": false,
+      "limit": {
+        "context": 1024,
+        "output": 0
+      },
+      "canonical_model_id": "xai/grok-imagine-video-1.5-lite"
+    },
     "grok-imagine-image": {
       "id": "grok-imagine-image",
       "name": "Grok Imagine Image",
