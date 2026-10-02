@@ -93,9 +93,12 @@ A cancel is delivered at the point the turn has reached, which can be
 any point of it: inside a stream callback, a compactor, a transformer,
 a guard, or the persistence write a step makes.
 [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html)
-is a `StandardError`, so a `rescue` that names no class catches it too.
-Code that has to see the end of a turn should re-raise what it does not
-recognize rather than absorb it.
+sits outside `StandardError`, so neither a bare `rescue` nor a
+`rescue => ex` catches it, and the language is what keeps a cancel from
+being eaten rather than a convention every rescue has to remember. Code
+that handles a cancel names `LLM::Interrupt`, the way the example above
+does; it is not an `LLM::Error` either, so a rescue of the runtime's
+error superclass does not catch it.
 
 The runtime's own path out of a turn does not swallow an interrupt:
 [`LLM::Context#try`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#try)

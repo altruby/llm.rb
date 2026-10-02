@@ -157,13 +157,15 @@ the tool runs and returns the span that `on_tool_finish` and
 `on_tool_error` receive.
 
 An interrupt is neither a finish nor an error, and it is reported to a
-hook of its own. `on_interrupt` is called with a `scope:` of `:request`
-or `:tool` before the caller is given the exception, so a tracer that
-records what happened to a turn records it while the work is still in
-flight. The hook receives the span that `on_request_start` returned and
-its `request_id`; a tool pass carries neither, because a tool's span
-belongs to the call. A cancel reaches every tool that is running, so the
-tool phase is announced once rather than once per tool.
+hook of its own. `on_interrupt` is called with a `scope:` of `:request`,
+`:tool`, or `:agent` before the caller is given the exception, so a
+tracer that records what happened to a turn records it while the work is
+still in flight. The hook receives the span that `on_request_start`
+returned and its `request_id`; a tool pass carries neither, because a
+tool's span belongs to the call, and an `:agent` pass is one that landed
+between a turn's requests, where there was nothing more precise to
+interrupt. A cancel reaches every tool that is running, so the tool phase
+is announced once rather than once per tool.
 
 A tracer's own lifetime is bracketed as well. `on_exit` fires once,
 when the last scope that is open for that tracer ends. That scope can
