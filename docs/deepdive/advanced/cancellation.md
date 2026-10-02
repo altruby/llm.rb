@@ -30,13 +30,12 @@ can rescue it and know the request was cancelled.
 
 At the same time,
 [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html)
-is raised on every active tool.
-A tool running in a thread gets it on that thread. A tool in a
-fiber gets it on that fiber. A tool in a forked process gets it
-via a message over the control channel. Pending tools (not yet
-started) are cancelled through
-[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel)
-without ever being executed.
+is raised on every active tool, and a tool that has not started
+yet is held rather than dropped: the cancel is delivered inside
+the call when it starts, so the tool is entered and its own
+`rescue` and
+[`LLM::Tool#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_interrupt-instance_method)
+hook see it.
 
 The transport layer also cancels the in-flight HTTP request.
 
@@ -84,10 +83,16 @@ make is one nobody asked for any more.
 
 #### Notes
 
-The `:ractor` strategy delivers the interrupt through ractor
-message passing. The `:fork` strategy delivers it via a message
-over the xchan control channel. All other strategies raise the
-exception directly on the executing thread or fiber.
+How an interrupt reaches a tool depends on the strategy. The
+`:ractor` strategy delivers it through ractor message passing, and
+`:fork` via a message over the xchan control channel. The `:thread`
+strategy raises it on the thread that runs the tool. The `:fiber`
+and `:async` strategies ask the fiber scheduler for the raise,
+because a scheduled fiber cannot be entered from another thread -
+which is also why a tool that never yields is one the raise cannot
+reach. The `:sequential` strategy has nothing to raise into: its
+tool runs on the caller's own thread, so a cancel tells the tool
+through its hook alone.
 
 A cancel is delivered at the point the turn has reached, which can be
 any point of it: inside a stream callback, a compactor, a transformer,
