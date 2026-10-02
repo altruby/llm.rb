@@ -27,7 +27,7 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 | Ruby 3.3 or later | Ruby 3.4 or later |
 | `record.messages` returns the messages the runtime holds | a `:jsonb` record returns a relation of `LLM::ActiveRecord::Message` rows |
 | a `set_tracer` method on an ORM model | `set tracer:` in the block, or `tracer:` on the wrapper |
-| a `:thread`, `:fiber` or `:async` cancel that arrives before the tool starts is dropped | the cancel is held, and delivered inside the tool's call |
+| a pre-start cancel is dropped on `:thread`, `:fiber`, and `:async`, a `NoMethodError` on `:fork`, and says nothing on `:ractor` | the cancel is held, and delivered inside the tool's call |
 | a cancel that arrives between two requests does nothing | the turn ends there, and the caller sees `LLM::Interrupt` |
 | a bare `rescue`, or `rescue => ex`, catches a cancel | `LLM::Interrupt` is outside `StandardError`, so both forms pass it through |
 
@@ -43,15 +43,16 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   that again with `#messages!`, and order the relation by `position`
   because it is unordered.
 
-* **function: hold a cancel on `:thread`, `:fiber` and `:async` instead of dropping it** <br>
-  A cancel that arrived before the tool started used to be dropped, and the call
-  ran to completion. It is now held until the call opens and delivered inside it,
-  so the tool is entered and a caller that cancelled a task it had not yet
-  spawned sees
-  [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) where
-  it used to see a return. On `:async` and `:fiber` the raise is asked of the
-  scheduler rather than issued, so a tool that never yields still answers, and
-  that caller sees a return with the tool told it was asked about.
+* **function: hold a cancel that arrives before the tool starts** <br>
+  A cancel that arrived before the tool started used to be lost: dropped on
+  `:thread`, `:fiber`, and `:async`, a `NoMethodError` on a `:fork` task that
+  had not been spawned, and nothing at all on `:ractor`. It is now held until
+  the call opens and delivered inside it, so the tool is entered, its own
+  `rescue` sees the interrupt, and a caller that cancelled a task it had not
+  yet spawned is answered with the cancel rather than a return. On `:async`
+  and `:fiber` the raise is asked of the scheduler rather than issued, so a
+  tool that never yields still answers, and that caller sees a return with the
+  tool told it was asked about.
 
 * **interrupt: reach a turn that is between its requests** <br>
   A cancel that arrived between two requests used to do nothing, because
@@ -119,14 +120,15 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   inside it, so its own `rescue` and its
   [`LLM::Tool#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_interrupt-instance_method)
   hook see it, whether the tool was given as an instance or a class. A cancel
-  that arrives before the tool starts is held rather than dropped, and one that
-  arrives after it returns is a no-op that leaves the result alone. Before, the
-  raise landed wherever the target thread or fiber had got to, a pre-start
-  cancel was dropped on `:thread`, `:fiber`, and `:async`, and a tool's hook ran
-  on some strategies but not others. Two strategies keep a shape of their own:
-  `:fiber` and `:async` ask the fiber scheduler for the raise, so a tool that
-  never yields is one it cannot reach, and `:sequential` has nothing to raise
-  into, so it tells the tool through its hook alone.
+  that arrives before the tool starts is held and delivered inside the call, and
+  one that arrives after the tool returns is a no-op that leaves the result
+  alone. Before, the raise landed wherever the target thread or fiber had got
+  to, and a tool's hook ran on some strategies but not others. A pre-start
+  cancel was dropped on `:thread`, `:fiber`, and `:async`, was a `NoMethodError`
+  on `:fork`, and said nothing on `:ractor`. Three strategies keep a shape of
+  their own: `:fiber` and `:async` ask the fiber scheduler for the raise, so a
+  tool that never yields is one it cannot reach, and `:sequential` runs the tool
+  in the caller's own thread, so it tells the tool through its hook alone.
 
 * **function: answer a task that has already answered** <br>
   A second `#wait` is answered from what the first one took, which is what
@@ -202,9 +204,15 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
 ### Registry
 
 * **refresh model metadata** <br>
-  Update `data/` with current listings, limits, and pricing. Alibaba, OpenAI,
-  Bedrock, DeepInfra, Google, and OpenRouter gain models and correct limits or
-  prices, and OpenRouter drops six entries.
+  Update `data/` with current listings, limits, and pricing. Anthropic adds
+  Claude Sonnet 5.5, OpenAI adds GPT-6.1 Sol and the Daybreak Blue and Daybreak
+  Red models, Bedrock adds Claude Sonnet 5.5, GPT-6 Sol, GPT-6 Luna, and GPT-6.1
+  Sol across regions plus Grok 4.7 in the global and US regions, Alibaba adds
+  the Qwen3.5, Qwen3.7, and Qwen3.8 Flash models, DeepInfra adds the Xiaomi
+  MiMo V2.6 models and `tencent/Hy4-preview`, xAI adds Grok Imagine Video 1.5
+  Lite, and OpenRouter adds ten models. OpenRouter drops six entries, Mistral
+  drops `magistral-small`, and Google, DeepSeek, Moonshot, and Z.ai correct
+  limits and prices.
 
 ### Schema
 
