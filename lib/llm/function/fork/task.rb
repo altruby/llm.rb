@@ -43,8 +43,24 @@ class LLM::Function
         $stdin.reopen(File::NULL)
         $stdout.reopen(File::NULL)
         $stderr.reopen(File::NULL)
+        ##
+        # The child's half of the note below this block: it reads control and
+        # writes result, and holds no other end.
+        @ch.control.w.close
+        @ch.result.r.close
         Fork::Job.new(@function, @ch).call
       end
+      ##
+      # Each side keeps the end it uses and closes the one it does not. Both
+      # channels are socketpairs, so an end closed here is still open in the
+      # child, and what the rest of them cost is a read that can never be
+      # woken: a child that dies before it writes leaves this side with an
+      # empty socket and - while this side is holding the write end of that
+      # same pair - no end of file to say so. Closed, that is an `EOFError`,
+      # and {#wait} answers in band rather than waiting for a write that will
+      # never come.
+      @ch.control.r.close
+      @ch.result.w.close
       @spawned = true
       self
     end
@@ -82,6 +98,14 @@ class LLM::Function
     # is asserted to do. The interrupt is held the same way, as the exception
     # the first wait raised, so a second wait raises the same one rather than
     # reading a channel that has gone.
+    #
+    # **A child that ended without writing is answered in band.** The ends are
+    # closed above, so a channel with no writer left is an `EOFError` here
+    # rather than a wait nothing can wake - and it is translated into an error
+    # return the model is told about, the way the runtime answers a tool that
+    # raised, rather than raised into the turn. A child that died is a call
+    # that failed and the call is what should report it; ending the turn for
+    # it would be an exception to the rule that a tool's failure is in band.
     # @return [LLM::Function::Return]
     def wait
       return @guarded if @guarded
@@ -96,6 +120,18 @@ class LLM::Function
                 end
       raise @result if Exception === @result
       reap
+      @tracer&.on_tool_finish(result: @result, span: @span)
+      @result
+    rescue EOFError
+      ##
+      # Held in `@result` rather than answered once, so a second wait is given
+      # the same return the way it is for every other ending.
+      reap
+      @result = Return.new(@function.id, @function.name, {
+        error: true,
+        type: EOFError.name,
+        message: "the tool exited unexpectedly"
+      })
       @tracer&.on_tool_finish(result: @result, span: @span)
       @result
     ensure
@@ -114,6 +150,13 @@ class LLM::Function
 
     private
 
+    ##
+    # Waits for the child, once.
+    #
+    # It is `reap` rather than a bare `waitpid` because the call appears three
+    # times - the answer, the ending above, and the `ensure` - and a child can
+    # only be reaped once.
+    # @return [void]
     def reap
       return if @waited || @guarded || !@pid
       ::Process.waitpid(@pid)
