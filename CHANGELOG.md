@@ -208,6 +208,14 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   because DeepSeek has no Files API, and a non-image local file raises because
   its models read images only.
 
+* **provider: keep a scoped header alive through garbage collection** <br>
+  Fix a bug where a header set by
+  [`LLM::Provider#with`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#with-instance_method)
+  could be collected before its block returned, so a garbage collection inside
+  the block was enough to make a request later in the same scope go out without
+  it. The store held the header hash weakly. It now holds it for as long as the
+  provider is alive, so a scoped header lasts as long as the scope does.
+
 ### Registry
 
 * **refresh model metadata** <br>
