@@ -99,6 +99,23 @@ RSpec.describe LLM::Function::Async::Task do
     end
   end
 
+  ##
+  # And one that answers before anything can reach it: no yield, so no point
+  # at which the raise could arrive.
+  let(:quick) do
+    started, told = self.started, self.told
+    Class.new(LLM::Tool) do
+      name "quick"
+      define_method(:call) do
+        started << :in_call
+        {"ok" => true}
+      end
+      define_method(:on_interrupt) do
+        told << :interrupted
+      end
+    end
+  end
+
   let(:tool) { counting }
 
   let(:task) do
@@ -158,6 +175,75 @@ RSpec.describe LLM::Function::Async::Task do
       it "is told" do
         expect(settle(told)).to eq(:cancelled)
       end
+    end
+
+    ##
+    # A tool that never suspends is one the raise cannot land inside, so the
+    # caller is given the result the tool returned. The ask is still an ask
+    # - the window issues a deferred one when the call opens - so the tool
+    # is told, and it is asked about rather than interrupted. It is also the
+    # semantic this change introduces: a cancel before `spawn` is no longer
+    # a promise that the call never runs.
+    context "when the tool answers before anything can reach it" do
+      let(:tool) { quick }
+
+      it "answers with the tool's result" do
+        expect(within { task.wait }.to_h[:value]).to eq("ok" => true)
+      end
+
+      it "tells the tool" do
+        expect(settle(told)).to eq(:interrupted)
+      end
+
+      ##
+      # And a probe for what became of the raise a scheduler cannot land
+      # inside a call that never suspends: it is scheduled into the tool's
+      # fiber, whose next suspension is after the block's `ensure` - outside
+      # the `rescue` that wraps the call - and `LLM::Interrupt` is not a
+      # `StandardError`, so one left to raise ends the reactor's thread and
+      # takes the tasks on it with it. A task that starts after this one is
+      # where that would show: the assertion is that it runs at all, which
+      # it cannot on a reactor that is gone.
+      context "when another task is on the same reactor" do
+        let(:sibling) do
+          quick.function.dup.tap do |fn|
+            fn.id = "call_2"
+            fn.arguments = {}
+          end.task(:async).tap { |task| task.reactor = reactor }
+        end
+
+        before do
+          task.spawn
+          sleep 0.05
+          sibling.spawn
+        end
+
+        it "leaves the reactor usable" do
+          expect(within { sibling.wait }.to_h[:value]).to eq("ok" => true)
+        end
+      end
+    end
+  end
+
+  ##
+  # The moment between the block's check and the call: the window exists, the
+  # state is idle, and the task is asked with `wait: false` - which records
+  # the ask and issues it when the call opens. On `:thread` the same moment
+  # waits and delivers, so the two strategies now agree about it, and the
+  # outcome is the same whichever way the interleaving falls, which is what
+  # makes this an example rather than a race.
+  describe "a cancel that arrives after the block has started" do
+    before do
+      task.spawn
+      task.interrupt!
+    end
+
+    it "enters the tool" do
+      expect(settle(started)).to eq(:in_call)
+    end
+
+    it "raises LLM::Interrupt to the caller" do
+      expect { within { task.wait } }.to raise_error(LLM::Interrupt)
     end
   end
 
