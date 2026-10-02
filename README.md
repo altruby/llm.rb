@@ -306,15 +306,23 @@ class Search < LLM::Tool
   parameter :pattern, String, "The pattern to search for"
   required %i[pattern]
 
+  ##
+  # A raise is delivered here; `on_interrupt` is a notification, and it
+  # runs on every strategy - `:sequential` included.
   def call(pattern:)
     search(pattern)
+  rescue LLM::Interrupt
+    ##
+    # A tool can return a value from here, and the turn carries on with
+    # it, or re-raise and the fiber that made the request is raised
+    # into as well.
+    cleanup
+    raise
   end
 
   ##
-  # Told on the thread or fiber the call runs on. This is the one
-  # place to clean up that runs on every strategy - a tool that
-  # also cleans up in a `rescue LLM::Interrupt` cleans up twice on
-  # :thread, :fiber and :async, rescue first.
+  # Told on the thread or fiber the call runs on: before the raise on
+  # `:fork` and `:ractor`, after the rescue above on the other three.
   def on_interrupt
     cleanup
   end
@@ -327,7 +335,7 @@ class Search < LLM::Tool
 end
 
 llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, tools: [Search])
+agent = LLM::Agent.new(llm, tools: [Search], concurrency: :async)
 Thread.new { sleep(1); agent.interrupt! }
 
 begin
