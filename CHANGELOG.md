@@ -147,6 +147,16 @@ Releases before v15 are kept in [changelog/old.md](changelog/old.md).
   read a channel the task had already closed. An interrupt re-raises the same
   exception rather than blocking.
 
+* **function: answer a forked call that ended without a result** <br>
+  A `:fork` tool that died before it wrote anything used to leave
+  [`LLM::Function::Fork::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Fork/Task.html#wait-instance_method)
+  blocked on a read that never ended, because this side still held the write
+  end of the same channel and so never saw end of file. Each side now closes
+  the end it does not use, which makes that ending an `EOFError`, and `#wait`
+  answers it in band rather than raising into the turn, the way the runtime
+  answers a tool that raised: `{error: true, type: "EOFError", message: "the
+  tool exited unexpectedly"}`. A second wait is given the same return.
+
 ### ORM
 
 * **orm: save a conversation after each request, not once per turn** <br>
