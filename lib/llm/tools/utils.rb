@@ -48,12 +48,22 @@ class LLM::Tool
     # Wait for a command to finish, or abort
     # with an error when it exceeds the
     # specified timeout.
+    #
+    # **A command is waited on until its status is decided, not only until it
+    # has stopped running.** `running?` answers whether the process is there,
+    # and `success?` answers `nil` until the command has been reaped - so a
+    # loop that trusts `running?` alone can leave before the status exists, and
+    # the caller reads `ok: nil` beside an output the read had waited for.
+    #
+    # **`running?` is what decides it.** The command reaps the process as it
+    # answers, so every turn of this loop is what makes a status exist - which
+    # is why the condition is asked again on each turn rather than read once.
     # @param [Test::Command] command
     # @param [Integer] timeout
     # @return [void]
     def wait(command:, timeout:)
       start = now
-      while command.running?
+      while command.running? || status_unavailable?(command)
         if now - start > timeout
           command.kill!
           raise "command timed out after #{timeout}s"
@@ -94,6 +104,20 @@ class LLM::Tool
     # @return [Numeric]
     def now
       Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    end
+
+    private
+
+    ##
+    # Whether a command has not been reaped yet.
+    #
+    # `success?` answers `nil` until the status exists, and a command that was
+    # never found is the one case where it never will: there was nothing to
+    # reap, and `not_found?` is the answer the caller wants.
+    # @param [Test::Command] command
+    # @return [Boolean]
+    def status_unavailable?(command)
+      command.success?.nil? and !command.not_found?
     end
 
     ##
