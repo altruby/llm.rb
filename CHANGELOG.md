@@ -6,6 +6,20 @@ and including v15 are kept in [changelog/old.md](changelog/old.md).
 
 ## What's next
 
+*No unreleased changes yet. Check back after the next release.*
+
+## v16.0.0
+
+Changes since `v15.5.0`.
+
+This release makes an interrupt precise: `LLM::Interrupt` moves outside
+`StandardError`, a turn between its requests ends where it is, and a cancel is
+delivered inside the tool that has to handle it. It also requires Ruby 3.4 or
+later, reads a `:jsonb` record's messages from the column, saves a
+record-backed conversation after each request, and adds
+`LLM::ActiveRecord#messages!`, `LLM::Stream#on_step`, and a tracer's
+`on_interrupt` hook.
+
 ### Breaking
 
 #### Migration
