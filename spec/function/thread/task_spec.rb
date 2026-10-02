@@ -8,13 +8,19 @@ require "timeout"
 #
 # A cancel is held before the call runs, raised while it runs, and a no-op
 # once it has returned; the first of those was dropped, because `interrupt!`
-# had nothing to raise on before `spawn`. The held cancel is spent by the body
-# now, so the hook runs with it, and every wait here has a deadline - a wrong
-# expectation fails rather than hangs.
+# had nothing to raise on before `spawn`. The held cancel is delivered inside
+# the call now, so a tool whose own rescue cleans up is cleaned up - and every
+# wait here has a deadline, a wrong expectation fails rather than hangs.
+#
+# The tools hold at the gate rather than running straight through, which is
+# what makes a held cancel measurable: a tool that finished before the raise
+# landed would be a call with nothing left to interrupt, and the example would
+# be measuring the schedule rather than the delivery.
 RSpec.describe LLM::Function::Thread::Task do
   let(:gate) { Queue.new }
   let(:log) { Queue.new }
   let(:started) { Queue.new }
+  let(:cleaned) { Queue.new }
 
   ##
   # A tool that says it has started, then holds until the example lets it go,
@@ -34,12 +40,50 @@ RSpec.describe LLM::Function::Thread::Task do
     end
   end
 
-  let(:fn) do
-    holding.function.dup.tap do |fn|
+  ##
+  # And one that cleans up in its own rescue and raises on, so the caller
+  # still sees the interrupt - which is the whole of what the held cancel has
+  # to reach: the tool's rescue, and the caller's exception.
+  let(:rescuing) do
+    started, gate, cleaned = self.started, self.gate, self.cleaned
+    Class.new(LLM::Tool) do
+      name "rescuing"
+      define_method(:call) do
+        started << :in_call
+        gate.pop
+        {ok: true}
+      rescue LLM::Interrupt
+        cleaned << :cleaned_up
+        raise
+      end
+    end
+  end
+
+  ##
+  # And one whose only notification is the hook under its other name.
+  let(:cancelling) do
+    started, gate, log = self.started, self.gate, self.log
+    Class.new(LLM::Tool) do
+      name "cancelling"
+      define_method(:call) do
+        started << :in_call
+        gate.pop
+        {ok: true}
+      end
+      define_method(:on_cancel) do
+        log << :cancelled
+      end
+    end
+  end
+
+  def fn_for(tool)
+    tool.function.dup.tap do |fn|
       fn.id = "call_1"
       fn.arguments = {}
     end
   end
+
+  let(:fn) { fn_for(holding) }
 
   let(:task) { fn.task(:thread) }
 
@@ -56,13 +100,7 @@ RSpec.describe LLM::Function::Thread::Task do
   end
 
   describe "a cancel that arrives before the call runs" do
-    before do
-      task.interrupt!
-      ##
-      # Opened so that a cancel which was dropped shows up as a return rather
-      # than as a call that never ends.
-      gate << true
-    end
+    before { task.interrupt! }
 
     it "is held rather than dropped" do
       expect { within { task.wait } }.to raise_error(LLM::Interrupt)
@@ -82,6 +120,40 @@ RSpec.describe LLM::Function::Thread::Task do
 
     it "has spawned nothing yet" do
       expect(task.alive?).to be(false)
+    end
+
+    ##
+    # The tool is entered, which is the whole of what this strategy was
+    # missing: the cancel used to be raised before `function.call`, so a tool
+    # that cleans up in its own rescue never ran its rescue.
+    context "when the tool cleans up in its own rescue" do
+      let(:fn) { fn_for(rescuing) }
+
+      it "is entered and cleans up" do
+        begin
+          within { task.wait }
+        rescue LLM::Interrupt
+          nil
+        end
+        expect(cleaned.size).to eq(1)
+      end
+
+      it "still raises to the caller" do
+        expect { within { task.wait } }.to raise_error(LLM::Interrupt)
+      end
+    end
+
+    context "when the tool is told through on_cancel" do
+      let(:fn) { fn_for(cancelling) }
+
+      it "is told" do
+        begin
+          within { task.wait }
+        rescue LLM::Interrupt
+          nil
+        end
+        expect(settle(log)).to eq(:cancelled)
+      end
     end
   end
 
@@ -106,6 +178,43 @@ RSpec.describe LLM::Function::Thread::Task do
         nil
       end
       expect(log.size).to eq(1)
+    end
+
+    ##
+    # And a running cancel reaches the tool's own rescue too, which is what
+    # the held one now does as well.
+    context "when the tool cleans up in its own rescue" do
+      let(:fn) { fn_for(rescuing) }
+
+      it "is cleaned up" do
+        begin
+          within { task.wait }
+        rescue LLM::Interrupt
+          nil
+        end
+        expect(cleaned.size).to eq(1)
+      end
+    end
+  end
+
+  ##
+  # `#interrupt!` waits now - for the body to publish the window, and inside
+  # the window for the call to open - and this is the case that wait is for.
+  # The task is spawned and interrupted with nothing in between, so the window
+  # is still idle when the canceller arrives: it waits there rather than
+  # returning, and the tool holds at the gate, so the interrupt still lands
+  # inside the call. A group and `Context#interrupt!` meet the same wait in a
+  # loop, which is why the answer matters.
+  describe "a cancel that arrives once the thread has started" do
+    before { task.spawn }
+
+    it "does not hold the canceller" do
+      expect(within { task.interrupt! }).to be_nil
+    end
+
+    it "interrupts the call" do
+      task.interrupt!
+      expect { within { task.wait } }.to raise_error(LLM::Interrupt)
     end
   end
 
@@ -146,10 +255,7 @@ RSpec.describe LLM::Function::Thread::Task do
       end.task(:thread)
     end
 
-    before do
-      task.interrupt!
-      gate << true
-    end
+    before { task.interrupt! }
 
     it "is held rather than dropped" do
       expect { within { task.wait } }.to raise_error(LLM::Interrupt)
@@ -162,10 +268,7 @@ RSpec.describe LLM::Function::Thread::Task do
   describe "a cancel for a group whose tasks have not been spawned" do
     let(:group) { LLM::Function::Thread::Group.new([task]) }
 
-    before do
-      group.interrupt!
-      gate << true
-    end
+    before { group.interrupt! }
 
     it "reaches the task" do
       expect { within { group.wait } }.to raise_error(LLM::Interrupt)
