@@ -11,6 +11,29 @@ require "timeout"
 # and a call that was cancelled re-raises the same exception. A child that
 # ended without writing is answered in band, the way a tool that raised is.
 #
+# **A cancel that arrives while the child is starting is held, not dropped**:
+# the control message is a datagram, so it waits in the channel until the
+# child's watcher reads it, and the watcher waits on the window the child opens
+# immediately before the call. The record of what happened is written on the
+# result channel, because a fork's copy of a tool is not the object the parent
+# holds.
+#
+# **Where the raise lands is the tool's shape as well as the window's.** The
+# window promises that a raise is not issued *before* the call; the dispatch is
+# code, and a raise can land in it. What puts it after the tool's first
+# instruction here is that the tool yields - the watcher is woken by
+# `running!`, but it cannot take the GVL until the child's main thread gives it
+# up, which is the `sleep`. A raise that landed in the dispatch would take the
+# job's own `rescue` branch and write `[:interrupt]`, so the first group would
+# fail whole rather than one example.
+#
+# A cancel **before** `spawn` is not this file's to pin: `Fork::Task` builds
+# its channels in `spawn`, so there is nothing to write to until it has run and
+# `interrupt!` raises. The in-process strategies hold one that early; this one
+# does not, and the group that cancels its tasks in turn reaches tasks that
+# have not been spawned, so the difference is more than theoretical - it is
+# issue #224.
+#
 # The half about a call that returned is issue #203, and the order below is the
 # failing run's order: the first wait is one example, the second waits are the
 # next two, and everything else this file asks for runs after them.
@@ -83,6 +106,30 @@ RSpec.describe LLM::Function::Fork::Task do
       def call
         sleep 5
         {ok: true}
+      end
+    end
+  end
+
+  ##
+  # A call that records what reached it. The hook writes a flag and the rescue
+  # reads it back, so the record says both that the rescue ran and that the
+  # hook was written first - which is the order the job's watcher promises, and
+  # the reason a tool that releases a resource has released it by the time the
+  # raise lands.
+  let(:recording_tool) do
+    Class.new(LLM::Tool) do
+      name "recording"
+
+      def call
+        @entered = true
+        sleep 5
+        {ok: true}
+      rescue LLM::Interrupt
+        {entered: @entered, told: @told, rescued: true}
+      end
+
+      def on_interrupt
+        @told = true
       end
     end
   end
@@ -182,6 +229,53 @@ RSpec.describe LLM::Function::Fork::Task do
 
     it "raises the same exception the first one raised" do
       expect(second).to equal(first)
+    end
+  end
+
+  ##
+  # The cancel follows `spawn` by as little as the file can say, so the child
+  # is still starting when the message is written: the watcher reads it before
+  # it has the call running, and waits on a window that is still idle. What the
+  # tool recorded comes back on the result channel, which is what a rescue that
+  # answers rather than raises is for here.
+  describe "a call that was cancelled while the child was starting" do
+    let(:task) { task_for(recording_tool, "call_4") }
+    let(:returned) { within(task:) { task.wait } }
+
+    before do
+      task.spawn
+      task.interrupt!
+      returned
+    end
+
+    it "enters the tool" do
+      expect(returned.value[:entered]).to be(true)
+    end
+
+    it "runs the tool's own rescue" do
+      expect(returned.value[:rescued]).to be(true)
+    end
+
+    it "tells the tool before the raise lands" do
+      expect(returned.value[:told]).to be(true)
+    end
+  end
+
+  ##
+  # And the same cancel on a call that does not rescue: the interrupt escapes
+  # the tool, the child writes that on the result channel, and the caller is
+  # given it.
+  describe "a call cancelled while the child was starting that does not rescue" do
+    let(:task) { task_for(holding_tool, "call_5") }
+    let(:error) { raised { within(task:) { task.wait } } }
+
+    before do
+      task.spawn
+      task.interrupt!
+    end
+
+    it "gives the caller LLM::Interrupt" do
+      expect(error).to be_a(LLM::Interrupt)
     end
   end
 
