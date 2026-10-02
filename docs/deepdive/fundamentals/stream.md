@@ -151,3 +151,60 @@ agent.talk "Explain Ruby fibers."
 A stream subclass gives you visibility into more than just content chunks. React to tool
 calls as they happen, show compaction progress, or integrate with
 an existing observability stack.
+
+### Streamed tool execution
+
+#### Overview
+
+A tool call is a round trip. By default the runtime makes it after the
+response has finished streaming, so the model sits idle for the length
+of the tool. A stream can start the tool the moment its call is parsed
+instead, and hand the result to the turn when it is asked for.
+
+#### How it works
+
+Start the tool from
+[`LLM::Stream#on_tool_call`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_tool_call)
+and enqueue its task on
+[`LLM::Stream#queue`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#queue-instance_method).
+[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
+drains that queue in preference to the pending functions, so a tool that
+was started early is waited for, not run twice:
+
+```ruby
+class FastStream < LLM::Stream
+  def on_tool_call(tool)
+    queue << tool.task(:thread).tap(&:spawn)
+  end
+end
+
+llm = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm, stream: FastStream.new)
+agent.talk "Read every file in lib/ and summarise them."
+```
+
+[`LLM::Stream::Queue`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream/Queue.html)
+takes either a running task or an immediate
+[`LLM::Function::Return`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Return.html),
+and
+[`LLM::Stream#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#wait-instance_method)
+resolves whatever it holds and returns the returns. The task type is
+remembered, so no strategy is passed at wait time.
+
+#### Why would I use it?
+
+A turn that calls several tools spends most of its wall-clock time
+waiting. Starting each tool as its call arrives overlaps that wait with
+the rest of the stream, so a turn that reads ten files costs roughly one
+file's latency rather than ten.
+
+#### Notes
+
+The queue is only consulted when it is non-empty. A turn that enqueues
+nothing behaves exactly as before, and a turn that enqueues from
+`on_tool_call` still runs any *other* pending function through the
+strategy given to
+[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method).
+A cancel reaches the queue
+([`LLM::Stream::Queue#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream/Queue.html#interrupt!-instance_method)),
+so tools started this way are interrupted with the rest of the turn.

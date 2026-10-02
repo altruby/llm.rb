@@ -332,7 +332,8 @@ which can be helpful when the interrupt is temporary.
 
 The mechanism is the same across all six concurrency strategies.
 The `:ractor` strategy delivers the interrupt through ractor
-message passing. The `:fork` strategy delivers it via xchan.
+message passing. The `:fork` strategy delivers it over the control
+channel the `xchan.rb` gem provides.
 
 ### Messages
 

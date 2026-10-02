@@ -42,8 +42,8 @@ pattern is one of the most common AI workflows.
 
 #### Notes
 
-Not all providers support embeddings. The following providers have
-an `embed` method:
+Not all providers support embeddings. The following providers have an
+`embed` method of their own:
 
 - OpenAI (`text-embedding-3-small`)
 - DeepInfra (`BAAI/bge-m3`)
@@ -52,6 +52,11 @@ an `embed` method:
 - Mistral (`mistral-embed`)
 - OpenRouter (`openai/text-embedding-3-small`)
 - Bedrock (the model is given per call)
+
+The providers built on OpenAI inherit its `embed`, so DeepSeek, xAI,
+Z.ai, Moonshot, Alibaba, and llama.cpp answer it too, against their own
+OpenAI-compatible endpoint. Anthropic is the exception: it defines no
+`embed`, so the call raises `NotImplementedError`.
 
 ### Vector stores (OpenAI)
 

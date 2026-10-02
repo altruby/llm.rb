@@ -79,6 +79,46 @@ and
 helpers write a formatted `user:` message with a trailing newline,
 and `LLM::Command#write_message` matches the same interface.
 
+### The `llm.rb` executable
+
+#### Overview
+
+The console also starts from a shell. After the gem is installed,
+`llm.rb` puts a console on your PATH and opens a session in the current
+directory, so there is no Ruby file to write.
+
+#### How it works
+
+Run `llm.rb` with no arguments to auto-detect a provider from the usual
+environment variables, or name one with `-p`. The session for the
+current directory is kept under `~/.llm.rb/` and restored on the next
+visit, unless `-t` asks for a temporary one:
+
+```bash
+llm.rb                     # auto-detect from $PROVIDER_API_KEY
+llm.rb -p openai           # use OpenAI explicitly
+llm.rb -m gpt-5.6          # use a model other than the provider default
+llm.rb -c thread           # run tool calls on a separate thread
+llm.rb -n curb             # use libcurl as the HTTP transport
+llm.rb -x 900              # read timeout of 15 minutes
+llm.rb -t                  # temporary session, no persistence
+llm.rb -v                  # print the version
+llm.rb -h                  # print usage
+```
+
+#### Why would I use it?
+
+It is the shortest path to a working session: no script, no `require`,
+and a conversation that is still there tomorrow. Reach for
+`agent.console` instead when the agent needs a provider, tools, or a
+tracer that only your application can supply.
+
+#### Notes
+
+The switches are the console's own, so `-c`, `-m`, and `-p` set the
+same things `agent.console` takes from its agent. `-v` and `-h` print
+and exit.
+
 ### Switch the model
 
 The active model is exposed through

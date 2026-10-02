@@ -24,7 +24,10 @@ It preserves tool call/return pairs so the conversation never
 contains an orphaned result.
 
 The `keep:` parameter accepts an integer count or a percentage
-string like `"80%"`. The default compactor is
+string like `"80%"`, and defaults to `64`. When `Truncate` is used
+through a context or an agent, `keep:` is given as
+`compactor_options: {keep: N}` rather than to the compactor itself.
+The default compactor is
 [`LLM::Compactor::Null`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor/Null.html),
 which does nothing. A compactor can also be used standalone:
 

@@ -85,7 +85,8 @@ make is one nobody asked for any more.
 
 How an interrupt reaches a tool depends on the strategy. The
 `:ractor` strategy delivers it through ractor message passing, and
-`:fork` via a message over the xchan control channel. The `:thread`
+`:fork` via a message over the control channel the `xchan.rb` gem
+provides. The `:thread`
 strategy raises it on the thread that runs the tool. The `:fiber`
 and `:async` strategies ask the fiber scheduler for the raise,
 because a scheduled fiber cannot be entered from another thread -
@@ -109,3 +110,19 @@ The runtime's own path out of a turn does not swallow an interrupt:
 [`LLM::Context#try`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#try)
 re-raises anything that is not a retryable failure, and the tracer
 interface has no broad rescues of its own.
+
+The names are worth separating.
+[`LLM::Context#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#interrupt!-instance_method)
+and
+[`LLM::Function#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#interrupt!-instance_method)
+are each aliased to `cancel!`, so `cancel!` ends what is in flight and
+tells a tool, and the two spellings are the same call.
+[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel-instance_method)
+is something else: it answers a call that has not run with a cancelled
+return and marks it cancelled, which is how a caller declines a pending
+tool rather than interrupting one. A tool hears about an interrupt
+through
+[`LLM::Tool#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_interrupt-instance_method),
+or
+[`LLM::Tool#on_cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#on_cancel-instance_method),
+which takes precedence when both are defined.

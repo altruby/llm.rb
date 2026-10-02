@@ -94,7 +94,7 @@ inside a reactor. Requires the `async` gem.
 **fork**: Each tool runs in a forked child process. True parallelism
 and process isolation. Best for shell commands, native extensions,
 or anything you do not want touching the parent's memory. Requires
-the `xchan` gem.
+the `xchan.rb` gem (`~> 0.24`).
 
 **ractor**: Each class-based tool runs in a Ruby Ractor. True
 parallelism without the overhead of forking full processes. Only
@@ -106,5 +106,5 @@ class-based tools are supported. Arguments must be ractor-shareable.
 | `:thread` | `Thread` | IO only (GVL) | No | None |
 | `:fiber` | `Fiber.schedule` | Cooperative | No | `Fiber.scheduler` |
 | `:async` | `Async::Reactor` | Cooperative | No | `async` gem |
-| `:fork` | `Kernel.fork` | Yes (process) | Yes (memory) | `xchan` gem |
+| `:fork` | `Kernel.fork` | Yes (process) | Yes (memory) | `xchan.rb` gem |
 | `:ractor` | `Ractor` | Yes (CPU) | Limited | None |

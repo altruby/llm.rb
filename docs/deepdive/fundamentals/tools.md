@@ -108,6 +108,14 @@ in the How it works section) or with
 [`LLM::Tool.set`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#set-class_method)
 (see the Set subsection). Both approaches work the same way.
 
+A parameter takes the same constraints a schema property does, as
+options: `min:` and `max:` bound a number or a string's length,
+`multiple_of:` constrains a number, `const:` fixes one value, and
+`enum:` lists the allowed values. So
+`parameter :age, Integer, "Age", min: 0, max: 120` sends the range to
+the model rather than a bare integer. The Schema topic covers the
+keywords in full.
+
 ### Confirmation
 
 #### Overview

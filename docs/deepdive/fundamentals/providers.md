@@ -319,3 +319,54 @@ Token Plan URL via `DASHSCOPE_API_HOST` or `host:`. Check your
 Model Studio dashboard for the correct endpoint.
 
 Model metadata ships in `data/alibaba.json` for the registry.
+
+### Bedrock
+
+#### Overview
+
+[`LLM::Bedrock`](https://r.uby.dev/api-docs/llm.rb/LLM/Bedrock.html)
+talks to [Amazon Bedrock](https://aws.amazon.com/bedrock/) through the
+[Converse API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_Converse.html),
+which reaches models from Anthropic, Meta, Mistral, Cohere, and others
+behind one endpoint. It is created with
+[`LLM.bedrock`](https://r.uby.dev/api-docs/llm.rb/LLM.html#bedrock-class_method).
+
+#### How it works
+
+Bedrock is the one provider that does not take a `key:`. It signs each
+request with AWS Signature V4, so it wants an access key, a secret key,
+and a region:
+
+```ruby
+require "llm"
+
+llm = LLM.bedrock(
+  access_key_id: ENV["AWS_ACCESS_KEY_ID"],
+  secret_access_key: ENV["AWS_SECRET_ACCESS_KEY"],
+  region: "us-east-1"
+)
+ctx = LLM::Context.new(llm)
+ctx.talk "Hello"
+```
+
+Each of the three falls back to its own environment variable
+(`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`), so
+`LLM.bedrock` alone works in an environment that already has
+credentials. `region:` defaults to `us-east-1`, and the host is
+`bedrock-runtime.<region>.amazonaws.com`.
+
+#### Why would I use it?
+
+One credential reaches every model Bedrock serves, so a model can be
+swapped with `model:` alone rather than by moving to another vendor's
+API. For an application that already runs on AWS, it also keeps the
+traffic inside the account's own region.
+
+#### Notes
+
+A model is named by its regional id rather than a short name - the
+entries in `data/bedrock.json` look like
+`anthropic.claude-sonnet-4-20250514-v1:0` or `google.gemma-4-31b`, and
+some are prefixed by the region that serves them (`us-gov.`, `eu.`,
+`global.`). Passing `key:` raises `ArgumentError`, because there is no
+API key to pass.

@@ -133,6 +133,23 @@ renders the schema as a prompt-friendly string. `required` and
 `defaults` refer to properties that already exist, so declare the
 property first and mark it afterwards.
 
+A property also takes the constraints its type supports, as options.
+`min:` and `max:` bound a number's value or a string's length,
+`multiple_of:` constrains a number, `const:` fixes one value, `enum:`
+lists the allowed values, and `default:` gives one. Pass
+`required: true`, or `required: false`, to mark a single property
+without the class-level call:
+
+```ruby
+class Form < LLM::Schema
+  property :name, String, "The name", min: 2, max: 8
+  property :age, Integer, "The age", min: 0, max: 120
+  property :currency, String, "The currency", enum: %w[usd eur]
+  property :note, String, "An optional note", required: false
+  required %i[name age currency]
+end
+```
+
 ### Parsing
 
 #### Overview
