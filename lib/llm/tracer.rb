@@ -195,7 +195,7 @@ module LLM
     end
 
     ##
-    # Called when a request or a tool is interrupted.
+    # Called when a request, a tool, or a turn is interrupted.
     #
     # An interrupt is not a failure, so this is not {#on_request_error} or
     # {#on_tool_error} under another name: it is the third ending either
@@ -206,7 +206,9 @@ module LLM
     # A request is announced once, by the transport. A tool is announced
     # once for the phase rather than once per tool: a cancel reaches every
     # tool that is running and the caller hears one exception, so there is
-    # no one tool the announcement belongs to.
+    # no one tool the announcement belongs to. A turn is announced as
+    # `:agent` when the interrupt lands between two of its requests, which
+    # is the one point of a turn that has no span of its own.
     #
     # The default does nothing, which is the difference from the rest of the
     # lifecycle. Every other hook raises, because a tracer that means to draw
@@ -214,7 +216,8 @@ module LLM
     # whatever tracer happens to be bound, and a hook that raised here would
     # replace the interrupt every caller is written against.
     # @param [Symbol] scope
-    #  :request for a request, :tool for a tool
+    #  :request for a request, :tool for a tool, :agent for a turn that is
+    #  between its requests
     # @param [Object, nil] span
     #  The span that {#on_request_start} returned. A tool pass has none:
     #  a tool's span belongs to the call, and the announcement is not one
