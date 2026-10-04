@@ -236,6 +236,18 @@ RSpec.describe "acts_as_agent" do
     end
   end
 
+  context "when the record's id is not a UUIDv7" do
+    let(:ctx) { record.send(:ctx) }
+
+    it "does not take the record's id" do
+      expect(ctx.id).not_to eq(record.id)
+    end
+
+    it "generates a UUIDv7" do
+      expect(LLM::Utils.timestamp(ctx.id)).not_to be_nil
+    end
+  end
+
   context "with jsonb serialization" do
     let(:original_tool_calls) do
       LLM::Object.from([
