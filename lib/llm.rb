@@ -363,6 +363,30 @@ module LLM
   end
 
   ##
+  # Interrupts the turn running under this identity, in this process.
+  #
+  # Named by the agent or by the id, and not by both: a canceller has one of
+  # the two in hand, never the pair. `false` means nothing was registered
+  # under it - the ordinary race, a turn that finished first, and not a
+  # failure.
+  #
+  # It reaches the agents *this process* is running. A cancel that lands in
+  # another worker finds nothing here and must not be told otherwise; an
+  # application that needs a guarantee keeps one of its own, and what this is
+  # for is the fast path.
+  # @see LLM::Agent::Registry
+  # @param [LLM::Agent, nil] agent
+  # @param [String, Integer, nil] id
+  # @return [Boolean]
+  #  Whether anything was reached
+  def interrupt(agent: nil, id: nil)
+    found = LLM::Agent.registry.find(agent:, id:)
+    return false unless found
+    found.interrupt!
+    true
+  end
+
+  ##
   # Provides a thread-safe lock
   # @param [Symbol] name The name of the lock
   # @param [Proc] block The block to execute within the lock
