@@ -6,7 +6,40 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ## What's next
 
-*No unreleased changes yet. Check back after the next release.*
+### Core
+
+* **context: give a context the identity of the record it came from** <br>
+  [`LLM::Context#id`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#id-instance_method)
+  now takes the id of the record the context is bound to, when that id is a
+  UUIDv7 string, so the conversation and the row it is stored in can be
+  matched by one value - in a log, in a tracer, or from either side of the
+  pair. Before, a context always minted an id of its own, and nothing
+  connected it to the row it came from. An explicit `id:` still wins, and a
+  record whose id is an integer, a slug, or not saved yet still gets one of
+  its own.
+
+* **context: reject an id that cannot carry a time** <br>
+  A context id is what carries its creation time, so an `id:` that is not a
+  UUIDv7 string now raises `LLM::Error` where it is given, rather than
+  leaving a context whose `created_at` quietly answers `nil`. The check is
+  [`LLM::Utils.uuidv7?`](https://r.uby.dev/api-docs/llm.rb/LLM/Utils.html#uuidv7?-instance_method),
+  which `LLM::Utils.timestamp` reads a UUIDv7 through instead of repeating
+  the pattern and the version nibble itself. A payload the runtime wrote
+  still restores as it was, so a context saved before this still loads.
+
+### Agent
+
+* **agent: cancel a turn you do not hold a reference to** <br>
+  [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+  finds the turn running under an agent, an agent's id, or a record's id and
+  interrupts it, so a controller, a job, or a socket handler can stop a turn
+  it never touched - a cancel endpoint that knows only the row the
+  conversation is stored in. A turn registers itself through
+  [`LLM::Agent.registry`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#registry-class_method)
+  while `run_loop` runs, and is forgotten in the `ensure` that ends it. It
+  answers `false` when nothing was registered under that name, which is the
+  ordinary race rather than a failure, and the registry is per process, so a
+  cancel that lands in another worker finds nothing.
 
 ## v16.0.0
 
