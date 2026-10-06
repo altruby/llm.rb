@@ -326,6 +326,49 @@ end
 ```
 </details>
 <details>
+<summary>Cancel by record ID</summary>
+<br>
+
+A common deployment setup is to run your agents in a
+background process that a web frontend can communicate
+with (usually via a database). The background process
+would have one thread per agent, and it could run as
+many agents as it has threads. This is how the
+[r.uby.dev](https://r.uby.dev) website is configured,
+and it is the configuration that the
+[`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+method is optimized for: a single process with each agent
+running in its own thread.
+
+The
+[`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+method has access to a process-wide
+registry that contains every active instance of
+[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html),
+and that includes Sequel and ActiveRecord agents, too. An
+agent enters the registry when it starts a turn, and it
+exits the registry afterwards. The method returns true
+when it sent an interrupt, and otherwise it returns false.
+
+There is often a window between when an agent is queued
+and when it runs, so a poll approach lets you eventually
+interrupt the agent, or give up trying:
+
+```ruby
+class InterruptJob
+  def call(agent_id:)
+    attempts = 0
+    until LLM.interrupt(id: agent_id)
+      attempts += 1
+      break if attempts == 10
+      sleep 0.1
+    end
+  end
+end
+```
+</details>
+
+<details>
 <summary>Console (<code>binding.irb</code> for agents)</summary>
 <br>
 
