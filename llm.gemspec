@@ -5,7 +5,14 @@ require_relative "lib/llm/version"
 Gem::Specification.new do |spec|
   spec.name = "llm.rb"
   spec.version = LLM::VERSION
-  spec.authors = ["Robert Gleeson", "Antar Azri", "Rodrigo Serrano"]
+  spec.authors = ["Robert Gleeson",
+                  "Antar Azri",
+                  "Rodrigo Serrano",
+                  "Azmi Muwahid",
+                  "George Pickett",
+                  "Mika Mikasuki",
+                  "Nikulin Nikita",
+                  "pttydou"]
   spec.email = ["robert@r.uby.dev"]
 
   spec.summary = "An agentic runtime for Ruby"
