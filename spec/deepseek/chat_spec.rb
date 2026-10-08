@@ -15,6 +15,16 @@ RSpec.describe "LLM::Context: deepseek" do
     include_examples "LLM::Context: vision",      :deepseek, formats: %i[png]
   end
 
+  context LLM::File do
+    ##
+    # DeepSeek supports images for now: webp, png, jpeg, gif.
+    # Everything else (even text files) are rejected.
+    include_examples "LLM::Context: files",
+                     :deepseek,
+                     fixture:  "spec/fixtures/images/bluebook.png",
+                     question: "Could the image be a book?"
+  end
+
   context LLM::Function do
     include_examples "LLM::Context: functions", :deepseek
   end

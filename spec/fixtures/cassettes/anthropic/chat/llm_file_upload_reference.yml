@@ -1,0 +1,216 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.anthropic.com/v1/files
+    body:
+      encoding: UTF-8
+      string: "--BOUNDARY__ac815a8e83f29940f32d6f06399877e6\r\nContent-Disposition:
+        form-data; name=\"file\";filename=\"haiku1.txt\"\r\nContent-Type: text/plain\r\n\r\nWhispers
+        through the trees,\nmoonlight dances on still waves --\nnight's breath softly
+        glows\n\r\n--BOUNDARY__ac815a8e83f29940f32d6f06399877e6--\r\n"
+    headers:
+      User-Agent:
+      - llm.rb v16.0.0
+      Content-Type:
+      - multipart/form-data; boundary=BOUNDARY__ac815a8e83f29940f32d6f06399877e6
+      X-Api-Key:
+      - TOKEN
+      Anthropic-Version:
+      - '2023-06-01'
+      Anthropic-Beta:
+      - files-api-2025-04-14
+      Transfer-Encoding:
+      - chunked
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Thu, 08 Oct 2026 17:14:48 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Request-Id:
+      - req_011Cfq9TKi6cujN7AjWH9eLH
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Anthropic-Organization-Id:
+      - 89796e02-61da-4a75-b7ee-c55929f0d748
+      Anthropic-Workspace-Id:
+      - wrkspc_0175QCay11wY3jhRdz1Y6i8d
+      Server:
+      - cloudflare
+      Vary:
+      - Accept-Encoding
+      Content-Security-Policy:
+      - default-src 'none'; frame-ancestors 'none'
+      Server-Timing:
+      - x-originResponse;dur=250
+      Cf-Cache-Status:
+      - DYNAMIC
+      X-Robots-Tag:
+      - none
+      Cf-Ray:
+      - a476c8b2ae15f1f7-GRU
+    body:
+      encoding: ASCII-8BIT
+      string: '{"type":"file","id":"file_011Qm8phnKDAqWQafKnVXRY5","size_bytes":91,"created_at":"2026-10-08T17:14:48.293036Z","filename":"haiku1.txt","mime_type":"text/plain","downloadable":false}'
+  recorded_at: Thu, 08 Oct 2026 17:14:14 GMT
+- request:
+    method: post
+    uri: https://api.anthropic.com/v1/messages
+    body:
+      encoding: UTF-8
+      string: '{"messages":[{"role":"user","content":[{"type":"text","text":"Does
+        this file mention the moon?"},{"type":"text","text":"Answer with yes or no"},{"type":"text","text":"Nothing
+        else"},{"type":"document","source":{"type":"file","file_id":"file_011Qm8phnKDAqWQafKnVXRY5"}}]}],"model":"claude-opus-4-8","max_tokens":1024,"stream":false}'
+    headers:
+      User-Agent:
+      - llm.rb v16.0.0
+      Content-Type:
+      - application/json
+      X-Api-Key:
+      - TOKEN
+      Anthropic-Version:
+      - '2023-06-01'
+      Anthropic-Beta:
+      - files-api-2025-04-14
+      Transfer-Encoding:
+      - chunked
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Thu, 08 Oct 2026 17:14:49 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Anthropic-Ratelimit-Input-Tokens-Limit:
+      - '5000000'
+      Anthropic-Ratelimit-Input-Tokens-Remaining:
+      - '5000000'
+      Anthropic-Ratelimit-Input-Tokens-Reset:
+      - '2026-10-08T17:14:49Z'
+      Anthropic-Ratelimit-Output-Tokens-Limit:
+      - '1000000'
+      Anthropic-Ratelimit-Output-Tokens-Remaining:
+      - '1000000'
+      Anthropic-Ratelimit-Output-Tokens-Reset:
+      - '2026-10-08T17:14:49Z'
+      Anthropic-Ratelimit-Requests-Limit:
+      - '5000'
+      Anthropic-Ratelimit-Requests-Remaining:
+      - '4999'
+      Anthropic-Ratelimit-Requests-Reset:
+      - '2026-10-08T17:14:48Z'
+      Anthropic-Ratelimit-Tokens-Limit:
+      - '6000000'
+      Anthropic-Ratelimit-Tokens-Remaining:
+      - '6000000'
+      Anthropic-Ratelimit-Tokens-Reset:
+      - '2026-10-08T17:14:49Z'
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Request-Id:
+      - req_011Cfq9TMaxdeX8FeRAi4Q8m
+      Traceresponse:
+      - 00-7866752021d8910c9d56072b171770ec-72100e944246f6ab-01
+      Anthropic-Organization-Id:
+      - 89796e02-61da-4a75-b7ee-c55929f0d748
+      Anthropic-Workspace-Id:
+      - wrkspc_0175QCay11wY3jhRdz1Y6i8d
+      Vary:
+      - Accept-Encoding
+      Content-Security-Policy:
+      - default-src 'none'; frame-ancestors 'none'
+      Server:
+      - cloudflare
+      Cf-Cache-Status:
+      - DYNAMIC
+      X-Robots-Tag:
+      - none
+      Cf-Ray:
+      - a476c8b55c0a1f86-GRU
+    body:
+      encoding: ASCII-8BIT
+      string: '{"model":"claude-opus-4-8","id":"msg_011Cfq9TMrafoFEzRBbcbdio","type":"message","role":"assistant","content":[{"type":"text","text":"Yes"}],"container":null,"stop_reason":"end_turn","stop_sequence":null,"stop_details":null,"usage":{"input_tokens":99,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":5,"output_tokens_details":{"thinking_tokens":0},"service_tier":"standard","inference_geo":"global"},"diagnostics":null}'
+  recorded_at: Thu, 08 Oct 2026 17:14:15 GMT
+- request:
+    method: delete
+    uri: https://api.anthropic.com/v1/files/file_011Qm8phnKDAqWQafKnVXRY5
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - llm.rb v16.0.0
+      Content-Type:
+      - application/json
+      X-Api-Key:
+      - TOKEN
+      Anthropic-Version:
+      - '2023-06-01'
+      Anthropic-Beta:
+      - files-api-2025-04-14
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Thu, 08 Oct 2026 17:14:50 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Request-Id:
+      - req_011Cfq9TRg2SWuebF69JHD2d
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Anthropic-Organization-Id:
+      - 89796e02-61da-4a75-b7ee-c55929f0d748
+      Anthropic-Workspace-Id:
+      - wrkspc_0175QCay11wY3jhRdz1Y6i8d
+      Server:
+      - cloudflare
+      Vary:
+      - Accept-Encoding
+      Content-Security-Policy:
+      - default-src 'none'; frame-ancestors 'none'
+      Server-Timing:
+      - x-originResponse;dur=490
+      Cf-Cache-Status:
+      - DYNAMIC
+      X-Robots-Tag:
+      - none
+      Cf-Ray:
+      - a476c8bb7e445f28-GRU
+    body:
+      encoding: ASCII-8BIT
+      string: '{"id":"file_011Qm8phnKDAqWQafKnVXRY5","type":"file_deleted"}'
+  recorded_at: Thu, 08 Oct 2026 17:14:15 GMT
+recorded_with: VCR 6.4.0

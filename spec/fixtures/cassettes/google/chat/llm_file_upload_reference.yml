@@ -1,0 +1,264 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://generativelanguage.googleapis.com/upload/v1beta/files?key=TOKEN
+    body:
+      encoding: UTF-8
+      string: '{"file":{"display_name":"haiku1.txt"}}'
+    headers:
+      User-Agent:
+      - llm.rb v16.0.0
+      Content-Type:
+      - application/json
+      X-Goog-Upload-Protocol:
+      - resumable
+      X-Goog-Upload-Command:
+      - start
+      X-Goog-Upload-Header-Content-Length:
+      - '91'
+      X-Goog-Upload-Header-Content-Type:
+      - text/plain
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - text/plain; charset=utf-8
+      X-Guploader-Uploadid:
+      - AP6rU817HoIZLgmWDbzAIcUwBb4m7yH6V2YKstv12_NnUjCXwTfcih5kIiMPI6b7O67465_WfG9GlT4r2R2Ps1Ofn0woPkomVOUjMg5oGOhVOu0
+      X-Goog-Upload-Status:
+      - active
+      X-Goog-Upload-Url:
+      - https://generativelanguage.googleapis.com/upload/v1beta/files?key=TOKEN&upload_id=AP6rU817HoIZLgmWDbzAIcUwBb4m7yH6V2YKstv12_NnUjCXwTfcih5kIiMPI6b7O67465_WfG9GlT4r2R2Ps1Ofn0woPkomVOUjMg5oGOhVOu0&upload_protocol=resumable
+      X-Goog-Upload-Control-Url:
+      - https://generativelanguage.googleapis.com/upload/v1beta/files?key=TOKEN&upload_id=AP6rU817HoIZLgmWDbzAIcUwBb4m7yH6V2YKstv12_NnUjCXwTfcih5kIiMPI6b7O67465_WfG9GlT4r2R2Ps1Ofn0woPkomVOUjMg5oGOhVOu0&upload_protocol=resumable
+      X-Goog-Upload-Chunk-Granularity:
+      - '8388608'
+      X-Goog-Upload-Header-X-Google-Esf-Cloud-Client-Params:
+      - 'backend_service_name: "generativelanguage.googleapis.com" backend_fully_qualified_method:
+        "google.ai.generativelanguage.v1beta.FileService.CreateFile"'
+      X-Goog-Upload-Header-X-Google-Session-Info:
+      - GgQYECgLIAE6IxIhZ2VuZXJhdGl2ZWxhbmd1YWdlLmdvb2dsZWFwaXMuY29t
+      X-Goog-Upload-Header-X-Google-Backends:
+      - unix:/tmp/esfbackend.1791415925.721158.2920797
+      X-Goog-Upload-Header-Content-Type:
+      - application/json; charset=UTF-8
+      X-Goog-Upload-Header-X-Google-Security-Signals:
+      - FRAMEWORK=ONE_PLATFORM,ENV=borg,ENV_DEBUG=borg_user:genai-api;borg_job:prod.genai-api
+      X-Goog-Upload-Header-Vary:
+      - Origin
+      - Referer
+      - X-Origin
+      X-Goog-Upload-Header-X-Google-Gfe-Backend-Request-Cost:
+      - '23.1724'
+      Content-Length:
+      - '0'
+      Date:
+      - Thu, 08 Oct 2026 17:14:50 GMT
+      Server:
+      - UploadServer
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: ''
+  recorded_at: Thu, 08 Oct 2026 17:14:16 GMT
+- request:
+    method: post
+    uri: https://generativelanguage.googleapis.com/upload/v1beta/files?key=TOKEN&upload_id=AP6rU817HoIZLgmWDbzAIcUwBb4m7yH6V2YKstv12_NnUjCXwTfcih5kIiMPI6b7O67465_WfG9GlT4r2R2Ps1Ofn0woPkomVOUjMg5oGOhVOu0&upload_protocol=resumable
+    body:
+      encoding: ASCII-8BIT
+      string: |
+        Whispers through the trees,
+        moonlight dances on still waves --
+        night's breath softly glows
+    headers:
+      Content-Length:
+      - '91'
+      X-Goog-Upload-Offset:
+      - '0'
+      X-Goog-Upload-Command:
+      - upload, finalize
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=UTF-8
+      X-Guploader-Uploadid:
+      - AP6rU817HoIZLgmWDbzAIcUwBb4m7yH6V2YKstv12_NnUjCXwTfcih5kIiMPI6b7O67465_WfG9GlT4r2R2Ps1Ofn0woPkomVOUjMg5oGOhVOu0
+      X-Goog-Upload-Status:
+      - final
+      Vary:
+      - Origin
+      - Referer
+      - X-Origin
+      Content-Length:
+      - '534'
+      Date:
+      - Thu, 08 Oct 2026 17:14:51 GMT
+      Server:
+      - UploadServer
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "file": {
+            "name": "files/eebom1j81pfi",
+            "displayName": "haiku1.txt",
+            "mimeType": "text/plain",
+            "sizeBytes": "91",
+            "createTime": "2026-10-08T17:14:51.706764Z",
+            "updateTime": "2026-10-08T17:14:51.706764Z",
+            "expirationTime": "2026-10-10T17:14:51.477038048Z",
+            "sha256Hash": "ZmY1MTNkNDczN2MyNDQ0MWU2NjA0NzAxYzBjM2E2M2YzODA2YTEwNGFlZDgzOWFiYWRlNTE0MjA3OWQ1NDM1Zg==",
+            "uri": "https://generativelanguage.googleapis.com/v1beta/files/eebom1j81pfi",
+            "state": "ACTIVE",
+            "source": "UPLOADED"
+          }
+        }
+  recorded_at: Thu, 08 Oct 2026 17:14:17 GMT
+- request:
+    method: post
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=TOKEN
+    body:
+      encoding: UTF-8
+      string: '{"contents":[{"role":"user","parts":[{"text":"Does this file mention
+        the moon?"},{"text":"Answer with yes or no"},{"text":"Nothing else"},{"file_data":{"mime_type":"text/plain","file_uri":"https://generativelanguage.googleapis.com/v1beta/files/eebom1j81pfi"}}]}]}'
+    headers:
+      User-Agent:
+      - llm.rb v16.0.0
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Gemini-Service-Tier:
+      - standard
+      Content-Type:
+      - application/json; charset=UTF-8
+      Vary:
+      - Origin
+      - Referer
+      - X-Origin
+      Date:
+      - Thu, 08 Oct 2026 17:14:53 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      X-Xss-Protection:
+      - '0'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Content-Type-Options:
+      - nosniff
+      Server-Timing:
+      - gfet4t7; dur=1191
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: |
+        {
+          "candidates": [
+            {
+              "content": {
+                "parts": [
+                  {
+                    "text": "Yes",
+                    "thoughtSignature": "EnMKcQFpFH0TUUYyrVFho4JjnAb5s1p2N4YOT74gl2uSwSZT+ysr9Y15ZJ0Uyk7t+H+yhIsucD4B2P85s6WQkXDCgudmyQvpQv5LjdKiv8BI+uqOCYNjaTgbBEVOOsu34fpEGOitAl9XStFWBz9dj3soQR5L"
+                  }
+                ],
+                "role": "model"
+              },
+              "finishReason": "STOP",
+              "index": 0
+            }
+          ],
+          "usageMetadata": {
+            "promptTokenCount": 37,
+            "candidatesTokenCount": 1,
+            "totalTokenCount": 38,
+            "promptTokensDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 37
+              }
+            ],
+            "serviceTier": "standard"
+          },
+          "modelVersion": "gemini-3.1-flash-lite",
+          "responseId": "jM_HarOwA--Dz7IPo7Hc2Qw"
+        }
+  recorded_at: Thu, 08 Oct 2026 17:14:18 GMT
+- request:
+    method: delete
+    uri: https://generativelanguage.googleapis.com/v1beta/files/eebom1j81pfi?key=TOKEN
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - llm.rb v16.0.0
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=UTF-8
+      Vary:
+      - Origin
+      - Referer
+      - X-Origin
+      Date:
+      - Thu, 08 Oct 2026 17:14:53 GMT
+      Server:
+      - scaffolding on HTTPServer2
+      X-Xss-Protection:
+      - '0'
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Content-Type-Options:
+      - nosniff
+      Server-Timing:
+      - gfet4t7; dur=455
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: "{}\n"
+  recorded_at: Thu, 08 Oct 2026 17:14:19 GMT
+recorded_with: VCR 6.4.0
