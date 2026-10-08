@@ -75,15 +75,21 @@ agent.talk "hello world"
 <summary>Stream</summary>
 <br>
 
-Streams can be simple IO objects or subclasses of
-[`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
-with structured callbacks for content,
-reasoning, tool calls, tool returns, steps in a turn, and compaction.
-Streams can also observe message transformers, which rewrite
-outgoing messages before they reach the provider.
+A stream can be a simple IO object (eg `$stdout`)
+or it can be a subclass of [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html).
+An IO object can receive content but it cannot
+receive the other callbacks that are available
+to subclasses of [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html).
+
+A subclass of [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
+can implement callbacks that the runtime will call
+throughout the lifecycle of a request or turn. All
+callbacks are optional. The callbacks provide for
+content, reasoning, tool calls, tool returns, steps
+in a turn, retries, compaction and more:
 
 ```ruby
-class MyStream < LLM::Stream
+class Stream < LLM::Stream
   # Visible assistant output.
   def on_content(content)
     print content
@@ -140,7 +146,7 @@ class MyStream < LLM::Stream
 end
 
 llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, stream: MyStream.new)
+agent = LLM::Agent.new(llm, stream: Stream.new)
 agent.talk "Explain Ruby fibers."
 ```
 </details>
@@ -148,17 +154,20 @@ agent.talk "Explain Ruby fibers."
 <details><summary>Tools</summary>
 <br>
 
-Subclasses of
-[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
-are plain Ruby classes with
-an optional set of typed parameters. <br> The model can choose to
-call them on your behalf, and they're one of the most powerful features
-for extending the feature set or abilities of a model.
+An agent requires one or more tools to be
+able to interact with the outside world.
 
-The runtime also ships with a catalog of built-in tools for
-filesystem, search, and shell operations, and providers expose
-platform-native tools such as web search and code execution that run
-on the provider's side.
+At a high-level a tool is how a model can
+access your filesystem, search the internet,
+post a comment on your behalf and anything
+else that your own code could do.
+
+The runtime represents a tool as a subclass
+of [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
+that provides a name, a description, an optional
+set of parameters and a method that the runtime
+will call on the model's behalf. The model decides
+when and how a tool is called:
 
 ```ruby
 class ReadFile < LLM::Tool
@@ -177,6 +186,7 @@ agent = LLM::Agent.new(llm, tools: [ReadFile], stream: $stdout)
 agent.talk "summarize README.md"
 ```
 </details>
+
 <details>
 <summary>Skills</summary>
 <br>
@@ -461,43 +471,37 @@ agent.talk "what's my name?"
 <details><summary>ActiveRecord | Sequel</summary>
 <br>
 
-Because both
+Both
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html) and
 [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
-can be serialized to JSON and stored in a simple string, both ActiveRecord
-and Sequel support can be implemented within a single column on a single row.
+can be serialized to JSON and stored in a database column.  The `jsonb`
+column type from PostgreSQL is recommended but it can also be stored as
+a string on other databases. ActiveRecord and Sequel support is optimized
+for the `jsonb` column type and PostgreSQL.
 
-The runtime includes first-class support for both ActiveRecord / Sequel, and
-for both Rack-based / Rails-based applications. On databases
-where it is supported, such as PostgreSQL, the column can be optimized by using
-the `jsonb` type.
+The column captures everything an agent has done up to that point,
+it includes tool calls and returns, exchanged messages, and other
+metadata that carries runtime state. Each agent is an ActiveRecord
+model that calls `acts_as_agent` and each row represents an instance
+of that agent. It can be used with new and existing models alike.
+
+The column should have the name `data` but this can be changed with
+an option given to `acts_as_agent`:
 
 ```ruby
 require "active_record"
 require "llm"
 require "llm/active_record"
 
-##
-# The Robert agent.
 class Robert < ActiveRecord::Base
   acts_as_agent(format: :jsonb) do |agent|
     agent.set name: "robert",
-              description: "robert is an agent that has access to the official " \
-                            "r.uby.dev GitHub repositories. He can access the repositories " \
-                            "to answer your question(s) about r.uby.dev projects.",
+              description: "an activerecord agent",
               instructions: proc { File.read(File.join(__dir__, "robert", "prompt.md")) },
               tools: :tools,
               concurrency: :async,
-
-              ##
-              # The maximum number of tool calls per-turn.
               tool_budget: 25,
-
-              ##
-              # The default tracer that all agents have associated
-              # with them. The tracer exports a trace to a couple of
-              # SQL tables.
-              tracer: proc { Raven::Tracer::SQL.new(llm, agent: self) }
+              tracer: proc { Robert::Tracer::SQL.new(llm, agent: self) }
   end
 
   ##
@@ -513,26 +517,7 @@ class Robert < ActiveRecord::Base
   ##
   # @return [Array<LLM::Tool>]
   def tools
-    github.tools.select { allowlist.include?(_1.name.to_s) }
-  end
-
-  private
-
-  def allowlist
-    %w[
-        get_commit
-        get_file_contents
-        list_branches
-        list_commits
-        search_code
-        search_commits
-        search_repositories
-        search_issues
-        pull_request_read
-        list_pull_requests
-        list_issues
-        issue_read
-    ].freeze
+    github.tools
   end
 end
 
@@ -556,6 +541,7 @@ agent = Robert.find(agent.id).talk "and what about roda-llm?"
 agent.console
 ```
 </details>
+
 <details>
 <summary> SQL optimizations </summary>
 <br>
