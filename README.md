@@ -481,7 +481,7 @@ agent = LLM::Agent.new(llm, path:)
 agent.talk "what's my name?"
 ```
 </details>
-<details><summary>ActiveRecord | Sequel</summary>
+<details><summary>ActiveRecord </summary>
 <br>
 
 Both
@@ -498,8 +498,13 @@ metadata that carries runtime state. Each agent is an ActiveRecord
 model that calls `acts_as_agent` and each row represents an instance
 of that agent. It can be used with new and existing models alike.
 
-The column should have the name `data` but this can be changed with
-an option given to `acts_as_agent`:
+The column should have the name `data` but this can be
+changed when the `acts_as_agent` method is called (eg
+`acts_as_agent(data_column: :my_column)`). The column
+is updated after every request that an agent makes rather
+than every turn, so an unexpected interrupt can be resumed
+from from the last request and no progress (or spent tokens)
+are lost:
 
 ```ruby
 require "active_record"
