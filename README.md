@@ -489,7 +489,7 @@ Both
 [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
 can be serialized to JSON and stored in a database column.  The `jsonb`
 column type from PostgreSQL is recommended but it can also be stored as
-a string on other databases. ActiveRecord and Sequel support is optimized
+a string on other databases. ActiveRecord support is optimized
 for the `jsonb` column type and PostgreSQL.
 
 The column captures everything an agent has done up to that point,
