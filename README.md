@@ -379,7 +379,7 @@ end
 </details>
 
 <details>
-<summary>Console (<code>binding.irb</code> for agents)</summary>
+<summary>Console</summary>
 <br>
 
 The [LLM::Agent#console](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
