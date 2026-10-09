@@ -11,9 +11,9 @@ require "setup"
 # phase rather than to a tool - and `Context#wait` is where it is made,
 # because that is the one frame every strategy's interrupt unwinds through.
 #
-# **And the call is announced as itself.** The same cancel that cuts the
-# phase cuts calls, and a tracer that pairs a start with an ending needs the
-# call's own: `on_tool_interrupt` is that ending, reached from
+# **And the call is announced as itself.** The same cancel interrupts the
+# phase and its calls, and a tracer that pairs a start with an ending needs
+# the call's own: `on_tool_interrupt` is that ending, reached from
 # `LLM::Function::Tracing`, which is the module above the strategy - so the
 # tracer is told wherever the raise was issued from.
 #
@@ -135,21 +135,10 @@ RSpec.describe "the tracer's interrupt hook" do
     end
   end
 
-  describe "when the call is cut" do
-    let(:tool) do
-      Class.new(LLM::Tool) do
-        name "slow"
-
-        def call
-          sleep 10
-          {ok: true}
-        end
-      end
-    end
-
+  RSpec.shared_examples "an interrupted call" do |strategy|
     let(:wait) do
       Thread.new do
-        ctx.wait(:thread)
+        ctx.wait(strategy)
       rescue LLM::Interrupt => ex
         ex
       end
@@ -186,6 +175,22 @@ RSpec.describe "the tracer's interrupt hook" do
     it "still raises to the caller" do
       expect(waited).to be_a(LLM::Interrupt)
     end
+  end
+
+  describe "when the call is interrupted" do
+    let(:tool) do
+      Class.new(LLM::Tool) do
+        name "slow"
+
+        def call
+          sleep 10
+          {ok: true}
+        end
+      end
+    end
+
+    include_examples "an interrupted call", :thread
+    include_examples "an interrupted call", :fork
   end
 
   describe "when a call answers" do
