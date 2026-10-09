@@ -384,18 +384,26 @@ end
 
 The [LLM::Agent#console](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
 method drops you into an interactive console that is built on
-top of curses. It can help you debug agents, test your tools,
-connect to MCP servers, and other A2A agents. The console stands
-out because it connects to the surrounding runtime and it can
-be extended by your code. Think of it as `binding.irb` but
-for agents.
+top of (n)curses. The `llm.rb` executable packaged with the gem
+is another way to access the console and ActiveRecord models who
+have called `acts_as_agent` can access the console as well
+(via `agent.console`).
+
+A console for an ActiveRecord model does not write back to the
+database. The `llm.rb` executable automatically associates a
+session with the current working directory and it can be resumed
+by calling `llm.rb` in the same directory at a later point.
+
+The console is not intended to compete with Claude, Codex and
+friends. It is much more limited, serves an entirely different
+purpose and is more like a debugger for your agents.
 
 ##### Demo
 
 ![llm.rb console demo](demo.gif)
 
 
-##### Installation
+##### Install
 
 The console is distributed with llm.rb but it requires a number
 of optional dependencies to be installed separately. The following
@@ -409,41 +417,6 @@ to run the console:
 
     gem install llm-shell
 
-##### Persistence
-
-the `path:` option can be set on an agent for automatic persistence
-across console sessions. The `tools:` option attaches extra tools
-for the duration of the session. Recall previous turns with Ctrl+P and
-Ctrl+N.
-
-```ruby
-require "llm"
-require "llm/tools"
-
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, name: "my-agent", path: "agent.json")
-agent.console(tools: LLM::Tool.subclasses)
-```
-
-##### CLI
-
-The `llm.rb` executable is available on your PATH after installation.
-It starts a console session from any directory. The CLI auto-detects your
-provider from standard environment variables (`DEEPSEEK_API_KEY`,
-`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.). Persistent sessions are
-stored under `~/.llm.rb/` and restored automatically on your next visit.
-
-```bash
-llm.rb                     # auto-detect from $PROVIDER_API_KEY
-llm.rb -p openai           # use OpenAI explicitly
-llm.rb -m gpt-5.6          # use a model other than the provider default
-llm.rb -c thread           # run tool calls on a separate thread
-llm.rb -n curb             # use libcurl as the HTTP transport
-llm.rb -x 900              # read timeout of 15 minutes
-llm.rb -t                  # temporary session, no persistence
-llm.rb -v                  # print the version
-llm.rb -h                  # print usage
-```
 </details>
 <details>
 <summary>Serialization</summary>
