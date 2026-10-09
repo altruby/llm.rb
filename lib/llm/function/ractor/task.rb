@@ -11,6 +11,18 @@ class LLM::Function
     attr_reader :mailbox
 
     ##
+    # @return [LLM::Tracer, nil]
+    attr_reader :tracer
+
+    ##
+    # @return [String]
+    attr_reader :cookie
+
+    ##
+    # @return [Object]
+    attr_reader :span
+
+    ##
     # @param [LLM::Function] fn
     # @param [Hash] options
     # @option options [LLM::Tracer, nil] :tracer
@@ -29,6 +41,7 @@ class LLM::Function
       @model = options.fetch(:model, nil)
       @tracer = options.fetch(:tracer, nil)
       @cancelled = false
+      @cookie = SecureRandom.hex
     end
 
     ##
@@ -105,9 +118,13 @@ class LLM::Function
       @result ||= begin
         spawn unless @mailbox
         id, name, value = mailbox.wait
-        result = Return.new(id, name, value)
-        @tracer&.on_tool_finish(result:, span: @span)
-        result
+        if Hash === value and value[:interrupt] and value[:cookie] == @cookie
+          Return.new(id, name, value)
+        else
+          result = Return.new(id, name, value)
+          @tracer&.on_tool_finish(result:, span: @span)
+          result
+        end
       end
     end
     alias_method :value, :wait
@@ -121,8 +138,16 @@ class LLM::Function
     private
 
     def build_task(result)
-      ::Ractor.new(result, @runner_class, @id, @name, @arguments) do |result, runner_class, id, name, arguments|
-        LLM::Function::Ractor::Job.new(::Ractor.current, result, runner_class, id, name, arguments).call
+      ::Ractor.new(result, @runner_class, @id, @name, @arguments, @cookie) do |result, runner_class, id, name, arguments, cookie|
+        LLM::Function::Ractor::Job.new(
+          ::Ractor.current,
+          result,
+          runner_class,
+          id,
+          name,
+          arguments,
+          cookie
+        ).call
       end
     end
   end
