@@ -446,7 +446,7 @@ llm.rb -h                  # print usage
 ```
 </details>
 <details>
-<summary>Persistence</summary>
+<summary>Serialization</summary>
 <br>
 
 Both [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
