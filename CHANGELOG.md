@@ -41,6 +41,18 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   ordinary race rather than a failure, and the registry is per process, so a
   cancel that lands in another worker finds nothing.
 
+### Function
+
+* **function: raise `LLM::Interrupt` for a cancelled `:ractor` call** <br>
+  A cancel on the `:ractor` strategy used to be answered in band: `#wait` gave
+  back a `Return` whose value said the call had been cancelled, and the tracer
+  was told the call finished. It raises
+  [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) in
+  the caller's thread now, closing the call with `on_tool_interrupt` first, the
+  way every other strategy answers one. The message the ractor sends carries a
+  cookie that the task and the ractor share, because a tool can return any
+  value, including a hash that would otherwise read as a cancel.
+
 ### Provider
 
 * **deepseek: add support for the Files API** <br>
@@ -50,6 +62,41 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   object instead of raising `NotImplementedError`. Uploads default to
   `purpose: "user_data"` - the only purpose DeepSeek accepts - and requests
   go to the root of the API host, where DeepSeek serves its Files API.
+
+### Tracers
+
+* **tracer: add `on_tool_interrupt`, the ending an interrupted call gets** <br>
+  [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
+  is called when a tool call is interrupted, with the exception the caller is
+  given and the span `on_tool_start` returned. The span is the only thing that
+  can name a call which never returned a result, so a tracer can pair a start
+  with an end. It is called from `LLM::Function::Tracing`, which is prepended
+  onto `LLM::Function` and so covers `:sequential`, `:thread`, `:fiber`, and
+  `:async`; on `:fork` and `:ractor` the task makes the announcement in the
+  parent process instead. A tracer that implements the other endings has to
+  implement this one: the base hook raises `NotImplementedError`.
+
+* **tracer: answer `on_tool_start` with a span in the loggers** <br>
+  `LLM::Tracer::Logger` and `LLM::Tracer::PrettyLogger` answer
+  `LLM::Object.from(id:, name:)` now, which is what `Telemetry` has always
+  answered with its span, so an ending is handed something it can name the call
+  with. Before, `Logger` answered with whatever `@logger.info` returned and
+  `PrettyLogger` with the `nil` from `@io.puts`.
+
+* **tracer: close an interrupted call in the loggers** <br>
+  `Logger` writes a `tool.interrupt` event in the shape of `tool.error`, with
+  the call's id and name and the exception's class and message, and
+  `PrettyLogger` writes one line saying the call it stopped received an
+  interrupt, with the id shortened to ten characters. Both name the call from
+  the span, which is the only thing that can name a call that never returned a
+  result.
+
+* **tracer: implement `on_tool_interrupt` for the Telemetry tracer** <br>
+  Fix a bug where a cancelled tool call raised `NotImplementedError` from the
+  base hook instead of letting `LLM::Interrupt` reach the caller, and left the
+  span `on_tool_start` opened unfinished. It adds a `gen_ai.tool.interrupt`
+  event, the counterpart of the loggers' `tool.interrupt`, and finishes the
+  span without an error status, since an interrupt is not a failure.
 
 ## v16.0.0
 
