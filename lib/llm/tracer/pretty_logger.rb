@@ -76,6 +76,17 @@ module LLM
       @io.puts "#{timestamp} tool error #{ex.class}: #{ex.message}"
     end
 
+    ##
+    # @note A tool call that has been interrupted is closed
+    #  by this callback. It receives a span that it can match
+    #  back to `on_tool_start`. In the case of this tracer
+    #  we just log values, though.
+    # @param (see LLM::Tracer#on_tool_interrupt)
+    # @return [void]
+    def on_tool_interrupt(ex:, span:, **)
+      @io.puts "#{timestamp} tool #{span.name} (#{format_id(span.id)}) received an interrupt"
+    end
+
     private
 
     def setup!(io: $stderr, path: nil)
@@ -127,6 +138,14 @@ module LLM
         str = value.inspect
         str.size > max ? "#{str[0...max]}..." : str
       end
+    end
+
+    ##
+    # A call id, which is a long string that reads as gibberish:
+    # ten characters are enough to tell two of them apart.
+    def format_id(id)
+      id = id.to_s
+      id.size > 10 ? "#{id[0, 10]}..." : id
     end
   end
 end
