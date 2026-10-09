@@ -396,26 +396,15 @@ by calling `llm.rb` in the same directory at a later point.
 
 The console is not intended to compete with Claude, Codex and
 friends. It is much more limited, serves an entirely different
-purpose and is more like a debugger for your agents.
+purpose and is more like a debugger for your agents. The
+dependencies required by the console are not installed
+by default, and the easiest way to grab them is via
+`gem install llm-shell`.
 
 ##### Demo
 
 ![llm.rb console demo](demo.gif)
 
-
-##### Install
-
-The console is distributed with llm.rb but it requires a number
-of optional dependencies to be installed separately. The following
-gems provide the full experience:
-
-    gem install unicode-display_width curses kramdown xchan.rb test-cmd.rb
-
-For convenience it is also possible to just use the following, it
-is a metagem that depends on llm.rb and all the dependencies it requires
-to run the console:
-
-    gem install llm-shell
 
 </details>
 <details>
