@@ -56,8 +56,12 @@ module LLM
     end
 
     ##
+    # @note An "ending" describes the method
+    #  that matches the end of a tool call, and it can be one of:
+    #  on_tool_finish, on_tool_error or on_tool_interrupt.
     # @param (see LLM::Tracer#on_tool_start)
-    # @return [void]
+    # @return [LLM::Object]
+    #  The span an ending is handed, with the call's id and name
     def on_tool_start(id:, name:, arguments:, model:, **)
       @logger.info(
         tracer: "llm.rb (logger)",
@@ -69,6 +73,7 @@ module LLM
         tool_arguments: arguments,
         model:
       )
+      LLM::Object.from(id:, name:)
     end
 
     ##

@@ -4,19 +4,9 @@ require "setup"
 require "stringio"
 
 RSpec.describe LLM::Tracer::Logger do
-  let(:provider) { LLM::OpenAI.new }
+  let(:provider) { LLM.openai(key: "test") }
   let(:io) { StringIO.new }
   let(:tracer) { described_class.new(provider, io:) }
-  let(:openai) do
-    Class.new do
-      def initialize
-        @host = "api.openai.com"
-        @port = 443
-      end
-    end
-  end
-
-  before { stub_const("LLM::OpenAI", openai) }
 
   describe "#on_request_start" do
     context "when given a chat operation" do
@@ -42,8 +32,18 @@ RSpec.describe LLM::Tracer::Logger do
 
   describe "#on_tool_start" do
     subject(:output) { io.string }
-    before { tracer.on_tool_start(id: "call_1", name: "tool", arguments: {q: 1}, model: "gpt-4.1") }
+    let(:span) { tracer.on_tool_start(id: "call_1", name: "tool", arguments: {q: 1}, model: "gpt-4.1") }
+    before { span }
+
     it { is_expected.to include("tool.start") }
+
+    ##
+    # The return value is what the endings are handed, so a
+    # tracer that gives back the logger's own value instead
+    # gives them nothing to name the call by.
+    it "returns a span the endings can name the call with" do
+      expect(span.to_h).to eq({id: "call_1", name: "tool"})
+    end
   end
 
   describe "#on_tool_finish" do
