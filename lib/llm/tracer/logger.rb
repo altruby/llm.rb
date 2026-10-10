@@ -123,6 +123,13 @@ module LLM
       )
     end
 
+    ##
+    # No-op.
+    # @return [nil]
+    def on_exit
+      nil
+    end
+
     private
 
     ##

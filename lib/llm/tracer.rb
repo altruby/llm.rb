@@ -105,14 +105,14 @@ module LLM
     end
 
     ##
-    # Called when the tracer is no longer in use.
+    # This method is called when a tracer is no longer in use.
     #
     # A tracer that holds something - a file, a span, a connection pool -
-    # releases it here. The default does nothing, because most tracers hold
-    # nothing that needs releasing.
+    # releases it here. The default raises NotImplementedError like all
+    # other callbacks on this class.
     #
-    # It is called once, when the last scope that is open for this tracer
-    # ends, and that scope can have been opened by another thread: a tool
+    # on_exit is called once, when the last scope that is open for this tracer
+    # ends, and that scope could have been opened by another thread: a tool
     # runs on a thread of its own and scopes the turn's tracer while it
     # does. It is called after the scoped lookup is restored, so a tracer
     # that reads {LLM::Provider#tracer} inside it sees the tracer that the
@@ -121,10 +121,12 @@ module LLM
     # A tracer can be scoped again afterwards, on a later turn, so it has
     # to stay usable after this call, and it has to tolerate the call
     # happening more than once over its life.
+    #
     # @see LLM::Tracer::Registry
     # @see LLM::Provider#with_tracer
     # @return [void]
     def on_exit
+      raise NotImplementedError, "#{self.class} does not implement '#{__method__}'"
     end
 
     ##

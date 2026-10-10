@@ -20,8 +20,8 @@ RSpec.describe LLM::Tracer do
   end
 
   describe "#on_exit" do
-    it "returns nil" do
-      expect(tracer.on_exit).to be_nil
+    it "raises NotImplementedError" do
+      expect { tracer.on_exit }.to raise_error(NotImplementedError)
     end
   end
 

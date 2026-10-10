@@ -23,6 +23,7 @@ RSpec.describe LLM::Agent do
     let(:tracer) do
       events = trace_events
       LLM::Tracer.new(provider).tap do |tracer|
+        tracer.define_singleton_method(:on_exit) { nil }
         tracer.define_singleton_method(:start_trace) { |**opts| events << [:start, opts]; self }
         tracer.define_singleton_method(:stop_trace) { events << [:stop]; self }
       end

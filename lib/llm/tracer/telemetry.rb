@@ -197,6 +197,15 @@ module LLM
       nil
     end
 
+    ##
+    # This method is called when a tracer is no
+    # longer active, and it will flush the queue
+    # of any spans that are not yet exported.
+    # @return [nil]
+    def on_exit
+      flush!
+    end
+
     private
 
     ##

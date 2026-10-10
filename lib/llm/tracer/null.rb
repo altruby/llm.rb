@@ -61,6 +61,12 @@ module LLM
     end
 
     ##
+    # @return [nil]
+    def on_exit
+      nil
+    end
+
+    ##
     # @param (see LLM::Tracer#set_finish_metadata_proc)
     # @return [self]
     def set_finish_metadata_proc(_proc = nil)

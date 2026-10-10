@@ -87,6 +87,13 @@ module LLM
       @io.puts "#{timestamp} tool #{span.name} (#{format_id(span.id)}) received an interrupt"
     end
 
+    ##
+    # No-op.
+    # @return [nil]
+    def on_exit
+      nil
+    end
+
     private
 
     def setup!(io: $stderr, path: nil)
