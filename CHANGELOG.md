@@ -35,7 +35,7 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 * **function: `:ractor` raises `LLM::Interrupt` (like everyone else)** <br>
   An
-  [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) in
+  [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html)
   that is delivered to a tool running on a ractor
   will travel back to the caller and raise itself
   on the caller's thread - the same as all other
