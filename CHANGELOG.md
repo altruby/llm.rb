@@ -6,97 +6,127 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ## What's next
 
-### Core
-
-* **context: give a context the identity of the record it came from** <br>
-  [`LLM::Context#id`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#id-instance_method)
-  now takes the id of the record the context is bound to, when that id is a
-  UUIDv7 string, so the conversation and the row it is stored in can be
-  matched by one value - in a log, in a tracer, or from either side of the
-  pair. Before, a context always minted an id of its own, and nothing
-  connected it to the row it came from. An explicit `id:` still wins, and a
-  record whose id is an integer, a slug, or not saved yet still gets one of
-  its own.
-
-* **context: reject an id that cannot carry a time** <br>
-  A context id is what carries its creation time, so an `id:` that is not a
-  UUIDv7 string now raises `LLM::Error` where it is given, rather than
-  leaving a context whose `created_at` quietly answers `nil`. The check is
-  [`LLM::Utils.uuidv7?`](https://r.uby.dev/api-docs/llm.rb/LLM/Utils.html#uuidv7?-instance_method),
-  which `LLM::Utils.timestamp` reads a UUIDv7 through instead of repeating
-  the pattern and the version nibble itself. A payload the runtime wrote
-  still restores as it was, so a context saved before this still loads.
-
 ### Agent
 
-* **agent: cancel a turn you do not hold a reference to** <br>
+* **agent: cancel a turn you never held a reference to** <br>
   [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
-  finds the turn running under an agent, an agent's id, or a record's id and
-  interrupts it, so a controller, a job, or a socket handler can stop a turn
-  it never touched - a cancel endpoint that knows only the row the
-  conversation is stored in. A turn registers itself through
+  stops the turn running under an agent, an agent's id, or a record's id, so
+  a controller, a job, or a socket handler can stop a turn it never touched -
+  a cancel endpoint that knows only the row the conversation is stored in. A
+  turn registers itself through
   [`LLM::Agent.registry`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#registry-class_method)
-  while `run_loop` runs, and is forgotten in the `ensure` that ends it. It
+  while `run_loop` runs and is forgotten in the `ensure` that ends it. It
   answers `false` when nothing was registered under that name, which is the
   ordinary race rather than a failure, and the registry is per process, so a
   cancel that lands in another worker finds nothing.
 
 ### Function
 
-* **function: raise `LLM::Interrupt` for a cancelled `:ractor` call** <br>
-  A cancel on the `:ractor` strategy used to be answered in band: `#wait` gave
-  back a `Return` whose value said the call had been cancelled, and the tracer
-  was told the call finished. It raises
+* **function: let a `:ractor` cancel reach your `rescue`** <br>
+  A cancelled `:ractor` call raises
   [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) in
-  the caller's thread now, closing the call with `on_tool_interrupt` first, the
-  way every other strategy answers one. The message the ractor sends carries a
-  cookie that the task and the ractor share, because a tool can return any
-  value, including a hash that would otherwise read as a cancel.
+  the caller's thread now, the way every other strategy answers one, and the
+  tracer hears `on_tool_interrupt` instead of being told the call finished.
+  Before, the cancel came back in band as a `Return` whose value said
+  `cancelled: true`, so code that rescues an interrupt never saw one. The
+  message the ractor sends carries a cookie the task and the ractor share,
+  because a tool can return any value, including a hash that would otherwise
+  read as a cancel.
 
 ### Provider
 
-* **deepseek: add support for the Files API** <br>
+* **deepseek: upload a file once and refer to it by id** <br>
   [`LLM::DeepSeek#files`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html#files-instance_method)
-  now returns an
+  returns an
   [`LLM::DeepSeek::Files`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek/Files.html)
-  object instead of raising `NotImplementedError`. Uploads default to
-  `purpose: "user_data"` - the only purpose DeepSeek accepts - and requests
-  go to the root of the API host, where DeepSeek serves its Files API.
+  object now, so a file can be uploaded once and a later chat request can
+  name it instead of resending its bytes. Before, the call raised
+  `NotImplementedError`. Uploads default to `purpose: "user_data"` - the only
+  purpose DeepSeek accepts - and requests go to the root of the API host,
+  where DeepSeek serves its Files API.
 
 ### Tracers
 
-* **tracer: add `on_tool_interrupt`, the ending an interrupted call gets** <br>
+* **tracer: close a span for a call that was interrupted** <br>
   [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
   is called when a tool call is interrupted, with the exception the caller is
-  given and the span `on_tool_start` returned. The span is the only thing that
-  can name a call which never returned a result, so a tracer can pair a start
-  with an end. It is called from `LLM::Function::Tracing`, which is prepended
-  onto `LLM::Function` and so covers `:sequential`, `:thread`, `:fiber`, and
-  `:async`; on `:fork` and `:ractor` the task makes the announcement in the
-  parent process instead. A tracer that implements the other endings has to
-  implement this one: the base hook raises `NotImplementedError`.
+  given and the span `on_tool_start` returned, so a tracer can pair a start
+  with an end instead of leaving a span open for a call that never returned a
+  result. It is called from `LLM::Function::Tracing`, which covers
+  `:sequential`, `:thread`, `:fiber`, and `:async`; on `:fork` and `:ractor`
+  the task announces it in the parent. A tracer that implements the other
+  endings has to implement this one: the base hook raises
+  `NotImplementedError`.
 
-* **tracer: answer `on_tool_start` with a span in the loggers** <br>
+* **tracer: name the call a logger is closing** <br>
   `LLM::Tracer::Logger` and `LLM::Tracer::PrettyLogger` answer
-  `LLM::Object.from(id:, name:)` now, which is what `Telemetry` has always
-  answered with its span, so an ending is handed something it can name the call
-  with. Before, `Logger` answered with whatever `@logger.info` returned and
+  `on_tool_start` with `LLM::Object.from(id:, name:)`, the shape `Telemetry`
+  has always answered, so a later ending has something to name the call with.
+  Before, `Logger` answered with whatever `@logger.info` returned and
   `PrettyLogger` with the `nil` from `@io.puts`.
 
-* **tracer: close an interrupted call in the loggers** <br>
+* **tracer: show an interrupted call in the logs** <br>
   `Logger` writes a `tool.interrupt` event in the shape of `tool.error`, with
   the call's id and name and the exception's class and message, and
   `PrettyLogger` writes one line saying the call it stopped received an
-  interrupt, with the id shortened to ten characters. Both name the call from
-  the span, which is the only thing that can name a call that never returned a
-  result.
+  interrupt. Both name the call from the span, which is the only thing that
+  can name a call that never returned a result.
 
-* **tracer: implement `on_tool_interrupt` for the Telemetry tracer** <br>
+* **tracer: finish an interrupted tool span in Telemetry** <br>
   Fix a bug where a cancelled tool call raised `NotImplementedError` from the
-  base hook instead of letting `LLM::Interrupt` reach the caller, and left the
-  span `on_tool_start` opened unfinished. It adds a `gen_ai.tool.interrupt`
-  event, the counterpart of the loggers' `tool.interrupt`, and finishes the
-  span without an error status, since an interrupt is not a failure.
+  base hook rather than letting `LLM::Interrupt` reach the caller, and left
+  the span `on_tool_start` opened unfinished. Telemetry records a
+  `gen_ai.tool.interrupt` event, the counterpart of the loggers'
+  `tool.interrupt`, and finishes the span without an error status, since an
+  interrupt is not a failure.
+
+* **tracer: hear that `on_interrupt` is missing, instead of silence** <br>
+  [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_interrupt-instance_method)
+  raises `NotImplementedError` now, the way the other hooks do, so a tracer
+  that never answered for an interrupt says so rather than dropping the
+  ending in silence. [`LLM::Tracer::Null`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Null.html)
+  answers it, and a tracer opts out by answering with a no-op. The raise is
+  contained by `LLM::Tracer::Rescue`, so the interrupt a caller was given is
+  unchanged; the bundled loggers and `Telemetry` answer the tool ending but
+  not this one, so an interrupt announced to one of them is reported on
+  standard error.
+
+* **tracer: make a missing `on_exit` visible** <br>
+  `on_exit` raises `NotImplementedError` now, where it used to do nothing,
+  and every bundled tracer answers it: `Telemetry#on_exit` flushes the spans
+  it has not exported, and the others answer with a no-op. A custom tracer
+  that leaned on the old default has the raise reported on standard error
+  every time a turn ends, and answering the hook with a no-op is how it opts
+  out.
+
+* **tracer: keep a tracer bug from taking an agent down** <br>
+  [`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
+  is prepended onto every subclass of `LLM::Tracer`, so a callback that
+  raises is reported on standard error and the turn carries on. `LLM::Interrupt`
+  is re-raised, because a cancel is not a tracer's to swallow, and an
+  exception outside `StandardError` and `ScriptError` is left alone.
+  `LLM::Tracer` itself is not covered, so a hook that raises on the base
+  class still raises.
+
+### LLM::Context
+
+* **context: match a conversation to the row it is stored in** <br>
+  [`LLM::Context#id`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#id-instance_method)
+  takes the id of the record the context is bound to, when that id is a
+  UUIDv7 string, so the conversation and its row share one value - in a log,
+  in a tracer, or from either side of the pair. Before, a context always
+  minted an id of its own, and nothing connected it to the row it came from.
+  An explicit `id:` still wins, and a record whose id is an integer, a slug,
+  or not saved yet still gets one of its own.
+
+* **context: find out about a bad id where you gave it** <br>
+  An `id:` that is not a UUIDv7 string raises `LLM::Error` at the call that
+  passes it, rather than leaving a context whose `created_at` quietly answers
+  `nil` - the id is what carries the creation time. The check is
+  [`LLM::Utils.uuidv7?`](https://r.uby.dev/api-docs/llm.rb/LLM/Utils.html#uuidv7?-instance_method),
+  which `LLM::Utils.timestamp` reads a UUIDv7 through instead of repeating
+  the pattern and the version nibble itself. A payload the runtime wrote
+  still restores as it was, so a context saved before this still loads.
 
 ## v16.0.0
 
