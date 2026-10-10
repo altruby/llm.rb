@@ -59,6 +59,16 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ### Tracer
 
+* **tracer: protect an agent from a tracer crash** <br>
+  The
+  [`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
+  module prepends itself on every subclass of
+  [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+  and rescues uncaught exceptions that occur
+  in tracer callback. Any callback that lets
+  an exception exit its method will be rescued
+  and the exception dumped onto standard error.
+
 * **tracer: add `LLM::Tracer#on_tool_interrupt`** <br>
   The [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
   method allows a tracer to close a span that
@@ -115,14 +125,6 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   change makes `on_exit` consistent with all other
   callback methods that are available on [LLM::Tracer](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html).
 
-* **tracer: keep a tracer bug from taking an agent down** <br>
-  [`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
-  is prepended onto every subclass of `LLM::Tracer`, so a callback that
-  raises is reported on standard error and the turn carries on. `LLM::Interrupt`
-  is re-raised, because a cancel is not a tracer's to swallow, and an
-  exception outside `StandardError` and `ScriptError` is left alone.
-  `LLM::Tracer` itself is not covered, so a hook that raises on the base
-  class still raises.
 
 ### LLM::Context
 
