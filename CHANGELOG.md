@@ -57,7 +57,7 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   purpose DeepSeek accepts - and requests go to the root of the API host,
   where DeepSeek serves its Files API.
 
-### Tracers
+### Tracer
 
 * **tracer: add `LLM::Tracer#on_tool_interrupt`** <br>
   The [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
@@ -83,20 +83,21 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   matched by another callback method that
   will close the span (eg `on_tool_start -> on_tool_finish`).
 
-* **tracer: show an interrupted call in the logs** <br>
-  `Logger` writes a `tool.interrupt` event in the shape of `tool.error`, with
-  the call's id and name and the exception's class and message, and
-  `PrettyLogger` writes one line saying the call it stopped received an
-  interrupt. Both name the call from the span, which is the only thing that
-  can name a call that never returned a result.
+* **tracer: add `LLM::Tracer::Logger#on_tool_interrupt`** <br>
+  This method implements the new callback available on the
+  superclass of Logger. The callback emits an `tool.interrupt`
+  event and carries other metadata with it.
 
-* **tracer: finish an interrupted tool span in Telemetry** <br>
-  Fix a bug where a cancelled tool call raised `NotImplementedError` from the
-  base hook rather than letting `LLM::Interrupt` reach the caller, and left
-  the span `on_tool_start` opened unfinished. Telemetry records a
-  `gen_ai.tool.interrupt` event, the counterpart of the loggers'
-  `tool.interrupt`, and finishes the span without an error status, since an
-  interrupt is not a failure.
+* **tracer: add `LLM::Tracer::PrettyLogger#on_tool_interrupt`** <br>
+  This method implements the new callback available on the
+  superclass of PrettyLogger. The callback emits a log entry
+  that captures the tool interrupt via an IO object.
+
+* **tracer: add `LLM::Tracer::Telemetry#on_tool_interrupt`** <br>
+  This method implements the new callback available on the
+  superclass of Telemetry. The callback emits an
+  `gen_ai.tool.interrupt` event and closes the span
+  that was opened by `on_tool_start`.
 
 * **tracer: hear that `on_interrupt` is missing, instead of silence** <br>
   [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_interrupt-instance_method)
