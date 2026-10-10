@@ -128,23 +128,30 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ### LLM::Context
 
-* **context: match a conversation to the row it is stored in** <br>
+* **context: inherit database ID** <br>
+  The
   [`LLM::Context#id`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#id-instance_method)
-  takes the id of the record the context is bound to, when that id is a
-  UUIDv7 string, so the conversation and its row share one value - in a log,
-  in a tracer, or from either side of the pair. Before, a context always
-  minted an id of its own, and nothing connected it to the row it came from.
-  An explicit `id:` still wins, and a record whose id is an integer, a slug,
-  or not saved yet still gets one of its own.
+  and
+  [`LLM::Agentt#id`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#id-instance_method)
+  methods will inherit the database ID
+  of the record that is associated with
+  them __if__ a record is in scope and
+  __if__ the database ID is in the UUIDv7
+  format. Otherwise a random UUIDv7 is
+  generated as the ID. A record is normally
+  in scope when given an ActiveRecord or
+  Sequel model has wrapped an instance
+  of
+  [LLM::Context](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
+   /
+  [LLM::Agent](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html).
 
-* **context: find out about a bad id where you gave it** <br>
-  An `id:` that is not a UUIDv7 string raises `LLM::Error` at the call that
-  passes it, rather than leaving a context whose `created_at` quietly answers
-  `nil` - the id is what carries the creation time. The check is
-  [`LLM::Utils.uuidv7?`](https://r.uby.dev/api-docs/llm.rb/LLM/Utils.html#uuidv7?-instance_method),
-  which `LLM::Utils.timestamp` reads a UUIDv7 through instead of repeating
-  the pattern and the version nibble itself. A payload the runtime wrote
-  still restores as it was, so a context saved before this still loads.
+* **context: an ID must be in the UUIDv7 format** <br>
+  An agent and context ID must __always__ carry a
+  UUIDv7 format, even when given an explicit `id`
+  as a parameter. This is because the ID is used
+  internally to compute other attributes
+  (such as `LLM::Agent#created_at`).
 
 ## v16.0.0
 
