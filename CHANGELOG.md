@@ -59,7 +59,7 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ### Tracers
 
-* **tracer: add `LLM::Tracer#on_tool_interrupt`* <br>
+* **tracer: add `LLM::Tracer#on_tool_interrupt`** <br>
   The [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
   method allows a tracer to close a span that
   was opened by
