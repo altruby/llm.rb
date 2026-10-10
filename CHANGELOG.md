@@ -99,24 +99,21 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   `gen_ai.tool.interrupt` event and closes the span
   that was opened by `on_tool_start`.
 
-* **tracer: hear that `on_interrupt` is missing, instead of silence** <br>
+* **tracer: `LLM::Tracer#on_interrupt` raises `NotImplementedError` by default** <br>
+  The
   [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_interrupt-instance_method)
-  raises `NotImplementedError` now, the way the other hooks do, so a tracer
-  that never answered for an interrupt says so rather than dropping the
-  ending in silence. [`LLM::Tracer::Null`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Null.html)
-  answers it, and a tracer opts out by answering with a no-op. The raise is
-  contained by `LLM::Tracer::Rescue`, so the interrupt a caller was given is
-  unchanged; the bundled loggers and `Telemetry` answer the tool ending but
-  not this one, so an interrupt announced to one of them is reported on
-  standard error.
+  method is no longer a noop that returns nil. All tracers
+  that subclass `LLM::Tracer` must implement this method. The
+  change makes `on_interrupt` consistent with all other
+  callback methods that are available on [LLM::Tracer](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html).
 
-* **tracer: make a missing `on_exit` visible** <br>
-  `on_exit` raises `NotImplementedError` now, where it used to do nothing,
-  and every bundled tracer answers it: `Telemetry#on_exit` flushes the spans
-  it has not exported, and the others answer with a no-op. A custom tracer
-  that leaned on the old default has the raise reported on standard error
-  every time a turn ends, and answering the hook with a no-op is how it opts
-  out.
+* **tracer: `LLM::Tracer#on_exit` raises `NotImplementedError` by default** <br>
+  The
+  [`LLM::Tracer#on_exit`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_exit-instance_method)
+  method is no longer a noop that returns nil. All tracers
+  that subclass `LLM::Tracer` must implement this method. The
+  change makes `on_exit` consistent with all other
+  callback methods that are available on [LLM::Tracer](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html).
 
 * **tracer: keep a tracer bug from taking an agent down** <br>
   [`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
