@@ -208,24 +208,23 @@ module LLM
     ##
     # Called when a request, a tool, or a turn is interrupted.
     #
-    # An interrupt is not a failure, so this is not {#on_request_error} or
-    # {#on_tool_error} under another name: it is the third ending either
-    # scope can have, and it is called before {LLM::Interrupt} reaches the
-    # caller, so a tracer that has to record what happened to a turn does it
-    # while the work is still the work in flight.
+    # Certain callbacks - such as {#on_request_start}, and {#on_tool_start} -
+    # return spans to the caller that have to be closed by another callback
+    # method. The second callback method varies, and it depends on the
+    # path the tracer took. The happy path would see {#on_request_start}
+    # open a span, and {#on_request_finish} would close it.
     #
-    # A request is announced once, by the transport. A tool is announced
-    # once for the phase rather than once per tool: a cancel reaches every
-    # tool that is running and the caller hears one exception, so there is
-    # no one tool the announcement belongs to. A turn is announced as
-    # `:agent` when the interrupt lands between two of its requests, which
-    # is the one point of a turn that has no span of its own.
+    # But {#on_request_finish} is not certain to close the span.
+    # {#on_request_error} might also close it, and {#on_interrupt} with a
+    # `:request` scope is another path that could close a request span.
     #
-    # The default does nothing, which is the difference from the rest of the
-    # lifecycle. Every other hook raises, because a tracer that means to draw
-    # a request has to answer for it - but an interrupt is delivered to
-    # whatever tracer happens to be bound, and a hook that raised here would
-    # replace the interrupt every caller is written against.
+    # The {#on_tool_start} method also opens a span, and it can be closed
+    # by a different set of methods: {#on_tool_finish}, {#on_tool_interrupt},
+    # and {#on_tool_error}.
+    #
+    # This method ({#on_interrupt}) is not always given a span that it can
+    # close, and in the case of a `:agent` or `:tool` scope there is no
+    # span to close. The `:request` scope is the exception.
     # @param [Symbol] scope
     #  :request for a request, :tool for a tool, :agent for a turn that is
     #  between its requests
@@ -237,6 +236,7 @@ module LLM
     #  The id, as passed to {#on_request_start}, when the scope is a request
     # @return [void]
     def on_interrupt(scope:, span: nil, request_id: nil)
+      raise NotImplementedError, "#{self.class} does not implement '#{__method__}'"
     end
 
     ##
