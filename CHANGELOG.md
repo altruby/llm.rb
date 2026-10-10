@@ -8,30 +8,42 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ### Agent
 
-* **agent: cancel a turn you never held a reference to** <br>
+* **agent: interrupt an agent via `LLM::Agent#id`** <br>
+  The
   [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
-  stops the turn running under an agent, an agent's id, or a record's id, so
-  a controller, a job, or a socket handler can stop a turn it never touched -
-  a cancel endpoint that knows only the row the conversation is stored in. A
-  turn registers itself through
+  method can interrupt an agent with nothing more
+  than an ID that references it. A controller, a
+  background job, or a socket handler can use this
+  method to interrupt an agent that is running
+  in the same process but on a different thread
+  or fiber.
+
+* **agent: add `LLM::Agent.registry`** <br>
+  The
   [`LLM::Agent.registry`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#registry-class_method)
-  while `run_loop` runs and is forgotten in the `ensure` that ends it. It
-  answers `false` when nothing was registered under that name, which is the
-  ordinary race rather than a failure, and the registry is per process, so a
-  cancel that lands in another worker finds nothing.
+  method returns an object that holds every
+  active instance of
+  [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html).
+  An agent enters the registry when it starts a turn,
+  and it exits the registry after that. The registry is
+  thread-safe, local to a single process
+  and
+  [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+  uses it under the hood to find an agent by ID.
 
 ### Function
 
-* **function: let a `:ractor` cancel reach your `rescue`** <br>
-  A cancelled `:ractor` call raises
+* **function: `:ractor` raises `LLM::Interrupt` (like everyone else)** <br>
+  An
   [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html) in
-  the caller's thread now, the way every other strategy answers one, and the
-  tracer hears `on_tool_interrupt` instead of being told the call finished.
-  Before, the cancel came back in band as a `Return` whose value said
-  `cancelled: true`, so code that rescues an interrupt never saw one. The
-  message the ractor sends carries a cookie the task and the ractor share,
-  because a tool can return any value, including a hash that would otherwise
-  read as a cancel.
+  that is delivered to a tool running on a ractor
+  will travel back to the caller and raise itself
+  on the caller's thread - the same as all other
+  concurrency strategies. This only happens after
+  all tools have been interrupted themselves, and
+  it is the last step in an interrupt. The caller
+  is expected to rescue `LLM::Interrupt` and handle
+  the interrupt from there.
 
 ### Provider
 
@@ -47,23 +59,29 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ### Tracers
 
-* **tracer: close a span for a call that was interrupted** <br>
-  [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
-  is called when a tool call is interrupted, with the exception the caller is
-  given and the span `on_tool_start` returned, so a tracer can pair a start
-  with an end instead of leaving a span open for a call that never returned a
-  result. It is called from `LLM::Function::Tracing`, which covers
-  `:sequential`, `:thread`, `:fiber`, and `:async`; on `:fork` and `:ractor`
-  the task announces it in the parent. A tracer that implements the other
-  endings has to implement this one: the base hook raises
-  `NotImplementedError`.
+* **tracer: add `LLM::Tracer#on_tool_interrupt`* <br>
+  The [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
+  method allows a tracer to close a span that
+  was opened by
+  [`LLM::Tracer#on_tool_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_start-instance_method)
+  and it is called for every tool that
+  was interrupted. The callback receives
+  the tool name and its tool call ID plus
+  the span that was opened by `on_tool_start`.
 
-* **tracer: name the call a logger is closing** <br>
-  `LLM::Tracer::Logger` and `LLM::Tracer::PrettyLogger` answer
-  `on_tool_start` with `LLM::Object.from(id:, name:)`, the shape `Telemetry`
-  has always answered, so a later ending has something to name the call with.
-  Before, `Logger` answered with whatever `@logger.info` returned and
-  `PrettyLogger` with the `nil` from `@io.puts`.
+* **tracer: return a span from `LLM::Tracer::Logger#on_tool_start`** <br>
+  The
+  [`LLM::Tracer::Logger#on_tool_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Logger.html#on_tool_interrupt-instance_method)
+  method now returns a span that can be
+  matched by another callback method that
+  will close the span (eg `on_tool_start -> on_tool_finish`).
+
+* **tracer: return a span from `LLM::Tracer::PrettyLogger#on_tool_start`** <br>
+  The
+  [`LLM::Tracer::PrettyLogger#on_tool_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/PrettyLogger.html#on_tool_interrupt-instance_method)
+  method now returns a span that can be
+  matched by another callback method that
+  will close the span (eg `on_tool_start -> on_tool_finish`).
 
 * **tracer: show an interrupted call in the logs** <br>
   `Logger` writes a `tool.interrupt` event in the shape of `tool.error`, with
