@@ -105,22 +105,19 @@ module LLM
     end
 
     ##
-    # This method is called when a tracer is no longer in use.
+    # This method is called when a tracer exits a scope that
+    # has been opened by {LLM::Provider#with_tracer}.
+    #
+    # It is unlikely you will ever use the {LLM::Provider#with_tracer}
+    # method directly but {LLM::Agent} uses it. An agent can have its
+    # own tracer, and it is scoped via {LLM::Provider#with_tracer}. When
+    # the tracer is done and {LLM::Provider#with_tracer} returns, this
+    # method (on_exit) is called.
     #
     # A tracer that holds something - a file, a span, a connection pool -
-    # releases it here. The default raises NotImplementedError like all
-    # other callbacks on this class.
-    #
-    # on_exit is called once, when the last scope that is open for this tracer
-    # ends, and that scope could have been opened by another thread: a tool
-    # runs on a thread of its own and scopes the turn's tracer while it
-    # does. It is called after the scoped lookup is restored, so a tracer
-    # that reads {LLM::Provider#tracer} inside it sees the tracer that the
-    # next request will see.
-    #
-    # A tracer can be scoped again afterwards, on a later turn, so it has
-    # to stay usable after this call, and it has to tolerate the call
-    # happening more than once over its life.
+    # can use this method to release it. The {LLM::Tracer::Telemetry}
+    # tracer uses this method to flush its queue of spans for export,
+    # and after the tracer has exited is a good time to do that.
     #
     # @see LLM::Tracer::Registry
     # @see LLM::Provider#with_tracer

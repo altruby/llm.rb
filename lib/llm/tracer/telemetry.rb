@@ -198,9 +198,11 @@ module LLM
     end
 
     ##
-    # This method is called when a tracer is no
-    # longer active, and it will flush the queue
-    # of any spans that are not yet exported.
+    # This method is called when the outermost
+    # {LLM::Provider#with_tracer} method has returned
+    # control to the caller. It will flush the queue
+    # of any spans that are not yet exported, and
+    # it is called after a trace has finished.
     # @return [nil]
     def on_exit
       flush!
