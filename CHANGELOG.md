@@ -6,6 +6,18 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ## What's next
 
+### Provider
+
+* **deepseek: upload a file once and refer to it by id** <br>
+  [`LLM::DeepSeek#files`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html#files-instance_method)
+  returns an
+  [`LLM::DeepSeek::Files`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek/Files.html)
+  object now, so a file can be uploaded once and a later chat request can
+  name it instead of resending its bytes. Before, the call raised
+  `NotImplementedError`. Uploads default to `purpose: "user_data"` - the only
+  purpose DeepSeek accepts - and requests go to the root of the API host,
+  where DeepSeek serves its Files API.
+
 ### Agent
 
 * **agent: interrupt an agent via `LLM::Agent#id`** <br>
@@ -45,25 +57,13 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   is expected to rescue `LLM::Interrupt` and handle
   the interrupt from there.
 
-### Provider
-
-* **deepseek: upload a file once and refer to it by id** <br>
-  [`LLM::DeepSeek#files`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html#files-instance_method)
-  returns an
-  [`LLM::DeepSeek::Files`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek/Files.html)
-  object now, so a file can be uploaded once and a later chat request can
-  name it instead of resending its bytes. Before, the call raised
-  `NotImplementedError`. Uploads default to `purpose: "user_data"` - the only
-  purpose DeepSeek accepts - and requests go to the root of the API host,
-  where DeepSeek serves its Files API.
-
 ### Tracer
 
 * **tracer: protect an agent from a tracer crash** <br>
   The
   [`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
   module prepends itself on every subclass of
-  [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+  [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
   and rescues uncaught exceptions that occur
   in tracer callback. Any callback that lets
   an exception exit its method will be rescued
