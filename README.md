@@ -23,11 +23,11 @@ The README covers the common cases. For everything else there is the
 topic, and for what changes between releases there is the
 [changelog](CHANGELOG.md).
 
-[The r.uby.dev website](https://r.uby.dev) hosts
-an agentic platform that provides users with
-personalized agents who can access GitHub, and
-other services. It is built with llm.rb. Check it
-out if curious. **Still in early development.**
+If you want to see the runtime in action the
+[r.uby.dev](https://r.uby.dev) website provides
+a platform where you can - for free. It hosts
+multiple llm.rb agents, and one of them (bezela)
+helps manage this repository.
 
 ## Install
 
