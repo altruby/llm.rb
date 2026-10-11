@@ -18,10 +18,9 @@ llm.rb is a runtime for building agentic AI applications
 on CRuby. It has zero runtime dependencies by default, supports
 concurrent and parallel tool execution and has a single coherent API
 that spans 14+ providers.
-The README covers the common cases. For everything else there is the
-[deepdive](docs/deepdive.md), a reference with a chapter for each
-topic, and for what changes between releases there is the
-[changelog](CHANGELOG.md).
+The README covers a lot of ground and the
+[changelog](CHANGELOG.md)
+tracks what has changed between releases.
 
 If you want to see the runtime in action the
 [r.uby.dev](https://r.uby.dev) website provides
