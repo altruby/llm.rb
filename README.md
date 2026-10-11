@@ -50,9 +50,16 @@ manage the tool loop with a retry budget alongside a tool call budget,
 among other features.
 
 The runtime is designed to keep the tool loop alive and it will
-rescue exceptions. When an exception is encountered in a tool or
-during the lifecycle of an agent it is usually reported back to the
-model as an in-band error that allows the model to correct course.
+rescue exceptions. When an exception is encountered in a tool it
+is reported back to the model as an in-band error that allows the
+model to change course or retry with different parameters.
+
+A tool call requires a tool return (or response), and the lack of
+one can corrupt the conversation and lead to API-level errors from
+a provider. But sometimes it is unavoidable (for example, via an
+interrupt or power loss) so the runtime automatically repairs
+conversations that fall into that category by telling the model
+the tool call(s) were cancelled.
 
 **helloworld.rb**
 
