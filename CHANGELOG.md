@@ -81,14 +81,14 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 * **tracer: return a span from `LLM::Tracer::Logger#on_tool_start`** <br>
   The
-  [`LLM::Tracer::Logger#on_tool_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Logger.html#on_tool_interrupt-instance_method)
+  [`LLM::Tracer::Logger#on_tool_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Logger.html#on_tool_start-instance_method)
   method now returns a span that can be
   matched by another callback method that
   will close the span (eg `on_tool_start -> on_tool_finish`).
 
 * **tracer: return a span from `LLM::Tracer::PrettyLogger#on_tool_start`** <br>
   The
-  [`LLM::Tracer::PrettyLogger#on_tool_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/PrettyLogger.html#on_tool_interrupt-instance_method)
+  [`LLM::Tracer::PrettyLogger#on_tool_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/PrettyLogger.html#on_tool_start-instance_method)
   method now returns a span that can be
   matched by another callback method that
   will close the span (eg `on_tool_start -> on_tool_finish`).
@@ -117,6 +117,28 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   change makes `on_interrupt` consistent with all other
   callback methods that are available on [LLM::Tracer](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html).
 
+* **tracer: add `LLM::Tracer::Logger#on_interrupt`** <br>
+  This method implements the callback available on the
+  superclass of Logger. The callback emits an `info` event
+  that is named from the scope (eg `request.interrupt`)
+  and carries the scope and the request ID with it.
+
+* **tracer: add `LLM::Tracer::PrettyLogger#on_interrupt`** <br>
+  This method implements the callback available on the
+  superclass of PrettyLogger. The callback writes a line
+  to its IO object that names the provider and the scope
+  the interrupt was received in.
+
+* **tracer: add `LLM::Tracer::Telemetry#on_interrupt`** <br>
+  This method implements the callback available on the
+  superclass of Telemetry. A `:request` interrupt closes
+  the span that `on_request_start` opened and marks it
+  with an error and a `gen_ai.request.finish` event, since
+  a request is the only interrupted scope with a span left
+  open. The `:tool` and `:agent` scopes do nothing, because
+  tools are closed by `on_tool_interrupt`, and any other
+  scope raises `LLM::Error`.
+
 * **tracer: `LLM::Tracer#on_exit` raises `NotImplementedError` by default** <br>
   The
   [`LLM::Tracer#on_exit`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_exit-instance_method)
@@ -132,7 +154,7 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   The
   [`LLM::Context#id`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#id-instance_method)
   and
-  [`LLM::Agentt#id`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#id-instance_method)
+  [`LLM::Agent#id`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#id-instance_method)
   methods will inherit the database ID
   of the record that is associated with
   them __if__ a record is in scope and
