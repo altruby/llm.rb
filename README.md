@@ -70,6 +70,9 @@ llm = LLM.deepseek(key: ENV["KEY"])
 agent = LLM::Agent.new(llm, stream: $stdout)
 agent.talk "hello world"
 ```
+
+#### Essentials
+
 <details>
 <summary>Stream</summary>
 <br>
@@ -241,43 +244,24 @@ agent.talk "summarize README.md"
 ```
 </details>
 
-<details>
-<summary>Skills</summary>
+<details><summary>MCP</summary>
 <br>
 
-A skill turns a markdown file into a callable tool. When the model
-calls it, the runtime spawns a subagent with the skill's instructions
-as its system prompt and the skill's own tool set. The subagent runs
-one turn and returns the result, then is discarded. Each call
-is fresh and stateless.
-
-A [LLM::Stream](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
-can be notified as a skill starts and when it returns. The `on_skill_return`
-callback hands back the subagent that ran the skill, so you can inspect
-its conversation, measure its usage, track costs or add a verification
-step (eg `subagent.talk("verify your work")`).
-
-##### summary.md
-
-```markdown
----
-name: summary
-description: Reads recent git history and writes a summary
-tools: all
----
-
-Collect the recent git log, analyze each commit,
-and write a summary to summary.txt.
-```
-
-##### agent.rb
+The Model Context Protocol (MCP) has first-class support
+in llm.rb. The stdio and http transports work out of the
+box. MCP tools are translated into subclasses of
+[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) that can be
+used with
+[`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html) or
+[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html).
 
 ```ruby
 require "llm"
 
 llm   = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, skills: ["summary.md"])
-agent.talk "Summarize the last week of work"
+mcp   = LLM::MCP.stdio(argv: ["ruby", "server.rb"])
+agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
+agent.talk "Run the tool"
 ```
 </details>
 
@@ -430,36 +414,6 @@ class InterruptJob
   end
 end
 ```
-</details>
-
-<details>
-<summary>Console</summary>
-<br>
-
-The [LLM::Agent#console](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
-method drops you into an interactive console that is built on
-top of (n)curses. The `llm.rb` executable packaged with the gem
-is another way to access the console and ActiveRecord models who
-have called `acts_as_agent` can access the console as well
-(via `agent.console`).
-
-A console for an ActiveRecord model does not write back to the
-database. The `llm.rb` executable automatically associates a
-session with the current working directory and it can be resumed
-by calling `llm.rb` in the same directory at a later point.
-
-The console is not intended to compete with Claude, Codex and
-friends. It is much more limited, serves an entirely different
-purpose and is more like a debugger for your agents. The
-dependencies required by the console are not installed
-by default, and the easiest way to grab them is via
-`gem install llm-shell`.
-
-##### Demo
-
-![llm.rb console demo](demo.gif)
-
-
 </details>
 <details>
 <summary>Serialization</summary>
@@ -671,47 +625,6 @@ the whole column.
 
 </details>
 
-<details><summary>MCP</summary>
-<br>
-
-The Model Context Protocol (MCP) has first-class support
-in llm.rb. The stdio and http transports work out of the
-box. MCP tools are translated into subclasses of
-[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) that can be
-used with
-[`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html) or
-[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html).
-
-```ruby
-require "llm"
-
-llm   = LLM.deepseek(key: ENV["KEY"])
-mcp   = LLM::MCP.stdio(argv: ["ruby", "server.rb"])
-agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
-agent.talk "Run the tool"
-```
-</details>
-<details><summary>A2A</summary>
-<br>
-
-The Agent 2 Agent (A2A) protocol has first-class support
-in llm.rb. The http and jsonrpc transports work out of the
-box. A2A skills are translated into subclasses of
-[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) that can be
-used with
-[`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html) or
-[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html).
-
-```ruby
-require "llm"
-
-llm   = LLM.deepseek(key: ENV["KEY"])
-a2a   = LLM::A2A.rest(url: "https://remote-agent.example.com")
-agent = LLM::Agent.new(llm, stream: $stdout, tools: a2a.skills)
-agent.talk "Run the skill"
-```
-</details>
-
 <details><summary>Structured outputs</summary>
 <br>
 
@@ -753,6 +666,70 @@ res = agent.talk "Weather in Paris?"
 res.content!  # => {city: "Paris", temperature: 15.0, conditions: "Cloudy"}
 ```
 </details>
+
+#### Debuggers
+
+<details>
+<summary>Console</summary>
+<br>
+
+The [LLM::Agent#console](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
+method drops you into an interactive console that is built on
+top of (n)curses. The `llm.rb` executable packaged with the gem
+is another way to access the console and ActiveRecord models who
+have called `acts_as_agent` can access the console as well
+(via `agent.console`).
+
+A console for an ActiveRecord model does not write back to the
+database. The `llm.rb` executable automatically associates a
+session with the current working directory and it can be resumed
+by calling `llm.rb` in the same directory at a later point.
+
+The console is not intended to compete with Claude, Codex and
+friends. It is much more limited, serves an entirely different
+purpose and is more like a debugger for your agents. The
+dependencies required by the console are not installed
+by default, and the easiest way to grab them is via
+`gem install llm-shell`.
+
+##### Demo
+
+![llm.rb console demo](demo.gif)
+
+</details>
+
+<details>
+<summary>Tracer</summary>
+<br>
+
+It is possible to trace what an agent is doing by attaching a
+tracer. A tracer can hook into requests, tool calls, and other
+runtime events to debug an agent, provide insights, monitor latency,
+or export spans to an observability backend. All built-in tracers
+share one interface, so switching between them means changing a
+factory method:
+
+* [`LLM::Tracer.pretty_logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty_logger-class_method): human-readable single-line logs to stderr, ideal during development.
+* [`LLM::Tracer.telemetry`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#telemetry-class_method):
+exports spans via OTLP for OpenTelemetry in production.
+* [`LLM::Tracer.logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#logger-class_method):
+structured JSON to stdout or a file.
+
+It is also possible to create your own tracer by creating a subclass
+of [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+that implements a number of callbacks that cover an agent's lifecycle.
+The tracer feature provides visibility into what the runtime is doing,
+and the tracer API lets other code hook into that feature.
+
+```ruby
+llm = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm, tracer: LLM::Tracer.pretty_logger(llm))
+agent.talk "Hello"
+```
+</details>
+
+#### Hooks
+
 <details><summary>Guards</summary>
 <br>
 
@@ -844,6 +821,8 @@ agent.talk "Hello"
 ```
 </details>
 
+#### Everything else
+
 <details>
 <summary>Automatic retries</summary>
 <br>
@@ -900,34 +879,64 @@ agent.context_usage   # => Rational, eg Rational(100, 10_000)
 
 </details>
 
-
-<details>
-<summary>Observability</summary>
+<details><summary>A2A</summary>
 <br>
 
-It is possible to trace what an agent is doing by attaching a
-tracer. A tracer can hook into requests, tool calls, and other
-runtime events to debug an agent, provide insights, monitor latency,
-or export spans to an observability backend. All built-in tracers
-share one interface, so switching between them means changing a
-factory method:
-
-* [`LLM::Tracer.pretty_logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty_logger-class_method): human-readable single-line logs to stderr, ideal during development.
-* [`LLM::Tracer.telemetry`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#telemetry-class_method):
-exports spans via OTLP for OpenTelemetry in production.
-* [`LLM::Tracer.logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#logger-class_method):
-structured JSON to stdout or a file.
-
-It is also possible to create your own tracer by creating a subclass
-of [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
-that implements a number of callbacks that cover an agent's lifecycle.
-The tracer feature provides visibility into what the runtime is doing,
-and the tracer API lets other code hook into that feature.
+The Agent 2 Agent (A2A) protocol has first-class support
+in llm.rb. The http and jsonrpc transports work out of the
+box. A2A skills are translated into subclasses of
+[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) that can be
+used with
+[`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html) or
+[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html).
 
 ```ruby
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, tracer: LLM::Tracer.pretty_logger(llm))
-agent.talk "Hello"
+require "llm"
+
+llm   = LLM.deepseek(key: ENV["KEY"])
+a2a   = LLM::A2A.rest(url: "https://remote-agent.example.com")
+agent = LLM::Agent.new(llm, stream: $stdout, tools: a2a.skills)
+agent.talk "Run the skill"
+```
+</details>
+
+<details>
+<summary>Skills</summary>
+<br>
+
+A skill turns a markdown file into a callable tool. When the model
+calls it, the runtime spawns a subagent with the skill's instructions
+as its system prompt and the skill's own tool set. The subagent runs
+one turn and returns the result, then is discarded. Each call
+is fresh and stateless.
+
+A [LLM::Stream](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
+can be notified as a skill starts and when it returns. The `on_skill_return`
+callback hands back the subagent that ran the skill, so you can inspect
+its conversation, measure its usage, track costs or add a verification
+step (eg `subagent.talk("verify your work")`).
+
+##### summary.md
+
+```markdown
+---
+name: summary
+description: Reads recent git history and writes a summary
+tools: all
+---
+
+Collect the recent git log, analyze each commit,
+and write a summary to summary.txt.
+```
+
+##### agent.rb
+
+```ruby
+require "llm"
+
+llm   = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm, skills: ["summary.md"])
+agent.talk "Summarize the last week of work"
 ```
 </details>
 
