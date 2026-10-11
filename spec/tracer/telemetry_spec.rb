@@ -128,6 +128,65 @@ RSpec.describe LLM::Tracer::Telemetry do
     end
   end
 
+  describe "#on_interrupt" do
+    context "when the scope is a request" do
+      let(:span) { tracer.on_request_start(operation: "chat", model: "test-model", request_id:) }
+
+      before { tracer.on_interrupt(scope: :request, span:, request_id:) }
+
+      it "finishes the span" do
+        expect(tracer.spans.last.name).to eq("chat test-model")
+      end
+
+      it "records error.type" do
+        expect(tracer.spans.last.attributes["error.type"]).to eq("LLM::Interrupt")
+      end
+
+      it "reports the span as an error" do
+        expect(tracer.spans.last.status.ok?).to be(false)
+      end
+
+      it "adds the event a finished request gets" do
+        expect(tracer.spans.last.events.map(&:name)).to include("gen_ai.request.finish")
+      end
+    end
+
+    context "when the scope is a tool" do
+      it "closes no span of its own" do
+        expect { tracer.on_interrupt(scope: :tool) }.not_to change { tracer.spans.size }
+      end
+    end
+
+    context "when the scope is a turn" do
+      it "closes no span of its own" do
+        expect { tracer.on_interrupt(scope: :agent) }.not_to change { tracer.spans.size }
+      end
+    end
+
+    ##
+    # The refusal is a raise, and the raise is not what a caller sees:
+    # every subclass is prepended with `LLM::Tracer::Rescue`, which
+    # reports an error a hook raises rather than letting it travel. So
+    # the assertion is about where the refusal lands, which is the only
+    # part of it anybody meets.
+    context "when the scope is not one of the three" do
+      it "reports the refusal rather than raising it" do
+        expect($stderr).to receive(:puts).with(
+          "",
+          "an llm.rb tracer has crashed.",
+          "",
+          "[  tracer    ] LLM::Tracer::Telemetry",
+          "[  class     ] LLM::Error",
+          "[  message   ] scope 'nonsense' is not a valid tracer scope",
+          "[  backtrace ] ",
+          a_kind_of(String),
+          ""
+        )
+        tracer.on_interrupt(scope: :nonsense)
+      end
+    end
+  end
+
   describe "#start_trace" do
     let(:span) { tracer.on_request_start(operation: "chat", model: "test-model", request_id:) }
     let(:res) { double("LLM::Response", id: "res_123", model: "test-model", usage: LLM::Usage.new(input_tokens: 1, output_tokens: 2), service_tier: "default", system_fingerprint: "yabadabadoo") }
