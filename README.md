@@ -216,7 +216,7 @@ agent.talk "Explain Ruby fibers."
 <br>
 
 An agent requires one or more tools to be
-able to interact with the outside world.
+able to interact with the "outside" world.
 At a high-level a tool is how a model can
 access your filesystem, search the internet,
 post a comment on your behalf and anything
@@ -228,7 +228,7 @@ that provides a name, a description, an optional
 set of parameters and a method that the runtime
 will call on the model's behalf. A tool is implemented
 on top of
-an [`LLM::Function`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
+an [`LLM::Function`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html)
 object, and you might come across it in stream and
 tracer callbacks. The model decides when and how a
 tool is called:
