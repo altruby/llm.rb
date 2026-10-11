@@ -81,6 +81,11 @@ or it can be a subclass of [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM
 An IO object can receive content but it cannot
 receive the other callbacks that are available
 to subclasses of [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html).
+It is generally a good idea to return as
+quickly as possible from all of these methods,
+but especially for the `on_content` and
+`on_reasoning_content` methods: they run
+inline with the request.
 
 A subclass of [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
 can implement callbacks that the runtime will call
