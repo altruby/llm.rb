@@ -61,7 +61,7 @@ interrupt or power loss) so the runtime automatically repairs
 conversations that fall into that category by telling the model
 the tool call(s) were cancelled.
 
-**helloworld.rb**
+Without further ado, a classic "hello world" example:
 
 ```ruby
 require "llm"
