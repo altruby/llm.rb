@@ -57,8 +57,8 @@ model to change course or retry with different parameters.
 A tool call requires a tool return (or response), and the lack of
 one can corrupt the conversation and lead to API-level errors from
 a provider. But sometimes it is unavoidable (for example, via an
-interrupt or power loss) so the runtime automatically repairs
-conversations that fall into that category by telling the model
+interrupt or power loss) so the runtime automatically closes
+tool calls that fall into that category by telling the model
 the tool call(s) were cancelled.
 
 Without further ado, a classic "hello world" example:
