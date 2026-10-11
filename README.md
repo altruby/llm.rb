@@ -46,7 +46,7 @@ The
 class is the default high-level interface,
 and it is recommended for most use-cases. It manages the tool loop
 and provides configurable features on top of it. For example you can
-manage the tool loop with a retry budget alongside a tool call budget -
+manage the tool loop with a retry budget and a tool call budget -
 alongside other features.
 
 The runtime is designed to keep the tool loop alive and it will
