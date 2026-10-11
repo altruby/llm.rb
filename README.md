@@ -46,8 +46,8 @@ The
 class is the default high-level interface,
 and it is recommended for most use-cases. It manages the tool loop
 and provides configurable features on top of it. For example you can
-manage the tool loop with a retry budget alongside a tool call budget,
-among other features.
+manage the tool loop with a retry budget alongside a tool call budget -
+alongside other features.
 
 The runtime is designed to keep the tool loop alive and it will
 rescue exceptions. When an exception is encountered in a tool it
@@ -89,58 +89,104 @@ in a turn, retries, compaction and more:
 
 ```ruby
 class Stream < LLM::Stream
-  # Visible assistant output.
+  ##
+  # @param [String] content
+  #  A chunk of text
   def on_content(content)
     print content
   end
 
-  # Reasoning output streamed separately from visible content.
+  ##
+  # @param [String] content
+  #  A chunk of text
   def on_reasoning_content(content)
     warn content
   end
 
-  # A streamed tool call has been fully parsed.
+  ##
+  # @param [LLM::Function] tool
+  #  The tool being called
   def on_tool_call(tool)
   end
 
-  # Queued streamed tool work has returned.
+  ##
+  # @param [LLM::Function] tool
+  #  The tool that returned
+  # @param [LLM::Function::Return] result
+  #  The return from the tool call
   def on_tool_return(tool, result)
   end
 
-  # A request has completed: the response is in the conversation, and
-  # any tools it asked for run after this.
-  def on_step(ctx, res)
-  end
-
-  # Before a transformer rewrites an outgoing message.
+  ##
+  # @note
+  #  This method is called _before_ a transformer runs
+  # @param [LLM::Transformer] transformer
+  #  A transformer
   def on_transform(transformer)
   end
 
-  # Aftter a transformer rewrites an outgoing message.
+  ##
+  # @note
+  #  This method is called _after_ a transformer runs
+  # @param [LLM::Transformer] transformer
+  #  A transformer
   def on_transform_finish(transformer)
   end
 
-  # Before a compactor trims the conversation.
+  ##
+  # @note
+  #  This method is called _before_ a compactor runs
+  # @param [LLM::Compactor] compactor
+  #  A compactor
   def on_compaction(compactor)
   end
 
-  # After a compactor trims the conversation.
+  ##
+  # @note
+  #  This method is called _after_ a compactor runs
+  # @param [LLM::Compactor] compactor
+  #  A compactor
   def on_compaction_finish(compactor)
   end
 
-  # Before a skill's subagent runs.
+  ##
+  # @note
+  #  This method is called once per request
+  #  in a turn (which can contain multiple
+  #  requests)
+  # @param [LLM::Context] ctx
+  #  The context
+  # @param [LLM::Response] res
+  #  The response
+  def on_step(ctx, res)
+  end
+
+  ##
+  # @note
+  #  This method is called when a request is
+  #  rate limited and retried.
+  # @param [LLM::RateLimitError] error
+  # @param [Integer] attempt
+  def on_retry(error, attempt)
+  end
+
+
+  ##
+  # @note
+  #  This method is called _before_ a skill runs
+  # @param [LLM::Skill] skill
+  #  A skill
   def on_skill_call(skill)
   end
 
-  # After a skill's subagent runs.
-  # The subagent that ran it, the skill, and its response are passed
-  # through, so you can introspect the agent, tally skill usage, or
-  # track costs.
-  def on_skill_return(agent, skill, result)
-  end
-
-  # A request was rate limited or timed out and will be retried.
-  def on_retry(error, attempt)
+  ##
+  # @note
+  #  This method is called _after_ a skill runs
+  # @param [LLM::Agent] agent
+  #  The agent who ran the skill
+  # @param [LLM::Skill] skill
+  # @param [LLM::Response] res
+  def on_skill_return(agent, skill, res)
   end
 end
 
