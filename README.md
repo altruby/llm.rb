@@ -107,6 +107,7 @@ class Stream < LLM::Stream
   # @param [LLM::Function] tool
   #  The tool being called
   def on_tool_call(tool)
+    nil
   end
 
   ##
@@ -115,6 +116,7 @@ class Stream < LLM::Stream
   # @param [LLM::Function::Return] result
   #  The return from the tool call
   def on_tool_return(tool, result)
+    nil
   end
 
   ##
@@ -123,6 +125,7 @@ class Stream < LLM::Stream
   # @param [LLM::Transformer] transformer
   #  A transformer
   def on_transform(transformer)
+    nil
   end
 
   ##
@@ -131,6 +134,7 @@ class Stream < LLM::Stream
   # @param [LLM::Transformer] transformer
   #  A transformer
   def on_transform_finish(transformer)
+    nil
   end
 
   ##
@@ -139,6 +143,7 @@ class Stream < LLM::Stream
   # @param [LLM::Compactor] compactor
   #  A compactor
   def on_compaction(compactor)
+    nil
   end
 
   ##
@@ -147,6 +152,7 @@ class Stream < LLM::Stream
   # @param [LLM::Compactor] compactor
   #  A compactor
   def on_compaction_finish(compactor)
+    nil
   end
 
   ##
@@ -159,6 +165,7 @@ class Stream < LLM::Stream
   # @param [LLM::Response] res
   #  The response
   def on_step(ctx, res)
+    nil
   end
 
   ##
@@ -168,8 +175,8 @@ class Stream < LLM::Stream
   # @param [LLM::RateLimitError] error
   # @param [Integer] attempt
   def on_retry(error, attempt)
+    nil
   end
-
 
   ##
   # @note
@@ -177,6 +184,7 @@ class Stream < LLM::Stream
   # @param [LLM::Skill] skill
   #  A skill
   def on_skill_call(skill)
+    nil
   end
 
   ##
@@ -187,6 +195,7 @@ class Stream < LLM::Stream
   # @param [LLM::Skill] skill
   # @param [LLM::Response] res
   def on_skill_return(agent, skill, res)
+    nil
   end
 end
 
