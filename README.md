@@ -82,10 +82,10 @@ to subclasses of [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.ht
 
 A subclass of [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
 can implement callbacks that the runtime will call
-throughout the lifecycle of a request or turn. All
-callbacks are optional. The callbacks provide for
-content, reasoning, tool calls, tool returns, steps
-in a turn, retries, compaction and more:
+throughout an agent's lifetime. All callbacks are
+optional. The callbacks provide for content, reasoning,
+tool calls, tool returns, steps in a turn, retries,
+compaction and more:
 
 ```ruby
 class Stream < LLM::Stream
