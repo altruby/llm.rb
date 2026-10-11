@@ -88,6 +88,13 @@ module LLM
     end
 
     ##
+    # @param (see LLM::Tracer#on_interrupt)
+    # @return [void]
+    def on_interrupt(scope:, **)
+      @io.puts "#{timestamp} #{provider_name} interrupt received (scope=#{scope})"
+    end
+
+    ##
     # No-op.
     # @return [nil]
     def on_exit
