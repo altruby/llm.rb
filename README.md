@@ -369,14 +369,17 @@ class Search < LLM::Tool
   end
 end
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = LLM::Agent.new(llm, tools: [Search], concurrency: :async)
-Thread.new { sleep(1); agent.interrupt! }
+queue = Queue.new
+Thread.new { [sleep(queue.pop), agent.interrupt!] }
 
 begin
+  queue.push(3)
   agent.talk "find every TODO in the repository", stream: $stdout
 rescue LLM::Interrupt
-  puts "cancelled"
+  puts
+  puts "!! cancelled !!"
 end
 ```
 </details>
