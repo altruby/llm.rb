@@ -22,12 +22,6 @@ The README covers a lot of ground and the
 [changelog](CHANGELOG.md)
 tracks what has changed between releases.
 
-If you want to see the runtime in action the
-[r.uby.dev](https://r.uby.dev) website provides
-a platform where you can - for free. It hosts
-multiple llm.rb agents, and one of them (bezela)
-helps manage this repository.
-
 ## Install
 
 llm.rb requires Ruby 3.4 or later.
@@ -1256,21 +1250,6 @@ though it does, through the `json_object` response
 type.
 
 If you're on a budget, DeepSeek is hard to beat.
-</details>
-<details>
-<summary>Sources other than GitHub?</summary>
-<br>
-<p>
-We are on the <a href="https://radicle.network">radicle.network</a> as well.
-<br>
-Every commit that lands on GitHub also lands on Radicle.
-<br>
-Our repository ID is z2PtfQ6dYwyYaW2aGrztG1sMyDmCE.
-<br>
-Browse on <a
-href="https://radicle.network/nodes/iris.radicle.network/z2PtfQ6dYwyYaW2aGrztG1sMyDmCE">the
-web</a>.
-</p>
 </details>
 
 <details>
