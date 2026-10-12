@@ -43,6 +43,16 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
   uses it under the hood to find an agent by ID.
 
+* **agent: `LLM.interrupt` can retry until it finds an agent** <br>
+  The method now takes `attempts:` and `interval:`, so
+  a caller that asks for an agent before its turn has
+  started can poll for it instead of giving up on the
+  first miss, which is the loop a caller used to write
+  by hand. `attempts` defaults to 1 and `interval` to
+  0.1 seconds, so the method is unchanged until a caller
+  asks it to wait. It returns `true` when an interrupt
+  took place, and `false` otherwise.
+
 ### Function
 
 * **function: `:ractor` raises `LLM::Interrupt` (like everyone else)** <br>
@@ -58,6 +68,21 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   the interrupt from there.
 
 ### Tracer
+
+* **tracer: add `LLM::Tracer::Multi`** <br>
+  The
+  [`LLM::Tracer::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Multi.html)
+  tracer fans every tracing callback out to a set of
+  tracers, so a request can be logged to a file and
+  exported to OpenTelemetry at the same time instead
+  of choosing between them. Its `on_request_start`
+  and `on_tool_start` return an array with one span
+  per tracer, and that array is passed back as
+  `span:` to the matching finish, error, or interrupt
+  callback, so each tracer is handed the span it
+  returned. A tracer that raises is reported rather
+  than taking the request down with it, and
+  `LLM::Interrupt` still travels up the stack.
 
 * **tracer: protect an agent from a tracer crash** <br>
   The
@@ -104,10 +129,15 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   that captures the tool interrupt via an IO object.
 
 * **tracer: add `LLM::Tracer::Telemetry#on_tool_interrupt`** <br>
-  This method implements the new callback available on the
-  superclass of Telemetry. The callback emits an
-  `gen_ai.tool.interrupt` event and closes the span
-  that was opened by `on_tool_start`.
+  This method implements the new callback available on
+  the superclass of Telemetry. The callback records
+  `error.type` as `LLM::Interrupt`, marks the span as
+  an error, adds the standard `gen_ai.tool.finish`
+  event and closes the span that was opened by
+  `on_tool_start`. It follows the shape of
+  `on_tool_error` and `on_interrupt` instead of
+  emitting a `gen_ai.tool.interrupt` event, which is
+  not part of the OpenTelemetry standard.
 
 * **tracer: `LLM::Tracer#on_interrupt` raises `NotImplementedError` by default** <br>
   The
