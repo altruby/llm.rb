@@ -236,8 +236,8 @@ module LLM
 
     ##
     # Ask a question and return the content string directly.
-    # Accepts `with:` for file attachments and a block for streaming.
-    # This interface is compatible with RubyLLM's `ask` method.
+    # Accepts `with:` for file attachments and a block for streaming,
+    # the way {#talk} does.
     #
     # @param [String] prompt
     # @param [Hash] options

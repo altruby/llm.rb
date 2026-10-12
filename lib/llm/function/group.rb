@@ -2,7 +2,7 @@
 
 class LLM::Function
   ##
-  # Abstract base class for all concurrency strategy groups.
+  # Abstract superclass for all concurrency strategy groups.
   # Each strategy (sequential, thread, fiber, async, fork, ractor)
   # subclasses this and implements {#alive?}, {#interrupt!}, and
   # {#wait}.
