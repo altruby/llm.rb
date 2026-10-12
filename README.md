@@ -311,7 +311,7 @@ is between requests or tool calls as long as the
 cancel request is sent from another thread or fiber
 running in the same process as the agent. A cancel
 request can be sent with the
-[`LLM::Agent#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#interrupt!)
+[`LLM::Agent#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#interrupt!-instance_method)
 method.
 
 An interrupted tool call is made aware of the interrupt
@@ -811,9 +811,9 @@ never contains an orphaned result. It is also possible to subclass
 [`LLM::Compactor`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor.html)
 to implement your own compactor with its own logic. Streams can observe the
 process through the
-[`LLM::Stream#on_compaction`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_compaction)
+[`LLM::Stream#on_compaction`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_compaction-instance_method)
 and
-[`LLM::Stream#on_compaction_finish`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_compaction_finish)
+[`LLM::Stream#on_compaction_finish`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_compaction_finish-instance_method)
 callbacks.
 
 ```ruby
@@ -983,7 +983,9 @@ Each provider is constructed with a class-level factory method on
 or
 [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html). The
 same API drives every one of them, so switching providers is a one-line
-change.
+change. One default differs: an OpenAI context speaks the Responses API
+(`mode: :responses`) unless it is built with `mode: :completions`, while
+every other provider defaults to chat completions.
 
 #### What providers does llm.rb support?
 
@@ -1204,6 +1206,48 @@ res = llm.images.create(prompt: "add a dog next to the rocket",
                         agent: res.agent)
 IO.copy_stream res.images[0], "rocket-with-dog.svg"
 ```
+
+## Docs
+
+The [deepdive](docs/deepdive.md) is the reference for everything below
+the quick start. Each chapter is a topic of its own:
+
+- **Fundamentals**:
+  [Providers](docs/deepdive/fundamentals/providers.md),
+  [Agents](docs/deepdive/fundamentals/agents.md),
+  [Tools](docs/deepdive/fundamentals/tools.md),
+  [Stream](docs/deepdive/fundamentals/stream.md),
+  [Schema](docs/deepdive/fundamentals/schema.md),
+  [Skills](docs/deepdive/fundamentals/skills.md)
+- **Features**:
+  [Built-in tools](docs/deepdive/features/builtin_tools.md),
+  [Concurrency](docs/deepdive/features/concurrency.md),
+  [Embeddings](docs/deepdive/features/embeddings.md),
+  [Files](docs/deepdive/features/files.md),
+  [Moderations](docs/deepdive/features/moderations.md),
+  [Responses](docs/deepdive/features/responses.md),
+  [Database](docs/deepdive/features/database.md),
+  [Console](docs/deepdive/features/console.md)
+- **Advanced**:
+  [Context](docs/deepdive/advanced/context.md),
+  [Compaction](docs/deepdive/advanced/compaction.md),
+  [Cancellation](docs/deepdive/advanced/cancellation.md),
+  [Guard](docs/deepdive/advanced/guard.md),
+  [Transformer](docs/deepdive/advanced/transformer.md),
+  [Transports](docs/deepdive/advanced/transports.md)
+- **Media**:
+  [Images](docs/deepdive/media/images.md),
+  [Audio](docs/deepdive/media/audio.md),
+  [OCR](docs/deepdive/media/ocr.md)
+- **Protocols**:
+  [MCP](docs/deepdive/protocols/mcp.md),
+  [A2A](docs/deepdive/protocols/a2a.md)
+- **Reference**:
+  [LLM::Response](docs/deepdive/reference/response.md),
+  [LLM::Object](docs/deepdive/reference/object.md),
+  [LLM::Cost](docs/deepdive/reference/cost.md),
+  [Tracer](docs/deepdive/reference/tracer.md),
+  [Model registry](docs/deepdive/reference/model_registry.md)
 
 ## FAQ
 
