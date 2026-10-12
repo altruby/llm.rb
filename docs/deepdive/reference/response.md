@@ -16,7 +16,7 @@ their own.
 
 `LLM::Response` carries the transport response and a little common
 state: `#res` (the underlying HTTP response), `#body` (the parsed body,
-or a raw string), `#ok?`, `#id`, and `#file?`. A name the base class
+or a raw string), `#ok?`, `#id`, and `#file?`. A name the superclass
 does not define falls through to the body, so a provider field such as
 `content` is reachable directly.
 

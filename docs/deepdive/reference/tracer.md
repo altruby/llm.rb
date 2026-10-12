@@ -134,6 +134,53 @@ OpenTelemetry.
 The tracer can also write to a file with the `path:` option to
 [`LLM::Tracer::Logger.new`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Logger.html#initialize-instance_method).
 
+### Multi
+
+#### Overview
+
+[`LLM::Tracer::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Multi.html)
+fans every tracing callback out to a set of tracers, so one request can
+be logged to a file and exported to OpenTelemetry at the same time
+rather than choosing between them.
+
+#### How it works
+
+Pass the tracers to `new`. A `Multi` has no provider of its own, so it
+is not built from a factory method the way the built-in tracers are:
+
+```ruby
+require "llm"
+
+llm = LLM.deepseek(key: ENV["KEY"])
+llm.tracer = LLM::Tracer::Multi.new(
+  LLM::Tracer.pretty_logger(llm),
+  LLM::Tracer.telemetry(llm)
+)
+agent = LLM::Agent.new(llm)
+agent.talk "Hello"
+```
+
+`on_request_start` and `on_tool_start` return an array with one span per
+tracer, in the same order as
+[`LLM::Tracer::Multi#tracers`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Multi.html#tracers-instance_method).
+Pass that array back as `span:` to the matching finish, error, or
+interrupt callback and each tracer is handed the span it returned. A
+tracer that raises is reported the way
+[`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
+reports any other, and the remaining tracers still run.
+
+#### Why would I use it?
+
+It is how you keep a human-readable log and a machine-readable trace from
+diverging: one tracer sees the events in development, another sees them
+in production, and neither has to know about the other.
+
+#### Notes
+
+A `Multi` holds no provider, so its inherited `on_exit`, `spans`, and
+`flush!` are its own rather than any child's: the callbacks are fanned
+out, but a span list or a flush is asked of the tracer that owns it.
+
 ### Hooks
 
 #### Overview
@@ -167,6 +214,12 @@ between a turn's requests, where there was nothing more precise to
 interrupt. A cancel reaches every tool that is running, so the tool phase
 is announced once rather than once per tool.
 
+A tool call that was interrupted is closed through `on_tool_interrupt`
+as well, which is handed the exception the caller is given and the span
+`on_tool_start` returned. That span is the only thing that can name a
+call which never returned a result, so a tracer can pair a start with an
+end rather than leaving the span open.
+
 A tracer's own lifetime is bracketed as well. `on_exit` fires once,
 when the last scope that is open for that tracer ends. That scope can
 belong to a different thread than the one that opened the first: a tool
@@ -184,7 +237,7 @@ and a tracer that supports it (such as
 uses that id to give every span of the turn the same trace id:
 
 ```ruby
-class MyTracer < LLM::Tracer
+class MyTracer < LLM::Tracer::Null
   def on_request_start(operation:, model: nil, **)
     warn "start #{operation} #{model}"
   end
@@ -193,20 +246,12 @@ class MyTracer < LLM::Tracer
     warn "finish #{operation}"
   end
 
-  def on_request_error(ex:, **)
-    warn "error #{ex.class}"
-  end
-
   def on_tool_start(id:, name:, arguments:, model:, **)
     warn "tool #{name}"
   end
 
-  def on_tool_finish(result:, **)
-    warn "tool #{result.name} done"
-  end
-
-  def on_tool_error(ex:, **)
-    warn "tool error #{ex.class}"
+  def on_tool_interrupt(ex:, span:, **)
+    warn "tool interrupted: #{ex.class}"
   end
 end
 
@@ -225,15 +270,26 @@ as hooks gain parameters.
 
 #### Notes
 
-The base class raises `NotImplementedError` for the six request and tool
-hooks above, so a tracer has to answer for each of them. The remaining
-hooks do nothing by default. `on_exit` does nothing because most tracers
-hold nothing that needs releasing, and `start_trace` and `stop_trace`
-are no-ops too. `on_interrupt` does nothing because an interrupt is
-delivered to whatever tracer happens to be bound, and a hook that raised
-would replace the interrupt every caller is written against. Accept `**`
-to absorb keywords you do not read, as the built-in tracers do, so a
-hook that gains a parameter does not break your subclass.
+The superclass raises `NotImplementedError` for every hook the runtime
+calls, so subclassing
+[`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+means answering all of them: the six request and tool hooks above,
+`on_tool_interrupt`, `on_interrupt`, and `on_exit`.
+[`LLM::Tracer::Null`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Null.html)
+answers them all with a no-op, which is the shorter route when you want
+only a few, and what the example above takes. `start_trace` and
+`stop_trace` are the exception: their base implementations are no-ops
+rather than raises, because a tracer that keeps no trace has nothing to
+open or close.
+
+A hook that raises does not take the turn with it.
+[`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
+is prepended onto every subclass of `LLM::Tracer`, so the raise is
+reported on standard error and the turn carries on. `LLM::Interrupt` is
+re-raised, since a cancel is not a tracer's to swallow.
+
+Accept `**` to absorb keywords you do not read, as the built-in tracers
+do, so a hook that gains a parameter does not break your subclass.
 
 ### PrettyLogger
 

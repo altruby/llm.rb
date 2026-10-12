@@ -16,9 +16,9 @@ When you want a structured response from the model, subclass
 [`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
 and declare properties with types and constraints. When you pass
 the schema to
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method)
 or
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk),
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method),
 the runtime includes it in the request parameters. The provider returns a
 JSON object matching the schema, which is coerced into an
 [`LLM::Object`](https://r.uby.dev/api-docs/llm.rb/LLM/Object.html) with typed accessors.

@@ -37,7 +37,7 @@ single blocking response.
 #### Notes
 
 The IO-like form is equivalent to
-[`LLM::Stream#on_content`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_content)
+[`LLM::Stream#on_content`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_content-instance_method)
 and does not include the other hooks. It covers content output
 (piping to stdout or a log file) without the overhead of a full
 subclass. A
@@ -61,11 +61,11 @@ When you want to react to specific runtime events, override the
 hooks on a
 [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
 subclass.
-[`LLM::Stream#on_content`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_content)
+[`LLM::Stream#on_content`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_content-instance_method)
 receives tokens as they arrive.
-[`LLM::Stream#on_tool_call`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_tool_call)
+[`LLM::Stream#on_tool_call`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_tool_call-instance_method)
 fires when the model requests a tool.
-[`LLM::Stream#on_tool_return`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_tool_return)
+[`LLM::Stream#on_tool_return`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_tool_return-instance_method)
 fires when the tool completes.
 [`LLM::Stream#on_step`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_step-instance_method)
 fires when a request completes, which is the boundary between one
@@ -78,13 +78,13 @@ written against it - it is prepended onto a stream, and saves the
 conversation through the record the context is bound to, so a turn
 that is interrupted can be continued from its last completed request
 rather than started over.
-[`LLM::Stream#on_retry`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_retry)
+[`LLM::Stream#on_retry`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_retry-instance_method)
 fires each time a failed request is retried. Compaction hooks
 let you show progress or log what was trimmed. Skill hooks bracket a
 skill's subagent execution:
-[`LLM::Stream#on_skill_call`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_skill_call)
+[`LLM::Stream#on_skill_call`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_skill_call-instance_method)
 fires before a skill's subagent runs, and
-[`LLM::Stream#on_skill_return`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_skill_return)
+[`LLM::Stream#on_skill_return`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_skill_return-instance_method)
 fires after it finishes.
 
 ```ruby
@@ -164,7 +164,7 @@ instead, and hand the result to the turn when it is asked for.
 #### How it works
 
 Start the tool from
-[`LLM::Stream#on_tool_call`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_tool_call)
+[`LLM::Stream#on_tool_call`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_tool_call-instance_method)
 and enqueue its task on
 [`LLM::Stream#queue`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#queue-instance_method).
 [`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)

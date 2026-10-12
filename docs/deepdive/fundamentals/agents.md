@@ -16,7 +16,7 @@ serialization, compaction, and concurrency.
 #### How it works
 
 An agent holds a conversation with a model. You send input with
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk),
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method),
 the model responds, and if it requests tools the agent
 executes them automatically and feeds the results back. The tool
 loop can be bounded with
@@ -100,8 +100,8 @@ Set `path:` on a subclass or instance for automatic filesystem
 persistence; the agent restores conversation history from the
 file on startup and saves it back after every turn with no
 manual
-[`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save)/
-[`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore)
+[`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save-instance_method)/
+[`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore-instance_method)
 calls. See the
 [database deepdive](../features/database.md) for details.
 

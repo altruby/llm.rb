@@ -14,17 +14,17 @@ the tokens.
 #### How it works
 
 When you want to cancel an active request, tool call, or turn, call
-[`LLM::Agent#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#interrupt!)
+[`LLM::Agent#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#interrupt!-instance_method)
 or
-[`LLM::Context#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#interrupt!)
+[`LLM::Context#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#interrupt!-instance_method)
 from any thread. Three things happen, and the last of them is what
 reaches a turn that is doing nothing in particular:
 
 [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html)
 is raised on the thread where
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method)
 or
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk)
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
 is running, so the caller
 can rescue it and know the request was cancelled.
 
@@ -43,7 +43,7 @@ And when the turn is between two requests - waiting out a retry,
 handing tool returns back to the model, or building the next request -
 there is nothing in flight to close and nothing running to raise into,
 so the interrupt is raised into the frame the turn is running in.
-[`LLM::Agent#run_loop`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#run_loop)
+[`LLM::Agent#run_loop`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#run_loop-instance_method)
 records that frame for as long as the turn lasts: the thread when the
 canceller is another thread, and the fiber when the canceller shares the
 turn's thread. That second case is a fiber scheduler - a turn under
@@ -123,9 +123,21 @@ does; it is not an `LLM::Error` either, so a rescue of the runtime's
 error superclass does not catch it.
 
 The runtime's own path out of a turn does not swallow an interrupt:
-[`LLM::Context#try`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#try)
+[`LLM::Context#try`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#try-instance_method)
 re-raises anything that is not a retryable failure, and the tracer
 interface has no broad rescues of its own.
+
+A turn can also be reached from outside the code that started it.
+[`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+finds the turn running under an agent, an agent's own id, or a record's
+id and interrupts it, so a controller, a job, or a socket handler can
+stop a turn it never held a reference to. A turn registers itself through
+[`LLM::Agent.registry`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#registry-class_method)
+while it runs and is forgotten when it ends, so the method answers
+`false` when nothing was registered under that name, which is the
+ordinary race rather than a failure. It takes `attempts:` and `interval:`
+to poll for a turn that has not started yet, and the registry is per
+process, so a cancel that lands in another worker finds nothing.
 
 The names are worth separating.
 [`LLM::Context#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#interrupt!-instance_method)

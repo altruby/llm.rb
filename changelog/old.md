@@ -1770,7 +1770,7 @@ reliable across all six concurrency backends. The `functions` and
 * **repurpose `LLM::Function::Task` as a task interface superclass** <br>
   `LLM::Function::Task` has been repurposed from a general-purpose class
   that tried to support multiple concurrency strategies into an abstract
-  base class that defines the task interface. Individual strategies
+  superclass that defines the task interface. Individual strategies
   (`Sequential::Task`, `Thread::Task`, `Fiber::Task`, `Async::Task`,
   `Fork::Task`, `Ractor::Task`) now subclass it and implement
   `spawn`, `alive?`, `interrupt!`, and `wait`.
@@ -1956,8 +1956,8 @@ reliable across all six concurrency backends. The `functions` and
   handled directly inside `call`. All internal call sites now use
   `function.call` instead of `function.call!`.
 
-* **add `LLM::Function::Group` as an abstract base class** <br>
-  A new abstract base class
+* **add `LLM::Function::Group` as an abstract superclass** <br>
+  A new abstract superclass
   ([`LLM::Function::Group`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Group.html))
   defines the interface that all concurrency strategy groups must
   implement: `alive?`, `interrupt!`, and `wait`. Each strategy group
@@ -2497,7 +2497,7 @@ area.
   pasted multiple times or at different cursor positions.
 
 * **repl: add command system foundation** <br>
-  Add `LLM::Repl::Command` as a new base class for REPL commands,
+  Add `LLM::Repl::Command` as a new superclass for REPL commands,
   along with the first built-in command `LLM::Repl::Command::Exit`
   which exits the read-eval-print loop via `throw(:exit)`.
   Commands are identified by a name and can be looked up through

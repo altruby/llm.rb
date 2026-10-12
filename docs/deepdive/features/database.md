@@ -28,11 +28,11 @@ All four use the same serialization mechanism under the hood.
 
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
 implements
-[`LLM::Context#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_h)
+[`LLM::Context#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_h-instance_method)
 and
-[`LLM::Context#to_json`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_json)
+[`LLM::Context#to_json`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_json-instance_method)
 for serialization and
-[`LLM::Context#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#restore)
+[`LLM::Context#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#restore-instance_method)
 for deserialization. Save writes the current state, restore loads
 it back and picks up where the conversation left off.
 
@@ -70,16 +70,16 @@ underlying serialization as filesystem persistence.
 
 #### Overview
 
-The [`LLM::Agent#path`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#path)
+The [`LLM::Agent#path`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#path-instance_method)
 attribute provides transparent auto-persistence. Set a file path once
 and the agent restores conversation history from that file on startup
 and saves it back after every
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method)
 or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)
+[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask-instance_method)
 turn. No manual
-[`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save)/
-[`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore)
+[`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save-instance_method)/
+[`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore-instance_method)
 calls needed.
 
 The feature is available on subclasses via the class DSL and on
@@ -89,9 +89,9 @@ direct instances via the `path:` keyword argument.
 
 When a `path` is set, the agent loads existing state from the file
 during initialization. After each turn
-([`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
+([`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method)
 or
-[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask)),
+[`LLM::Agent#ask`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#ask-instance_method)),
 the updated
 state is written back automatically. If the file does not exist yet,
 the agent starts with a blank conversation and creates the file on
@@ -140,9 +140,9 @@ Auto-persistence eliminates boilerplate. You set the path once and
 forget about serialization entirely. The agent picks up where it
 left off across process restarts, console sessions, or debugging runs
 without a single
-[`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save)
+[`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save-instance_method)
 or
-[`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore)
+[`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore-instance_method)
 call in your code.
 
 #### Notes
@@ -150,9 +150,9 @@ call in your code.
 The auto-path feature is a strict superset of manual filesystem
 persistence. If you need fine-grained control over when state is
 saved (e.g. batch several turns before persisting), use the manual
-[`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save)
+[`LLM::Agent#save`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#save-instance_method)
 and
-[`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore)
+[`LLM::Agent#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#restore-instance_method)
 methods described in the Filesystem section below. The `path`
 attribute delegates to the same underlying serialization.
 
@@ -170,12 +170,12 @@ process or on a different machine, and pick up where you left off.
 
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
 implements
-[`LLM::Context#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_h)
+[`LLM::Context#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_h-instance_method)
 and
-[`LLM::Context#to_json`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_json)
+[`LLM::Context#to_json`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_json-instance_method)
 for serialization
 and
-[`LLM::Context#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#restore)
+[`LLM::Context#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#restore-instance_method)
 for deserialization. The serialized state includes the context id,
 the message history, the model name, the compaction status, and a
 snapshot of token usage. Save and
@@ -358,7 +358,7 @@ parameters. Those two are the only callbacks `acts_as_llm` and
 
 An agent built by `acts_as_agent` is bound to the record it was
 loaded from, and
-[`LLM::Agent#record`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#record)
+[`LLM::Agent#record`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#record-instance_method)
 returns it. To persist a context instead of an agent, use
 `acts_as_llm`: the model gains `#llm` (the provider) and `#ctx` (the
 context), and persists the same state without the automatic tool
@@ -547,6 +547,6 @@ To persist a context instead of an agent, use `plugin :llm`. The
 model gains `#llm` (the provider) and `#ctx` (the context), and
 persists the same state without the automatic tool loop. An agent
 built by `plugin :agent` is bound to its record, which
-[`LLM::Agent#record`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#record)
+[`LLM::Agent#record`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#record-instance_method)
 returns.
 

@@ -9,7 +9,7 @@ Embeddings convert text into numerical vectors that capture semantic
 meaning. Similar texts produce vectors that are close together in the
 vector space, enabling semantic search, clustering, and classification.
 Most providers offer embedding models through an
-[`LLM::Provider#embed`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#embed)
+[`LLM::Provider#embed`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#embed-instance_method)
 method.
 
 llm.rb also includes support for OpenAI's vector store API, which
@@ -19,7 +19,7 @@ provides a managed vector database as an HTTP service.
 
 When you want to generate an embedding vector for a piece of text,
 call
-[`LLM::Provider#embed`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#embed)
+[`LLM::Provider#embed`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#embed-instance_method)
 on any provider that supports it. The method accepts an input string
 or array of strings and returns a response with the resulting
 embeddings, which can be stored in a vector database and used for
@@ -113,7 +113,7 @@ The trade-off is vendor lock-in and per-request pricing.
 Vector stores require the `openai` provider. Other providers such as
 DeepInfra, Google, and Mistral expose an embedding method but no
 vector store API. For a self-hosted vector database, pair
-[`LLM::Provider#embed`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#embed)
+[`LLM::Provider#embed`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#embed-instance_method)
 with sqlite-vec or pgvector.
 
 ### Local vector search
@@ -121,7 +121,7 @@ with sqlite-vec or pgvector.
 #### Overview
 
 Local vector search combines
-[`LLM::Provider#embed`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#embed)
+[`LLM::Provider#embed`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#embed-instance_method)
 with a local vector database such as
 [sqlite-vec](https://github.com/asg017/sqlite-vec) or
 [pgvector](https://github.com/pgvector/pgvector). This approach keeps

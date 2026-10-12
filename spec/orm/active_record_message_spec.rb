@@ -10,9 +10,9 @@ RSpec.describe LLM::ActiveRecord::Message do
     reason = LLM::Test::Harness.postgres_unavailable_reason
     skip reason if reason
     ##
-    # The view shares the connection of the base class, the way it
+    # The view shares the connection of the superclass, the way it
     # does in a Rails app. The harness connects an abstract class
-    # instead, so connect the base class here too.
+    # instead, so connect the superclass here too.
     ActiveRecord::Base.establish_connection(LLM::Test::Harness.postgres_url)
   end
 

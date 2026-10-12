@@ -9,14 +9,14 @@ Long-running conversations consume tokens. Without intervention,
 every turn pushes toward the model's context window limit. Compaction
 drops old messages to keep the conversation alive. The runtime runs
 a compactor automatically before each
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method)
 call, trimming the oldest messages when the conversation exceeds a configured size.
 This keeps the context window healthy without manual intervention.
 
 #### How it works
 
 Compactors run automatically before each
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk)
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method)
 call.
 [`LLM::Compactor::Truncate`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor/Truncate.html)
 strategy drops the oldest messages, keeping only the N most recent.
@@ -77,11 +77,11 @@ trade-off is that dropped messages are gone, so information may be
 lost. Set `keep` to a higher number to retain more context.
 
 Both strategies accept
-[`LLM::Stream#on_compaction`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_compaction)
+[`LLM::Stream#on_compaction`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_compaction-instance_method)
 and
-[`LLM::Stream#on_compaction_finish`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_compaction_finish)
+[`LLM::Stream#on_compaction_finish`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html#on_compaction_finish-instance_method)
 stream callbacks so the UI can show progress, but only the `Truncate`
 strategy emits them. `Null` performs no compaction and emits nothing.
 The context's
-[`LLM::Context#compacted?`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#compacted?)
+[`LLM::Context#compacted?`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#compacted?-instance_method)
 flag is `true` between compaction and the next model response.

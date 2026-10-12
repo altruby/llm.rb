@@ -201,7 +201,7 @@ from stalling the conversation.
 
 [`LLM::Tool::Exec`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Exec.html)
 can be dangerous given a low-quality model. Gate it behind
-[`LLM::Agent#confirm`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#confirm)
+[`LLM::Agent#confirm`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#confirm-instance_method)
 or manage the tool loop manually through
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html).
 On interrupt, the running child process is killed. The `ruby` tool

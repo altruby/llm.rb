@@ -12,10 +12,10 @@ when a tool fits the request; the runtime calls it and sends the
 result back.
 
 A tool is a Ruby class with a name, a description, and a
-[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call)
+[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call-instance_method)
 method. The name tells the model what the tool is called. The
 description tells the model when to use it. The
-[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call)
+[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call-instance_method)
 method receives the arguments and returns the result. That is the entire
 contract: name, description, parameters, and a method that runs.
 
@@ -26,7 +26,7 @@ A tool is a subclass of
 with a name, description, and optional typed parameters. The model sees the name and
 description and decides whether to call it. When it does, the
 runtime serializes the arguments and passes them to
-[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call).
+[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call-instance_method).
 
 Tools that spawn subprocesses can include
 [`LLM::Tool::Utils`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils.html)
@@ -36,11 +36,11 @@ and `now` help. The built-in `Exec`, `Git`, `Rg`, `Mkdir`, and `Ruby`
 tools use it to kill a command that exceeds its `timeout`.
 
 If
-[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call)
+[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call-instance_method)
 raises, the runtime rescues it and returns a structured
 error to the model instead. The conversation stays valid. You can
 also handle errors yourself inside
-[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call)
+[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call-instance_method)
 by rescuing and returning a domain-specific error hash.
 
 ```ruby
@@ -96,9 +96,9 @@ API call at once, then return a synthesized answer. See
 
 Confirmation gates tools behind explicit approval. List tool names
 in
-[`LLM::Agent#confirm`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#confirm)
+[`LLM::Agent#confirm`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#confirm-instance_method)
 to block execution until you override
-[`LLM::Agent#on_tool_confirmation`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#on_tool_confirmation).
+[`LLM::Agent#on_tool_confirmation`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#on_tool_confirmation-instance_method).
 Confirmation also accepts a Symbol that resolves to an instance
 method, letting the confirmed set change per-instance based on
 runtime conditions.
@@ -122,10 +122,10 @@ keywords in full.
 
 Tools that perform destructive actions can be gated behind explicit
 approval. List their names in
-[`LLM::Agent#confirm`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#confirm)
+[`LLM::Agent#confirm`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#confirm-instance_method)
 to block execution
 until you override
-[`LLM::Agent#on_tool_confirmation`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#on_tool_confirmation).
+[`LLM::Agent#on_tool_confirmation`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#on_tool_confirmation-instance_method).
 The default handler cancels
 the tool. Override it per-agent to prompt the user, log the decision,
 or auto-approve certain tools.
@@ -134,12 +134,12 @@ or auto-approve certain tools.
 
 When you want to override the default approval flow for a gated
 tool, override
-[`LLM::Agent#on_tool_confirmation`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#on_tool_confirmation)
+[`LLM::Agent#on_tool_confirmation`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#on_tool_confirmation-instance_method)
 on the subclass. The method receives the pending function and the
 execution strategy. Call
-[`LLM::Function#task`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#task)
+[`LLM::Function#task`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#task-instance_method)
 to execute the tool or
-[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel)
+[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel-instance_method)
 to block it. The default handler cancels the call.
 
 ```ruby
@@ -178,7 +178,7 @@ matter what.
 #### How it works
 
 If
-[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call)
+[`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call-instance_method)
 raises, the runtime returns `{error: true, type: "RuntimeError",
 message: "boom"}` to the model. A tool can also check for a known
 failure and return its own error shape, which gives the model
@@ -445,7 +445,7 @@ gem for process management and interrupt handling.
 
 `LLM::Tool.subclasses` lists the direct subclasses of
 [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html), so a
-tool defined under an intermediate base class is not in the list.
+tool defined under an intermediate superclass is not in the list.
 [`LLM::Tool.registry`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#registry-class_method)
 lists every tool that has a name, wherever it sits in the hierarchy.
 

@@ -7,7 +7,7 @@
 
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
 is the runtime that powers every agent. When you call
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk),
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method),
 the agent delegates to its internal context. The context manages
 the message history, sends requests to the provider, tracks pending
 tool calls, and feeds results back to the model. Everything an agent
@@ -23,22 +23,22 @@ any workflow where the agent's automatic loop gets in the way.
 
 A context wraps a provider and maintains the conversation state.
 Call
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk)
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
 to send input to the model, check
-[`LLM::Context#pending_functions?`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#pending_functions?)
+[`LLM::Context#pending_functions?`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#pending_functions?-instance_method)
 to see if tools were requested, and use
-[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait)
+[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
 to execute them. Each call to
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk)
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
 appends
 to the conversation and returns the model's response. The context
 serializes its state with
-[`LLM::Context#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_h)
+[`LLM::Context#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_h-instance_method)
 and
-[`LLM::Context#to_json`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_json),
+[`LLM::Context#to_json`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_json-instance_method),
 and restores it
 with
-[`LLM::Context#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#restore).
+[`LLM::Context#restore`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#restore-instance_method).
 This is how the ORM integrations and filesystem
 persistence work under the hood:
 
@@ -172,9 +172,9 @@ When you want to control the tool loop yourself, drive
 directly instead of using an agent. Start a conversation, check
 for tool requests, execute them, and feed results back. The full
 loop is under your control. Each call to
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk)
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
 appends to the conversation and returns the model's response, and
-[`LLM::Context#pending_functions?`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#pending_functions?)
+[`LLM::Context#pending_functions?`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#pending_functions?-instance_method)
 tells you whether tools were requested.
 From that foundation you can inspect, iterate, or confirm
 per-tool in a single flow:
@@ -214,14 +214,14 @@ recovery that the default tool loop does not expose.
 
 #### Notes
 
-[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait)
+[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
 picks up pending functions, spawns them using the chosen
 strategy, waits for results, and records them back in the context.
 Each strategy is supported: `:sequential`, `:thread`, `:fiber`,
 `:async`, `:fork`, and `:ractor`. Functions are reset after each
-[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait)
+[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
 or
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk)
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
 call. Store the array if you need to
 preserve them.
 
@@ -230,10 +230,10 @@ preserve them.
 #### Overview
 
 Pending function calls represent the model's tool requests. After
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk)
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
 returns, the context may have pending function
 calls if the model requested tools. These are available through
-[`LLM::Context#pending_functions`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#pending_functions)
+[`LLM::Context#pending_functions`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#pending_functions-instance_method)
 which returns an array of
 [`LLM::Function`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html)
 objects. Each function has a name, arguments, and methods for
@@ -242,15 +242,15 @@ execution or cancellation.
 #### How it works
 
 When you want to check whether the model requested tools, call
-[`LLM::Context#pending_functions?`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#pending_functions?)
+[`LLM::Context#pending_functions?`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#pending_functions?-instance_method)
 after each
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk)
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
 call. Each pending
 function has a name, arguments, and
 methods for execution or cancellation. Call
-[`LLM::Function#task`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#task)
+[`LLM::Function#task`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#task-instance_method)
 to execute it or
-[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel)
+[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel-instance_method)
 to skip it. Iterate over all
 pending functions to inspect or handle them individually:
 
@@ -281,9 +281,9 @@ the model requested.
 #### Notes
 
 Pending functions are reset after each
-[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait)
+[`LLM::Context#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#wait-instance_method)
 or
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk)
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method)
 call. If you need to preserve them, store the array before
 executing. Functions that are cancelled still count as completed
 from the model's perspective; the model sees a cancellation
@@ -415,7 +415,7 @@ anything else the model supports.
 Call
 [`LLM::Context#prompt`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#prompt-instance_method)
 with a block, then pass the result to
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk).
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method).
 Inside the block, `system`, `user`, and `developer` append a message
 with the matching role, and `talk` appends one with an explicit
 role. The provider resolves each role to its provider-specific name:
@@ -436,7 +436,7 @@ res = ctx.talk(prompt)
 
 The block receives the prompt object when it takes an argument, and
 otherwise runs in the prompt's context:
-[`LLM::Prompt#to_a`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#to_a)
+[`LLM::Prompt#to_a`](https://r.uby.dev/api-docs/llm.rb/LLM/Prompt.html#to_a-instance_method)
 returns the messages in order, and two prompts are equal when their
 messages match. Each of `system`, `user`, `developer`, and `talk`
 accepts an `extra:` hash, which is attached to the message it builds,
@@ -508,5 +508,6 @@ model to read, instead of pasting its contents into the prompt.
 Which files a model accepts depends on the provider and the model.
 `ask` is a shorthand over `talk`: it builds the same prompt and returns
 the same `LLM::Response`, so anything that works with `talk` works with
-`ask`. An agent delegates all four methods to the context it wraps.
+`ask`. It also accepts a `stream:` target and a block, the way `talk`
+does. An agent delegates all four methods to the context it wraps.
 

@@ -8,23 +8,23 @@
 llm.rb supports six concurrency strategies for tool execution:
 `:sequential`, `:thread`, `:fiber`, `:async`, `:fork`, and
 `:ractor`. Each implements the same interface
-([`LLM::Function::Task#spawn`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#spawn),
-[`LLM::Function::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#wait),
-[`LLM::Function::Task#alive?`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#alive?),
-[`LLM::Function::Task#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#interrupt!)),
+([`LLM::Function::Task#spawn`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#spawn-instance_method),
+[`LLM::Function::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#wait-instance_method),
+[`LLM::Function::Task#alive?`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#alive?-instance_method),
+[`LLM::Function::Task#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#interrupt!-instance_method)),
 so the caller never has to care which
 strategy is behind a given task.
 
 #### How it works
 
 Each strategy creates a task object that wraps a function call.
-[`LLM::Function::Task#spawn`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#spawn)
+[`LLM::Function::Task#spawn`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#spawn-instance_method)
 starts execution,
-[`LLM::Function::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#wait)
+[`LLM::Function::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#wait-instance_method)
 collects the result,
-[`LLM::Function::Task#alive?`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#alive?)
+[`LLM::Function::Task#alive?`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#alive?-instance_method)
 checks whether the task is still running, and
-[`LLM::Function::Task#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#interrupt!)
+[`LLM::Function::Task#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#interrupt!-instance_method)
 signals the task to stop.
 
 Interruption is reliable across all six.
@@ -83,8 +83,13 @@ during blocking IO. Best for IO-bound tools like HTTP calls and
 database queries.
 
 **fiber**: Each tool runs in a scheduler-backed Fiber. Requires
-`Fiber.scheduler`. Best for IO-bound tools inside an async
-framework. Much lighter than threads.
+`Fiber.scheduler`, and that scheduler has to implement
+`fiber_interrupt`, which is how a cancel is asked of a fiber rather than
+raised into it. A scheduler without it is refused with
+[`LLM::FiberError`](https://r.uby.dev/api-docs/llm.rb/LLM/FiberError.html)
+before anything is scheduled, since a cancel that cannot be asked for is
+a cancel that cannot be delivered. Best for IO-bound tools inside an
+async framework. Much lighter than threads.
 
 **async**: Each tool runs as an `Async::Task` inside a managed
 background reactor. Best for IO-bound tools when you want Async's

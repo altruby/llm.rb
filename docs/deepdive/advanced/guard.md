@@ -64,7 +64,7 @@ tool, anything it intercepts never executes.
 is the default guard for
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html);
 it never blocks tool work.
-[`LLM::Context#guard`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#guard)
+[`LLM::Context#guard`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#guard-instance_method)
 returns the configured guard class. Because `call` returns an
 [`LLM::Function::Return`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Return.html)
 rather than a warning string, a guard can block an individual tool
@@ -97,14 +97,14 @@ message history, token usage, and cost are visible too.
 
 When you want to inspect a pending call before it runs, read the
 function's accessors inside `call`.
-[`LLM::Function#name`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#name)
+[`LLM::Function#name`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#name-instance_method)
 is the tool name, and
-[`LLM::Function#arguments`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#arguments)
+[`LLM::Function#arguments`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#arguments-instance_method)
 is an
 [`LLM::Object`](https://r.uby.dev/api-docs/llm.rb/LLM/Object.html)
 with the parsed arguments. The full parameter schema is available
 through
-[`LLM::Function#params`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#params).
+[`LLM::Function#params`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#params-instance_method).
 Returning `nil` lets the call run, so an inspection-only guard is a
 pure observer:
 
@@ -136,7 +136,7 @@ Returning `nil` means the call proceeds normally.
 #### Overview
 
 Cancelling is distinct from blocking with an error.
-[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel)
+[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel-instance_method)
 produces a return the model reads as a declined call, not a failed
 one. The conversation stays honest: the model asked for something,
 and the runtime declined it with a reason.
@@ -144,7 +144,7 @@ and the runtime declined it with a reason.
 #### How it works
 
 When you want to cancel a single pending call, call the
-[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel)
+[`LLM::Function#cancel`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#cancel-instance_method)
 method with a `reason:` and return the result from `call`. The
 pending call never executes, and the rest of the batch still runs.
 A guard can cancel one call in a two-call batch and the other call
@@ -276,7 +276,7 @@ spent, or once the context window is nearly full.
 #### How it works
 
 When you want to enforce a budget, compare
-[`LLM::Context#usage`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#usage)
+[`LLM::Context#usage`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#usage-instance_method)
 or
 [`LLM::Context#cost`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#cost-instance_method)
 against a limit inside `call`. Pass the limit through
@@ -306,9 +306,9 @@ many tools to call. A cost ceiling keeps a runaway agent from
 spending money, and a quota derived from `messages` (as in the
 rate-limit example above) keeps a single user from exhausting
 shared resources. The same comparison works with
-[`LLM::Context#usage`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#usage)
+[`LLM::Context#usage`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#usage-instance_method)
 against
-[`LLM::Context#context_window`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#context_window)
+[`LLM::Context#context_window`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#context_window-instance_method)
 to keep the conversation inside the model's window.
 
 #### Notes

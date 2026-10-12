@@ -17,7 +17,7 @@ subclasses the model can call.
 
 The stdio transport runs the server as a child process and
 communicates over stdin/stdout. Use
-[`LLM::MCP#session`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#session)
+[`LLM::MCP#session`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#session-instance_method)
 to avoid launching the same process multiple times.
 
 ```ruby
@@ -41,9 +41,9 @@ one. Remove them without touching the agent's code.
 #### Notes
 
 For stdio, use
-[`LLM::MCP#session`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#session)
+[`LLM::MCP#session`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#session-instance_method)
 to avoid launching the same process multiple times. For HTTP,
-[`LLM::MCP#session`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#session)
+[`LLM::MCP#session`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#session-instance_method)
 carries little benefit.
 
 ### HTTP
@@ -90,7 +90,7 @@ by a different team and exposed as a service.
 #### Notes
 
 For HTTP,
-[`LLM::MCP#session`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#session)
+[`LLM::MCP#session`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#session-instance_method)
 carries little benefit.
 
 ##### Persistent connections
@@ -173,9 +173,9 @@ agent.talk "Find the official Ruby Fiber scheduler docs and explain them.",
 
 An MCP server can offer prompts as well as tools: reusable,
 parameterized message templates a client fetches and sends to a model.
-[`LLM::MCP#prompts`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#prompts)
+[`LLM::MCP#prompts`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#prompts-instance_method)
 lists them, and
-[`LLM::MCP#find_prompt`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#find_prompt)
+[`LLM::MCP#find_prompt`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#find_prompt-instance_method)
 fetches one and returns its messages.
 
 #### How it works
@@ -213,7 +213,7 @@ it, so it can change without a client release.
 `find_prompt` adapts each message's content to the runtime's shape: a
 text item becomes a string, and anything else stays an `LLM::Object`
 under `original_content`.
-[`LLM::MCP#get_prompt`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#get_prompt)
+[`LLM::MCP#get_prompt`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#get_prompt-instance_method)
 is an alias. Like `tools`, both methods borrow a session when one is
 not already running.
 
