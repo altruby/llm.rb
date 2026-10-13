@@ -342,30 +342,84 @@ mcp.session do
 end
 ```
 </details>
-<details>
-<summary>Concurrency</summary>
+
+<details><summary>Structured outputs</summary>
 <br>
 
-The runtime supports six different concurrency strategies that have
-different attributes. The choice between all of them often depends
-on the requirements of your application.
+[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
+subclasses produce typed, structured
+output from any model call. Pass a schema to
+[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method),
+[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method),
+or
+[`LLM::Provider#complete`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#complete-instance_method)
+to receive validated JSON instead of free text. Schemas work alongside tools and streams.
 
-IO-bound tools are a good fit for the `:async`, `:thread`,
-and `:fiber` strategies while true parallelism can be achieved
-with the `:fork` and `:ractor` strategies. The
-`:sequential` strategy runs tools one at a time and is the default.
-The `:fork` strategy also provides a separate process that offers
-isolation from its parent.
+[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
+can define objects, arrays, enums, nested schemas,
+and more. It is also used internally by
+[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) for parameter
+definitions, so you already benefit from it when you declare tool
+parameters.
 
-A couple of concurrency strategies require optional, opt-in dependencies.
-The `async` strategy requires the [async](https://github.com/socketry/async)
-gem and the `fork` strategy requires the [xchan.rb](https://github.com/r-uby-dev/xchan.rb)
-gem (`~> 0.24`). The `fiber` strategy requires a scheduler (`Fiber.scheduler`) but by
-default Ruby does not provide one.
+The
+[`LLM::DeepSeek`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html)
+provider includes runtime-level optimisations such as structured
+output support (despite no official structured outputs API) and
+SVG image generation. This example uses
+[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html) with
+DeepSeek:
 
-The `:ractor` strategy is the least interchangeable of the six. It runs
-class-based tools only, and a tool's arguments have to be
-ractor-shareable.
+```ruby
+class Weather < LLM::Schema
+  property :city, String, "The city name"
+  property :temperature, Number, "Current temperature"
+  property :conditions, String, "Weather conditions"
+  required %i[city temperature conditions]
+end
+
+llm = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm, schema: Weather)
+res = agent.talk "Weather in Paris?"
+res.content!  # => {city: "Paris", temperature: 15.0, conditions: "Cloudy"}
+```
+</details>
+
+#### Concurrency
+
+<details>
+<summary>Strategies</summary>
+<br>
+
+There are six different concurrency strategies
+to choose from. A tool can be spawned on its own
+process, on its own ractor, on its own thread,
+on a thread that manages an `Async::Reactor`, or
+on its own fiber.
+
+Each strategy is built around an abstraction that
+makes them interchangeable - you can switch between
+processes, threads, ractors, async fibers, or a ruby
+fiber by changing a single line of code. **All** subclasses
+of [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
+are supported, so you can launch MCP tools concurrently
+or in parallel as well.
+
+The strategy that you choose depends on the workload
+and the requirements of your application, as well as
+what the strategy offers. The `:fork` and `:ractor`
+strategies provide true parallelism, and the other
+strategies - especially `:thread`, and `:async` -
+can be great for IO-bound tools.
+
+The following example configures an agent to use
+all builtin tools (`LLM::Tool.subclasses`) and it
+spawns each tool in its own process
+(`concurrency: :fork`). It could be changed to use
+async instead with `concurrency: :async`, or with
+threads via `concurrency: :thread`, and so on. The
+default concurrency strategy is `:sequential`, and
+it runs tools sequentially on a single thread.
 
 ```ruby
 require "llm"
@@ -374,7 +428,7 @@ require "llm/tools"
 llm   = LLM.deepseek(key: ENV["KEY"])
 tools = LLM::Tool.subclasses
 agent = LLM::Agent.new(llm, tools:, concurrency: :fork)
-agent.talk "Run the tools in parallel"
+agent.talk "implement the feature described in todo.txt"
 ```
 
 </details>
@@ -494,6 +548,9 @@ class InterruptJob
 end
 ```
 </details>
+
+#### Database
+
 <details><summary>ActiveRecord </summary>
 <br>
 
@@ -666,48 +723,6 @@ value, so every save rewrites it, and a GIN index is
 maintained with it. Prefer an index on a key or two over
 the whole column.
 
-</details>
-
-<details><summary>Structured outputs</summary>
-<br>
-
-[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
-subclasses produce typed, structured
-output from any model call. Pass a schema to
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method),
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method),
-or
-[`LLM::Provider#complete`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#complete-instance_method)
-to receive validated JSON instead of free text. Schemas work alongside tools and streams.
-
-[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
-can define objects, arrays, enums, nested schemas,
-and more. It is also used internally by
-[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) for parameter
-definitions, so you already benefit from it when you declare tool
-parameters.
-
-The
-[`LLM::DeepSeek`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html)
-provider includes runtime-level optimisations such as structured
-output support (despite no official structured outputs API) and
-SVG image generation. This example uses
-[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html) with
-DeepSeek:
-
-```ruby
-class Weather < LLM::Schema
-  property :city, String, "The city name"
-  property :temperature, Number, "Current temperature"
-  property :conditions, String, "Weather conditions"
-  required %i[city temperature conditions]
-end
-
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, schema: Weather)
-res = agent.talk "Weather in Paris?"
-res.content!  # => {city: "Paris", temperature: 15.0, conditions: "Cloudy"}
-```
 </details>
 
 #### Debuggers
