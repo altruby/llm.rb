@@ -39,7 +39,6 @@ class LLM::Function
       @name = options.fetch(:name)
       @arguments = options.fetch(:arguments)
       @model = options.fetch(:model, nil)
-      @tracer = options.fetch(:tracer, nil)
       @cancelled = false
       @cookie = SecureRandom.hex
     end
@@ -47,11 +46,11 @@ class LLM::Function
     ##
     # @return [LLM::Function::Ractor::Task]
     def spawn
-      return if @guarded
       @span = @tracer&.on_tool_start(
         id: @id, name: @name,
         arguments: @arguments, model: @model
       )
+      return if @guarded
       ##
       # The result is delivered to a ractor of this task's own rather
       # than through its mailbox. The mailbox ractor answers `alive?`
@@ -117,13 +116,11 @@ class LLM::Function
       return @guarded if @guarded
       @result ||= begin
         spawn unless @mailbox
-        id, name, value = mailbox.wait
+        id, name, value, @finished_at = mailbox.wait
         if Hash === value and value[:interrupt] and value[:cookie] == @cookie
-          Return.new(id, name, value)
+          LLM::Interrupt.new
         else
-          result = Return.new(id, name, value)
-          @tracer&.on_tool_finish(result:, span: @span)
-          result
+          Return.new(id, name, value)
         end
       end
     end
@@ -138,6 +135,7 @@ class LLM::Function
     private
 
     def build_task(result)
+      @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       ::Ractor.new(result, @runner_class, @id, @name, @arguments, @cookie) do |result, runner_class, id, name, arguments, cookie|
         LLM::Function::Ractor::Job.new(
           ::Ractor.current,

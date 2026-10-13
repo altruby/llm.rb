@@ -42,10 +42,10 @@ module LLM::Function::Async
     alias_method :cancel!, :interrupt!
 
     ##
+    # @see LLM::Function::Group#wait
     # @return [Array<LLM::Function::Return>]
     def wait
-      spawn unless @spawned
-      @tasks.map(&:wait)
+      super
     ensure
       @reactor.stop
     end

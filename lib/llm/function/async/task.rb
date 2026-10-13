@@ -68,6 +68,12 @@ module LLM::Function::Async
     # `StandardError`.
     # @return [nil]
     def spawn
+      @span  = @tracer&.on_tool_start(
+        id: @function.id,
+        name: @function.name,
+        arguments: @function.arguments,
+        model: @function.model
+      )
       return if @guarded
       @queue = Queue.new
       @alive = !@cancelled
@@ -84,21 +90,20 @@ module LLM::Function::Async
         # tool.
         @window.interrupt!(wait: false) if @cancelled
         task.defer_cancel do
-          result = begin
-            ##
-            # The call opens here, and it is what a deferred ask is issued
-            # against. What the window guarantees is that the raise is not
-            # asked for before the call; the dispatch itself is code, and a
-            # raise can land in it, which is the same gap `Fork::Job` has
-            # between `running!` and `runner.call`.
+          begin
             @window.running!
-            function.call
-          rescue LLM::Interrupt => ex
             ##
-            # The interrupt is the block's result, and the queue carries it
-            # to the caller.
-            ex
+            # The 'function.call' method call will rescue
+            # subclasses of StandardError and turn it into
+            # a LLM::Function::Return object. An LLM::Interrupt
+            # escapes this method call, and it is rescued
+            # here and pushed onto the queue.
+            @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            @queue << function.call
+          rescue LLM::Interrupt => ex
+            @queue << ex
           ensure
+            @finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             ##
             # The tool has answered, so a cancel that arrives from here on
             # asks nothing - which is the no-op a cancel that arrives once
@@ -112,17 +117,9 @@ module LLM::Function::Async
             # `interrupted?` means.
             function.interrupt! if @window.interrupted?
           end
-          @queue << result
         end
-      rescue LLM::Interrupt, StandardError => e
-        ##
-        # This runs after the `defer_cancel` block's `ensure`, so the tool is
-        # told first and the caller second. It answers a hook whose own
-        # error unwound past the push, and it is the backstop for an
-        # interrupt that arrived from somewhere other than the call above -
-        # which is why the interrupt is pushed and not raised on.
+      rescue LLM::Interrupt => e
         @queue << e
-        raise unless LLM::Interrupt === e
       end
       nil
     end
@@ -165,36 +162,16 @@ module LLM::Function::Async
     alias_method :cancel!, :interrupt!
 
     ##
-    # Wait for the result queue to contain a value.
-    #
-    # It stops the reactor on the way out, which is also where a cancel's
-    # cost is paid: `interrupt!` is a message and a return like every other
-    # strategy's, and a tool that will not stop meets the join and the kill
-    # here rather than in the caller's cancel.
-    #
-    # **A second wait is answered from what the first one took.** `pop` takes
-    # the item, so holding it is what makes a task answerable more than once -
-    # which is what `Thread#value` does for the other in-process strategy, and
-    # what the ractor's task is asserted to do. The exception case is held the
-    # same way, so a call that was interrupted re-raises on every wait rather
-    # than raising once and then blocking on an empty queue.
-    #
-    # Anything that is an exception is raised rather than returned, which is
-    # what `Thread#value` and `Fiber#value` do. An interrupt is the usual
-    # one, and a hook that raised from the block's `ensure` is the other.
-    #
-    # The guarded path returns before any of that, so a task whose guard
-    # blocked it does not stop a reactor it never used - which matters in a
-    # group, where the reactor is not its own.
-    # @return [LLM::Function::Return]
+    # @see LLM::Function::Task#wait
+    # @return (see LLM::Function::Task#wait)
     def wait
       return @guarded if @guarded
+      return @result.unbox if @result
       begin
         spawn unless @queue
-        @result ||= @queue.pop
+        @result = LLM::Object.from(unbox: @queue.pop)
         @alive = false
-        raise @result if Exception === @result
-        @result
+        @result.unbox
       ensure
         @reactor&.stop
       end

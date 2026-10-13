@@ -12,6 +12,34 @@ class LLM::Function
     attr_reader :function
 
     ##
+    # The tracer for the task
+    # @return [LLM::Tracer, nil]
+    attr_reader :tracer
+
+    ##
+    # The span returned by {LLM::Tracer#on_tool_start}
+    # @return [Object]
+    attr_reader :span
+
+    ##
+    # Returns when a task started, or nil
+    # @note
+    #  This method captures a monotonic clock
+    #  time (Process::CLOCK_MONOTONIC) rather
+    #  than a Time object.
+    # @return [Float, nil]
+    attr_reader :started_at
+
+    ##
+    # Returns when a task finished, or nil
+    # @note
+    #  This method captures a monotonic clock
+    #  time (Process::CLOCK_MONOTONIC) rather
+    #  than a Time object.
+    # @return [Float, nil]
+    attr_reader :finished_at
+
+    ##
     # @param [LLM::Function] fn
     # @param [Hash] options
     #  An optional set of options that are specific
@@ -23,6 +51,8 @@ class LLM::Function
     def initialize(fn, options = {})
       @function = fn
       @guarded = options[:guarded]
+      @tracer = options[:tracer]
+      @finished_at = nil
     end
 
     ##
@@ -48,8 +78,18 @@ class LLM::Function
     alias_method :cancel!, :interrupt!
 
     ##
+    # This method returns an instance of
+    # {LLM::Function::Return} or {LLM::Interrupt}
+    # when the task has received an interrupt.
+    #
+    # An exception that occurs inside a tool is
+    # rescued, and returned by this method as a
+    # {LLM::Function::Return} object. It can be
+    # distinguished from other returns through
+    # the {LLM::Function::Return#error?} method.
+    #
     # @abstract
-    # @return [LLM::Function::Return]
+    # @return [LLM::Function::Return, LLM::Interrupt]
     def wait
       raise NotImplementedError
     end

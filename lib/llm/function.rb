@@ -31,7 +31,6 @@
 #   end
 class LLM::Function
   require_relative "function/registry"
-  require_relative "function/tracing"
   require_relative "function/array"
   require_relative "function/group"
   require_relative "function/sequential/group"
@@ -51,7 +50,6 @@ class LLM::Function
   require_relative "function/ractor/group"
 
   extend LLM::Function::Registry
-  prepend LLM::Function::Tracing
 
   ##
   # Returns strategies that execute in an isolated environment.
@@ -320,7 +318,7 @@ class LLM::Function
     # {LLM::Function.isolated} stays lazy on purpose, because there the
     # tool is built in the child process or the ractor and this instance
     # is not the one that runs.
-    options = options.merge(guarded: options[:guarded] || resolve(strategy))
+    options = options.merge(tracer:, guarded: options[:guarded] || resolve(strategy))
     case strategy
     when :sequential
       Sequential::Task.new(self, options)
@@ -333,13 +331,13 @@ class LLM::Function
       Fiber::Task.new(self, options)
     when :fork
       LLM.require "xchan", "~> 0.24" unless defined?(::Chan::UNIXSocket)
-      Fork::Task.new(self, options.merge(tracer: @tracer))
+      Fork::Task.new(self, options)
     when :ractor
       raise LLM::RactorError, "Ractor concurrency only supports class-based tools" unless Class === @runner
       if @runner.respond_to?(:skill?) && @runner.skill?
         raise LLM::RactorError, "Ractor concurrency does not support skill-backed tools"
       end
-      Ractor::Task.new(self, options.merge(runner_class: @runner, id:, name:, arguments:, tracer: @tracer, model:))
+      Ractor::Task.new(self, options.merge(runner_class: @runner, id:, name:, arguments:, model:))
     else
       raise ArgumentError, "Unknown strategy: #{strategy.inspect}. Expected :sequential, :thread, :fiber, :async, :fork, or :ractor"
     end

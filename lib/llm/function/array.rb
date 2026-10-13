@@ -10,10 +10,11 @@ class LLM::Function
   module Array
     ##
     # Calls all functions in a collection sequentially.
+    #
     # @return [Array<LLM::Function::Return>]
     #  Returns values to be reported back to the LLM.
     def call
-      map(&:call)
+      task(:sequential).wait
     end
 
     ##

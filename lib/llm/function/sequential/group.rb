@@ -51,10 +51,11 @@ module LLM::Function::Sequential
     alias_method :cancel!, :interrupt!
 
     ##
+    # @see LLM::Function::Group#wait
     # @return [Array<LLM::Function::Return>]
     def wait
       @owner = Thread.current
-      @tasks.map(&:wait)
+      super
     ensure
       @owner = nil
     end

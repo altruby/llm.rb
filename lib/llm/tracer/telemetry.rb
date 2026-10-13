@@ -139,7 +139,7 @@ module LLM
     ##
     # @param (see LLM::Tracer#on_tool_finish)
     # @return (see LLM::Tracer#on_tool_finish)
-    def on_tool_finish(result:, span:)
+    def on_tool_finish(result:, span:, started_at:, finished_at:)
       return nil unless span
       attributes = {
         "gen_ai.tool.call.id" => result.id,
@@ -154,19 +154,19 @@ module LLM
     ##
     # @param (see LLM::Tracer#on_tool_error)
     # @return (see LLM::Tracer#on_tool_error)
-    def on_tool_error(ex:, span:)
+    def on_tool_error(ex:, span:, started_at:, finished_at:)
       return nil unless span
-      attributes = {"error.type" => ex.class.to_s}.compact
+      attributes = {"error.type" => ex.value[:type]}.compact
       attributes.each { span.set_attribute(_1, _2) }
       span.add_event("gen_ai.tool.finish")
-      span.status = ::OpenTelemetry::Trace::Status.error(ex.message)
+      span.status = ::OpenTelemetry::Trace::Status.error(ex.value[:message].to_s)
       span.tap(&:finish)
     end
 
     ##
     # @param (see LLM::Tracer#on_tool_interrupt)
     # @return (see LLM::Tracer#on_tool_interrupt)
-    def on_tool_interrupt(ex:, span:)
+    def on_tool_interrupt(ex:, span:, started_at:, finished_at:)
       return nil unless span
       attributes = {"error.type" => "LLM::Interrupt"}
       attributes.each { span.set_attribute(_1, _2) }

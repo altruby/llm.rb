@@ -36,6 +36,12 @@ module LLM::Function::Fiber
     ##
     # @return [nil]
     def spawn
+      @span = @tracer&.on_tool_start(
+        id: @function.id,
+        name: @function.name,
+        arguments: @function.arguments,
+        model: @function.model
+      )
       return if @guarded
       if Fiber.scheduler.nil?
         raise ArgumentError, "Fiber concurrency requires Fiber.scheduler"
@@ -94,22 +100,12 @@ module LLM::Function::Fiber
             # to prevent - this fiber raised before the call was reached, so
             # the tool's own `rescue` never saw the interrupt.
             @window.running!
+            @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             @queue << function.call
-          rescue LLM::Interrupt, StandardError => ex
-            ##
-            # The interrupt is stored on the queue rather than raised on.
-            # `LLM::Interrupt` is a subclass of `Exception`, and one that is
-            # left to raise kills the scheduler's thread and takes the tasks
-            # running on it with it - the caller reads the queue and raises
-            # the interrupt on its own thread or fiber, and this task exits
-            # silently.
-            #
-            # The rescue names the interrupt rather than leaving it to a bare
-            # rescue, because a bare rescue - and `rescue => ex` - reaches
-            # only `StandardError`.
+          rescue LLM::Interrupt => ex
             @queue << ex
-            raise unless LLM::Interrupt === ex
           ensure
+            @finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             ##
             # The tool has answered, so a cancel that arrives from here on
             # asks nothing - which is the no-op a cancel that arrives once
@@ -158,24 +154,14 @@ module LLM::Function::Fiber
     alias_method :cancel!, :interrupt!
 
     ##
-    # Wait for the body to hand its result back.
-    #
-    # **It answers more than once.** `Queue#pop` takes the item, so the value
-    # is kept rather than popped again, and a second wait is answered from
-    # what the first one took - the same way `Thread#value` answers, and the
-    # way `LLM::Function::Ractor::Task` is expected to.
-    #
-    # Anything that is an exception is raised rather than returned. An
-    # interrupt is the usual one: a held cancel arrives here as the exception
-    # the block ended with, and so does one raised at a call that was already
-    # running.
-    # @return [LLM::Function::Return]
+    # @see LLM::Function::Task#wait
+    # @return (see LLM::Function::Task#wait)
     def wait
       return @guarded if @guarded
+      return @result.unbox if @result
       spawn unless @fiber
-      @result ||= @queue.pop
-      raise @result if Exception === @result
-      @result
+      @result = LLM::Object.from(unbox: @queue.pop)
+      @result.unbox
     end
     alias_method :value, :wait
 

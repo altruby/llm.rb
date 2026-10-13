@@ -66,17 +66,17 @@ RSpec.describe LLM::Tracer do
 
     it "raises NotImplementedError" do
       expect {
-        tracer.on_tool_finish(result:, span: nil)
+        tracer.on_tool_finish(result:, span: nil, started_at: Time.now, finished_at: Time.now)
       }.to raise_error(NotImplementedError)
     end
   end
 
   describe "#on_tool_error" do
-    let(:ex) { RuntimeError.new("yabadabadoo") }
+    let(:ex) { LLM::Function::Return.new("call_1", "tool", {error: true, type: "RuntimeError", message: "yabadabadoo"}) }
 
     it "raises NotImplementedError" do
       expect {
-        tracer.on_tool_error(ex:, span: nil)
+        tracer.on_tool_error(ex:, span: nil, started_at: Time.now, finished_at: Time.now)
       }.to raise_error(NotImplementedError)
     end
   end

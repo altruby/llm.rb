@@ -31,6 +31,12 @@ module LLM::Function::Thread
     ##
     # @return [nil]
     def spawn
+      @span = @tracer&.on_tool_start(
+        id: @function.id,
+        name: @function.name,
+        arguments: @function.arguments,
+        model: @function.model
+      )
       return if @guarded
       @ready = Queue.new
       @thread = ::Thread.new do
@@ -58,8 +64,10 @@ module LLM::Function::Thread
         # instead, and opens on the call.
         ::Thread.new { @window.interrupt! } if @cancelled
         @window.running!
+        @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         function.call
       ensure
+        @finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         ##
         # The window closes before the hook runs, so a cancel that arrives
         # once the call has returned finds nothing to interrupt - which is
@@ -140,8 +148,14 @@ module LLM::Function::Thread
     # @return [LLM::Function::Return]
     def wait
       return @guarded if @guarded
+      return @result.unbox if @result
       spawn unless @thread
-      @thread.value
+      begin
+        @result = LLM::Object.from(unbox: @thread.value)
+      rescue LLM::Interrupt => ex
+        @result = LLM::Object.from(unbox: ex)
+      end
+      @result.unbox
     end
     alias_method :value, :wait
 

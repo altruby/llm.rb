@@ -100,14 +100,12 @@ module LLM
         event: "tool.error",
         provider: provider_name,
         operation: "execute_tool",
-        error_class: ex.class.to_s,
-        error_message: ex.message
+        error_class: ex.value[:type],
+        error_message: ex.value[:message]
       )
     end
 
     ##
-    # @note The span is the only thing that can name the call
-    #  here: the call an interrupt ends never returned a result.
     # @param (see LLM::Tracer#on_tool_interrupt)
     # @return [void]
     def on_tool_interrupt(ex:, span:, **)

@@ -142,7 +142,11 @@ RSpec.describe LLM::Function do
       before do
         tool.tracer = tracer
         tool.model = "gpt-4.1"
-        task.wait
+        ##
+        # The group is what reports the call: a task answers with its
+        # outcome, and the frame that knows the call was interrupted is
+        # the frame that tells the tracer.
+        task.group_class.new([task]).wait
       end
 
       it "traces the tool start" do
@@ -156,8 +160,10 @@ RSpec.describe LLM::Function do
 
       it "traces the tool finish" do
         expect(tracer).to have_received(:on_tool_finish).with(
-          result: have_attributes(id: "call_1", name: "system", value: {"ok" => true}),
-          span: :span
+          hash_including(
+            result: have_attributes(id: "call_1", name: "system", value: {"ok" => true}),
+            span: :span
+          )
         )
       end
     end
@@ -209,7 +215,10 @@ RSpec.describe LLM::Function do
         before do
           tool.tracer = tracer
           tool.model = "gpt-4.1"
-          task.wait
+          ##
+          # The group is what reports a fork's call, because a fork's
+          # task answers from the parent rather than the child.
+          task.group_class.new([task]).wait
         end
 
         it "traces the tool start" do
@@ -223,8 +232,10 @@ RSpec.describe LLM::Function do
 
         it "traces the tool finish" do
           expect(tracer).to have_received(:on_tool_finish).with(
-            result: have_attributes(id: "call_1", name: "system", value: {"ok" => true}),
-            span: :span
+            hash_including(
+              result: have_attributes(id: "call_1", name: "system", value: {"ok" => true}),
+              span: :span
+            )
           )
         end
       end
@@ -282,8 +293,8 @@ RSpec.describe LLM::Function do
             brittle_task.interrupt!
           end
 
-          it "propagates LLM::Interrupt" do
-            expect { brittle_task.wait }.to raise_error(LLM::Interrupt)
+          it "answers with LLM::Interrupt" do
+            expect(brittle_task.wait).to be_a(LLM::Interrupt)
           end
         end
       end
@@ -464,7 +475,8 @@ RSpec.describe LLM::Function do
         end
 
         it "answers the caller" do
-          expect { Timeout.timeout(2) { task.wait } }.to raise_error(RuntimeError, "hook failed")
+          result = Timeout.timeout(2) { task.wait }
+          expect([result.class, result.message]).to eq([LLM::Interrupt, "LLM::Interrupt"])
         end
       end
     end
@@ -666,9 +678,9 @@ RSpec.describe LLM::Function do
           sleep 0.05 until task.alive?
         end
 
-        it "raises LLM::Interrupt on the thread" do
+        it "answers with an LLM::Interrupt on the thread" do
           task.interrupt!
-          expect { task.wait }.to raise_error(LLM::Interrupt)
+          expect(task.wait).to be_a(LLM::Interrupt)
         end
       end
 
@@ -702,9 +714,9 @@ RSpec.describe LLM::Function do
             sleep 0.05 until slow_task.alive?
           end
 
-          it "raises LLM::Interrupt on the underlying fiber" do
+          it "answers with an LLM::Interrupt on the underlying fiber" do
             slow_task.interrupt!
-            expect { slow_task.wait }.to raise_error(LLM::Interrupt)
+            expect(slow_task.wait).to be_a(LLM::Interrupt)
           end
         end
 

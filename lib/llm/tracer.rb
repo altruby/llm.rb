@@ -147,10 +147,12 @@ module LLM
     # @param [LLM::Response] res
     # @param [Object, nil] span
     # @param [String] model
-    # @param [Hash, nil] outputs Optional span attributes (e.g. gen_ai.output.messages) from llm.rb or caller.
-    # @param [Hash, nil] metadata Optional metadata from llm.rb or caller.
+    # @param [Hash, nil] outputs
+    #  Optional span attributes (e.g. gen_ai.output.messages) from llm.rb or caller.
+    # @param [Hash, nil] metadata
+    #  Optional metadata from llm.rb or caller.
     # @param [String] request_id
-    #  The id of the request, as passed to {#on_request_start}
+    #  The id of the request that can be matched back to {#on_request_start}
     # @return [void]
     def on_request_finish(operation:, res:, model: nil, span: nil, outputs: nil, metadata: nil, request_id:)
       raise NotImplementedError, "#{self.class} does not implement '#{__method__}'"
@@ -184,66 +186,101 @@ module LLM
 
     ##
     # Called when a tool is interrupted.
+    #
+    # This method is called once per tool - in a batch -
+    # and only after all tools have been spawned in parallel
+    # and then waited on sequentially. The `*_at` parameters
+    # let you know when a tool has started and finished (as a
+    # monotonic clock) since it cannot be inferred from the
+    # time the method is called.
+    #
     # @param [LLM::Interrupt] ex
     #  An instance of {LLM::Interrupt LLM::Interrupt}
     # @param [Object, nil] span
     #  The span/context object returned by {#on_tool_start}
+    # @param [Float] started_at
+    #  When the call opened
+    # @param [Float] finished_at
+    #  When the call ended
     # @return [void]
-    def on_tool_interrupt(ex:, span:)
+    def on_tool_interrupt(ex:, span:, started_at:, finished_at:)
       raise NotImplementedError, "#{self.class} does not implement '#{__method__}'"
     end
 
     ##
-    # Called after a local tool/function succeeds.
+    # Called after a tool/function succeeds.
+    #
+    # This method is called once per tool - in a batch -
+    # and only after all tools have been spawned in parallel
+    # and then waited on sequentially. The `*_at` parameters
+    # let you know when a tool has started and finished (as a
+    # monotonic clock) since it cannot be inferred from the
+    # time the method is called.
+    #
     # @param [LLM::Function::Return] result
-    #  The tool return object.
-    # @param [Object, nil] span
-    #  The span/context object returned by {#on_tool_start}.
+    #  An {LLM::Function::Return}
+    # @param [Object] span
+    #  The span/context object returned by {#on_tool_start}
+    # @param [Float] started_at
+    #  When the call opened
+    # @param [Float] finished_at
+    #  When the call ended
     # @return [void]
-    def on_tool_finish(result:, span:)
+    def on_tool_finish(result:, span:, started_at:, finished_at:)
       raise NotImplementedError, "#{self.class} does not implement '#{__method__}'"
     end
 
     ##
     # Called when a local tool/function raises.
-    # @param [Exception] ex
-    #  The raised error.
+    #
+    # This method is called once per tool - in a batch -
+    # and only after all tools have been spawned in parallel
+    # and then waited on sequentially. The `*_at` parameters
+    # let you know when a tool has started and finished (as a
+    # monotonic clock) since it cannot be inferred from the
+    # time the method is called.
+    #
+    # @note
+    #  This method provides the callback with
+    #  an {LLM::Function::Return} object that
+    #  encapsulates the exception a tool failed
+    #  with. It does _not_ provide an Exception
+    #  object.
+    #
+    # @param [LLM::Function::Return] ex
+    #  An {LLM::Function::Return} that holds the error
     # @param [Object, nil] span
     #  The span/context object returned by {#on_tool_start}.
+    # @param [Float] started_at
+    #  When the call opened
+    # @param [Float] finished_at
+    #  When the call ended
     # @return [void]
-    def on_tool_error(ex:, span:)
+    def on_tool_error(ex:, span:, started_at:, finished_at:)
       raise NotImplementedError, "#{self.class} does not implement '#{__method__}'"
     end
 
     ##
-    # Called when a request, a tool, or a turn is interrupted.
+    # This method is called when an agent receives
+    # an interrupt. An interrupt can occur in different
+    # scopes: `:request`, `:agent`, or `:tool`.
     #
-    # Certain callbacks - such as {#on_request_start}, and {#on_tool_start} -
-    # return spans to the caller that have to be closed by another callback
-    # method. The second callback method varies, and it depends on the
-    # path the tracer took. The happy path would see {#on_request_start}
-    # open a span, and {#on_request_finish} would close it.
+    # The `:request` scope provides a span and request ID,
+    # and it can be used to close a request that was
+    # interrupted. The other scopes (`:tool`, `:agent`)
+    # occur in a context where there is no span or
+    # request ID available.
     #
-    # But {#on_request_finish} is not certain to close the span.
-    # {#on_request_error} might also close it, and {#on_interrupt} with a
-    # `:request` scope is another path that could close a request span.
+    # @note
+    #  This is the last and final callback that is received
+    #  as part of the interrupt process.
     #
-    # The {#on_tool_start} method also opens a span, and it can be closed
-    # by a different set of methods: {#on_tool_finish}, {#on_tool_interrupt},
-    # and {#on_tool_error}.
-    #
-    # This method ({#on_interrupt}) is not always given a span that it can
-    # close, and in the case of a `:agent` or `:tool` scope there is no
-    # span to close. The `:request` scope is the exception.
     # @param [Symbol] scope
-    #  :request for a request, :tool for a tool, :agent for a turn that is
-    #  between its requests
+    #  :request, :agent, or :tool
     # @param [Object, nil] span
-    #  The span that {#on_request_start} returned. A tool pass has none:
-    #  a tool's span belongs to the call, and the announcement is not one
-    #  tool's to make.
+    #  The span that {#on_request_start} returned
     # @param [String, nil] request_id
-    #  The id, as passed to {#on_request_start}, when the scope is a request
+    #  The id, as passed to {#on_request_start}
     # @return [void]
     def on_interrupt(scope:, span: nil, request_id: nil)
       raise NotImplementedError, "#{self.class} does not implement '#{__method__}'"
