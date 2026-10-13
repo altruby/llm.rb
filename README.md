@@ -403,8 +403,7 @@ exports spans via OTLP for OpenTelemetry in production.
 * [`LLM::Tracer.logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#logger-class_method):
 structured JSON to stdout or a file.
 * [`LLM::Tracer.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#multi-class_method):
-fans out every callback to a set of tracers, so a request can be
-logged and exported at the same time.
+fans out every callback to multiple tracers.
 
 A simple example:
 
