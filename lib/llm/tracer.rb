@@ -68,6 +68,7 @@ module LLM
     def self.pretty_logger(llm, **options)
       PrettyLogger.new(llm, **options)
     end
+    (class << self; self; end).alias_method(:pretty, :pretty_logger)
 
     ##
     # Builds a {LLM::Tracer::Logger} for a provider.

@@ -394,7 +394,7 @@ This feature also works for ActiveRecord and Sequel models.
 
 The builtin tracers:
 
-* [`LLM::Tracer.pretty_logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty_logger-class_method): human-readable single-line logs to stderr, ideal during development.
+* [`LLM::Tracer.pretty`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty_logger-class_method): human-readable single-line logs to stderr, ideal during development.
 * [`LLM::Tracer.telemetry`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#telemetry-class_method):
 exports spans via OTLP for OpenTelemetry in production.
 * [`LLM::Tracer.logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#logger-class_method):
@@ -407,7 +407,7 @@ A simple example:
 
 ```ruby
 llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, tracer: LLM::Tracer.pretty_logger(llm))
+agent = LLM::Agent.new(llm, tracer: LLM::Tracer.pretty(llm))
 agent.talk "Hello"
 ```
 </details>
