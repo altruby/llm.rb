@@ -447,170 +447,6 @@ res.content!  # => {city: "Paris", temperature: 15.0, conditions: "Cloudy"}
 ```
 </details>
 
-#### Concurrency
-
-<details>
-<summary>Strategies</summary>
-<br>
-
-There are six different concurrency strategies
-to choose from. A tool can be spawned on its own
-process, on its own ractor, on its own thread,
-on a thread that manages an `Async::Reactor`, or
-on its own fiber.
-
-Each strategy is built around an abstraction that
-makes them interchangeable - you can switch between
-processes, threads, ractors, async fibers, or a ruby
-fiber by changing a single line of code. **All** subclasses
-of [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
-are supported, so you can launch MCP tools concurrently
-or in parallel as well.
-
-The strategy that you choose depends on the workload
-and the requirements of your application, as well as
-what the strategy offers. The `:fork` and `:ractor`
-strategies provide true parallelism, and the other
-strategies - especially `:thread`, and `:async` -
-can be great for IO-bound tools.
-
-The following example configures an agent to use
-all builtin tools (`LLM::Tool.subclasses`) and it
-spawns each tool in its own process
-(`concurrency: :fork`). It could be changed to use
-async instead with `concurrency: :async`, or with
-threads via `concurrency: :thread`, and so on. The
-default concurrency strategy is `:sequential`, and
-it runs tools sequentially on a single thread.
-
-```ruby
-require "llm"
-require "llm/tools"
-
-llm   = LLM.deepseek(key: ENV["KEY"])
-tools = LLM::Tool.subclasses
-agent = LLM::Agent.new(llm, tools:, concurrency: :fork)
-agent.talk "implement the feature described in todo.txt"
-```
-
-</details>
-<details>
-<summary>Cancellation</summary>
-<br>
-
-It is possible to interrupt a running agent who
-is between requests or tool calls as long as the
-cancel request is sent from another thread or fiber
-running in the same process as the agent. A cancel
-request can be sent with the
-[`LLM::Agent#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#interrupt!-instance_method)
-method.
-
-An interrupted tool call is made aware of the interrupt
-and it can both rescue `LLM::Interrupt` and/or implement
-the `on_interrupt` callback on the tool class. The option to
-cancel on [r.uby.dev](https://r.uby.dev) is built on top of
-this feature, and it has a single background process
-with 24 threads. Each thread can run an agent request that
-can be interrupted via another thread in the same process.
-
-It is solid and reliable but r.uby.dev had to meet this
-feature halfway, so expect to build your own infrastructure
-around it. See
-[cancellation chapter](docs/deepdive/advanced/cancellation.md)
-to learn more.
-
-```ruby
-class Search < LLM::Tool
-  name "search"
-  description "Search many files"
-  parameter :pattern, String, "The pattern to search for"
-  required %i[pattern]
-
-  ##
-  # A raise is delivered here; `on_interrupt` is a notification, and it
-  # runs on every strategy - `:sequential` included.
-  def call(pattern:)
-    search(pattern)
-  rescue LLM::Interrupt
-    ##
-    # A tool can return a value from here, and the turn carries on with
-    # it, or re-raise and the fiber that made the request is raised
-    # into as well.
-    cleanup
-    raise
-  end
-
-  ##
-  # Told on the thread or fiber the call runs on, before the raise on
-  # `:fork` and `:ractor` and after the rescue above on the other three.
-  def on_interrupt
-    cleanup
-  end
-
-  private
-
-  def cleanup
-    # Release a file, a socket, or a lock here.
-  end
-end
-
-llm = LLM.deepseek
-agent = LLM::Agent.new(llm, tools: [Search], concurrency: :async)
-queue = Queue.new
-Thread.new { [sleep(queue.pop), agent.interrupt!] }
-
-begin
-  queue.push(3)
-  agent.talk "find every TODO in the repository", stream: $stdout
-rescue LLM::Interrupt
-  puts
-  puts "!! cancelled !!"
-end
-```
-</details>
-<details>
-<summary>Cancel by record ID</summary>
-<br>
-
-A common deployment setup is to run your agents in a
-background process that a web frontend can communicate
-with (usually via a database). The background process
-would have one thread per agent, and it could run as
-many agents as it has threads. This is how the
-[r.uby.dev](https://r.uby.dev) website is configured,
-and it is the configuration that the
-[`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
-method is optimized for: a single process with each agent
-running in its own thread.
-
-The
-[`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
-method has access to a process-wide
-registry that contains every active instance of
-[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html),
-and that includes Sequel and ActiveRecord agents, too. An
-agent enters the registry when it starts a turn, and it
-exits the registry afterwards. The method returns true
-when it sent an interrupt, and otherwise it returns false.
-
-There is often a window between when an agent is queued
-and when it runs, so a poll approach lets you eventually
-interrupt the agent, or give up trying:
-
-```ruby
-class InterruptJob
-  def call(agent_id:)
-    LLM.interrupt(
-      id: agent_id,
-      attempts: 10,
-      interval: 0.1
-    )
-  end
-end
-```
-</details>
-
 #### Database
 
 <details><summary>ActiveRecord </summary>
@@ -785,6 +621,170 @@ value, so every save rewrites it, and a GIN index is
 maintained with it. Prefer an index on a key or two over
 the whole column.
 
+</details>
+
+#### Concurrency
+
+<details>
+<summary>Strategies</summary>
+<br>
+
+There are six different concurrency strategies
+to choose from. A tool can be spawned on its own
+process, on its own ractor, on its own thread,
+on a thread that manages an `Async::Reactor`, or
+on its own fiber.
+
+Each strategy is built around an abstraction that
+makes them interchangeable - you can switch between
+processes, threads, ractors, async fibers, or a ruby
+fiber by changing a single line of code. **All** subclasses
+of [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
+are supported, so you can launch MCP tools concurrently
+or in parallel as well.
+
+The strategy that you choose depends on the workload
+and the requirements of your application, as well as
+what the strategy offers. The `:fork` and `:ractor`
+strategies provide true parallelism, and the other
+strategies - especially `:thread`, and `:async` -
+can be great for IO-bound tools.
+
+The following example configures an agent to use
+all builtin tools (`LLM::Tool.subclasses`) and it
+spawns each tool in its own process
+(`concurrency: :fork`). It could be changed to use
+async instead with `concurrency: :async`, or with
+threads via `concurrency: :thread`, and so on. The
+default concurrency strategy is `:sequential`, and
+it runs tools sequentially on a single thread.
+
+```ruby
+require "llm"
+require "llm/tools"
+
+llm   = LLM.deepseek(key: ENV["KEY"])
+tools = LLM::Tool.subclasses
+agent = LLM::Agent.new(llm, tools:, concurrency: :fork)
+agent.talk "implement the feature described in todo.txt"
+```
+
+</details>
+<details>
+<summary>Cancellation</summary>
+<br>
+
+It is possible to interrupt a running agent who
+is between requests or tool calls as long as the
+cancel request is sent from another thread or fiber
+running in the same process as the agent. A cancel
+request can be sent with the
+[`LLM::Agent#interrupt!`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#interrupt!-instance_method)
+method.
+
+An interrupted tool call is made aware of the interrupt
+and it can both rescue `LLM::Interrupt` and/or implement
+the `on_interrupt` callback on the tool class. The option to
+cancel on [r.uby.dev](https://r.uby.dev) is built on top of
+this feature, and it has a single background process
+with 24 threads. Each thread can run an agent request that
+can be interrupted via another thread in the same process.
+
+It is solid and reliable but r.uby.dev had to meet this
+feature halfway, so expect to build your own infrastructure
+around it. See
+[cancellation chapter](docs/deepdive/advanced/cancellation.md)
+to learn more.
+
+```ruby
+class Search < LLM::Tool
+  name "search"
+  description "Search many files"
+  parameter :pattern, String, "The pattern to search for"
+  required %i[pattern]
+
+  ##
+  # A raise is delivered here; `on_interrupt` is a notification, and it
+  # runs on every strategy - `:sequential` included.
+  def call(pattern:)
+    search(pattern)
+  rescue LLM::Interrupt
+    ##
+    # A tool can return a value from here, and the turn carries on with
+    # it, or re-raise and the fiber that made the request is raised
+    # into as well.
+    cleanup
+    raise
+  end
+
+  ##
+  # Told on the thread or fiber the call runs on, before the raise on
+  # `:fork` and `:ractor` and after the rescue above on the other three.
+  def on_interrupt
+    cleanup
+  end
+
+  private
+
+  def cleanup
+    # Release a file, a socket, or a lock here.
+  end
+end
+
+llm = LLM.deepseek
+agent = LLM::Agent.new(llm, tools: [Search], concurrency: :async)
+queue = Queue.new
+Thread.new { [sleep(queue.pop), agent.interrupt!] }
+
+begin
+  queue.push(3)
+  agent.talk "find every TODO in the repository", stream: $stdout
+rescue LLM::Interrupt
+  puts
+  puts "!! cancelled !!"
+end
+```
+</details>
+<details>
+<summary>Cancel by record ID</summary>
+<br>
+
+A common deployment setup is to run your agents in a
+background process that a web frontend can communicate
+with (usually via a database). The background process
+would have one thread per agent, and it could run as
+many agents as it has threads. This is how the
+[r.uby.dev](https://r.uby.dev) website is configured,
+and it is the configuration that the
+[`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+method is optimized for: a single process with each agent
+running in its own thread.
+
+The
+[`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+method has access to a process-wide
+registry that contains every active instance of
+[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html),
+and that includes Sequel and ActiveRecord agents, too. An
+agent enters the registry when it starts a turn, and it
+exits the registry afterwards. The method returns true
+when it sent an interrupt, and otherwise it returns false.
+
+There is often a window between when an agent is queued
+and when it runs, so a poll approach lets you eventually
+interrupt the agent, or give up trying:
+
+```ruby
+class InterruptJob
+  def call(agent_id:)
+    LLM.interrupt(
+      id: agent_id,
+      attempts: 10,
+      interval: 0.1
+    )
+  end
+end
+```
 </details>
 
 #### Hooks
