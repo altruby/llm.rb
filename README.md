@@ -277,7 +277,6 @@ mcp = LLM::MCP.http(
 agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
 agent.talk "Find me an interesting Ruby project on GitHub"
 ```
-</details>
 
 The second example focuses on the second transport.
 It is recommended (but not required) to launch a
@@ -304,7 +303,7 @@ mcp.session do
   agent.talk "What tools are available?"
 end
 ```
-
+</details>
 <details>
 <summary>Concurrency</summary>
 <br>
