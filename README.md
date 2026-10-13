@@ -274,6 +274,7 @@ mcp = LLM::MCP.http(
   headers: {"Authorization" => "Bearer #{ENV['GITHUB_PAT']}"},
   transport: :net_http_persistent
 )
+
 agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
 agent.talk "Find me an interesting Ruby project on GitHub"
 ```
