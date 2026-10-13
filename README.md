@@ -390,7 +390,10 @@ to standard error (`$stderr`). Beyond the default tracers,
 it is not unusual to write your own. A tracer can let you
 export runtime state to your own database, an external
 service, or any other medium you might have in your stack.
-This feature also works for ActiveRecord and Sequel models.
+A new tracer can be created through a subclass of
+[`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+that implements the expected callback methods. This feature
+also works for ActiveRecord and Sequel models.
 
 The builtin tracers:
 
