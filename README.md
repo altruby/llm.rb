@@ -282,6 +282,35 @@ agent.talk "what's my name?"
 ```
 </details>
 
+<details>
+<summary>Console</summary>
+<br>
+
+The [LLM::Agent#console](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
+method drops you into an interactive console that is built on
+top of (n)curses. The `llm.rb` executable packaged with the gem
+is another way to access the console and ActiveRecord models who
+have called `acts_as_agent` can access the console as well
+(via `agent.console`).
+
+A console for an ActiveRecord model does not write back to the
+database. The `llm.rb` executable automatically associates a
+session with the current working directory and it can be resumed
+by calling `llm.rb` in the same directory at a later point.
+
+The console is not intended to compete with Claude, Codex and
+friends. It is much more limited, serves an entirely different
+purpose and is more like a debugger for your agents. The
+dependencies required by the console are not installed
+by default, and the easiest way to grab them is via
+`gem install llm-shell`.
+
+##### Demo
+
+![llm.rb console demo](demo.gif)
+
+</details>
+
 <details><summary>MCP</summary>
 <br>
 
@@ -341,35 +370,6 @@ mcp.session do
   agent.talk "What tools are available?"
 end
 ```
-</details>
-
-<details>
-<summary>Console</summary>
-<br>
-
-The [LLM::Agent#console](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
-method drops you into an interactive console that is built on
-top of (n)curses. The `llm.rb` executable packaged with the gem
-is another way to access the console and ActiveRecord models who
-have called `acts_as_agent` can access the console as well
-(via `agent.console`).
-
-A console for an ActiveRecord model does not write back to the
-database. The `llm.rb` executable automatically associates a
-session with the current working directory and it can be resumed
-by calling `llm.rb` in the same directory at a later point.
-
-The console is not intended to compete with Claude, Codex and
-friends. It is much more limited, serves an entirely different
-purpose and is more like a debugger for your agents. The
-dependencies required by the console are not installed
-by default, and the easiest way to grab them is via
-`gem install llm-shell`.
-
-##### Demo
-
-![llm.rb console demo](demo.gif)
-
 </details>
 
 <details>
