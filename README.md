@@ -376,27 +376,34 @@ end
 <summary>Tracer</summary>
 <br>
 
-It is possible to trace what an agent is doing by attaching a
-tracer. A tracer can hook into requests, tool calls, and other
-runtime events to debug an agent, provide insights, monitor latency,
-or export spans to an observability backend. All built-in tracers
-share one interface, so switching between them means changing a
-factory method:
+An agent can have its own tracer that observes runtime
+events throughout its lifetime. A tracer is local to an
+agent and the tracer runs on the same thread as the agent.
+There are three builtin tracers, and a fourth tracer that
+lets you combine multiple tracers into a single tracer -
+so you can log to a file, and export to OpenTelemetry
+at the same time.
+
+All tracers protect themselves and the agent being traced
+from a crash through a rescue that dumps a tracer error
+to standard error (`$stderr`). Beyond the default tracers,
+it is not unusual to write your own. A tracer can let you
+export runtime state to your own database, an external
+service, or any other medium you might have in your stack.
+This feature also works for ActiveRecord and Sequel models.
+
+The builtin tracers:
 
 * [`LLM::Tracer.pretty_logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty_logger-class_method): human-readable single-line logs to stderr, ideal during development.
 * [`LLM::Tracer.telemetry`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#telemetry-class_method):
 exports spans via OTLP for OpenTelemetry in production.
 * [`LLM::Tracer.logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#logger-class_method):
 structured JSON to stdout or a file.
-* [`LLM::Tracer::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Multi.html):
+* [`LLM::Tracer.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#multi-class_method):
 fans out every callback to a set of tracers, so a request can be
 logged and exported at the same time.
 
-It is also possible to create your own tracer by creating a subclass
-of [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
-that implements a number of callbacks that cover an agent's lifecycle.
-The tracer feature provides visibility into what the runtime is doing,
-and the tracer API lets other code hook into that feature.
+A simple example:
 
 ```ruby
 llm = LLM.deepseek(key: ENV["KEY"])
