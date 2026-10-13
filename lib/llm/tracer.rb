@@ -92,6 +92,15 @@ module LLM
     end
 
     ##
+    # Builds a {LLM::Tracer::Multi}
+    # @param [Array<LLM::Tracer>] tracers
+    #  One or more tracers
+    # @return [LLM::Tracer::Multi]
+    def self.multi(*tracers)
+      Multi.new(*tracers)
+    end
+
+    ##
     # @return [LLM::Provider]
     attr_reader :llm
 
