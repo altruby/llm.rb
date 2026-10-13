@@ -257,7 +257,7 @@ that an MCP server has announced are available as
 subclasses that can be used like any other subclass
 of
 [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html).
-.
+
 
 The first example uses the HTTP transport to connect to
 GitHub's MCP server. The example uses a Personal Access
