@@ -343,6 +343,68 @@ end
 ```
 </details>
 
+<details>
+<summary>Console</summary>
+<br>
+
+The [LLM::Agent#console](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
+method drops you into an interactive console that is built on
+top of (n)curses. The `llm.rb` executable packaged with the gem
+is another way to access the console and ActiveRecord models who
+have called `acts_as_agent` can access the console as well
+(via `agent.console`).
+
+A console for an ActiveRecord model does not write back to the
+database. The `llm.rb` executable automatically associates a
+session with the current working directory and it can be resumed
+by calling `llm.rb` in the same directory at a later point.
+
+The console is not intended to compete with Claude, Codex and
+friends. It is much more limited, serves an entirely different
+purpose and is more like a debugger for your agents. The
+dependencies required by the console are not installed
+by default, and the easiest way to grab them is via
+`gem install llm-shell`.
+
+##### Demo
+
+![llm.rb console demo](demo.gif)
+
+</details>
+
+<details>
+<summary>Tracer</summary>
+<br>
+
+It is possible to trace what an agent is doing by attaching a
+tracer. A tracer can hook into requests, tool calls, and other
+runtime events to debug an agent, provide insights, monitor latency,
+or export spans to an observability backend. All built-in tracers
+share one interface, so switching between them means changing a
+factory method:
+
+* [`LLM::Tracer.pretty_logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty_logger-class_method): human-readable single-line logs to stderr, ideal during development.
+* [`LLM::Tracer.telemetry`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#telemetry-class_method):
+exports spans via OTLP for OpenTelemetry in production.
+* [`LLM::Tracer.logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#logger-class_method):
+structured JSON to stdout or a file.
+* [`LLM::Tracer::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Multi.html):
+fans out every callback to a set of tracers, so a request can be
+logged and exported at the same time.
+
+It is also possible to create your own tracer by creating a subclass
+of [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+that implements a number of callbacks that cover an agent's lifecycle.
+The tracer feature provides visibility into what the runtime is doing,
+and the tracer API lets other code hook into that feature.
+
+```ruby
+llm = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm, tracer: LLM::Tracer.pretty_logger(llm))
+agent.talk "Hello"
+```
+</details>
+
 <details><summary>Structured outputs</summary>
 <br>
 
@@ -723,70 +785,6 @@ value, so every save rewrites it, and a GIN index is
 maintained with it. Prefer an index on a key or two over
 the whole column.
 
-</details>
-
-#### Debuggers
-
-<details>
-<summary>Console</summary>
-<br>
-
-The [LLM::Agent#console](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
-method drops you into an interactive console that is built on
-top of (n)curses. The `llm.rb` executable packaged with the gem
-is another way to access the console and ActiveRecord models who
-have called `acts_as_agent` can access the console as well
-(via `agent.console`).
-
-A console for an ActiveRecord model does not write back to the
-database. The `llm.rb` executable automatically associates a
-session with the current working directory and it can be resumed
-by calling `llm.rb` in the same directory at a later point.
-
-The console is not intended to compete with Claude, Codex and
-friends. It is much more limited, serves an entirely different
-purpose and is more like a debugger for your agents. The
-dependencies required by the console are not installed
-by default, and the easiest way to grab them is via
-`gem install llm-shell`.
-
-##### Demo
-
-![llm.rb console demo](demo.gif)
-
-</details>
-
-<details>
-<summary>Tracer</summary>
-<br>
-
-It is possible to trace what an agent is doing by attaching a
-tracer. A tracer can hook into requests, tool calls, and other
-runtime events to debug an agent, provide insights, monitor latency,
-or export spans to an observability backend. All built-in tracers
-share one interface, so switching between them means changing a
-factory method:
-
-* [`LLM::Tracer.pretty_logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty_logger-class_method): human-readable single-line logs to stderr, ideal during development.
-* [`LLM::Tracer.telemetry`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#telemetry-class_method):
-exports spans via OTLP for OpenTelemetry in production.
-* [`LLM::Tracer.logger`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#logger-class_method):
-structured JSON to stdout or a file.
-* [`LLM::Tracer::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Multi.html):
-fans out every callback to a set of tracers, so a request can be
-logged and exported at the same time.
-
-It is also possible to create your own tracer by creating a subclass
-of [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
-that implements a number of callbacks that cover an agent's lifecycle.
-The tracer feature provides visibility into what the runtime is doing,
-and the tracer API lets other code hook into that feature.
-
-```ruby
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, tracer: LLM::Tracer.pretty_logger(llm))
-agent.talk "Hello"
-```
 </details>
 
 #### Hooks
