@@ -12,11 +12,14 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   [`LLM::DeepSeek#files`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html#files-instance_method)
   returns an
   [`LLM::DeepSeek::Files`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek/Files.html)
-  object now, so a file can be uploaded once and a later chat request can
-  name it instead of resending its bytes. Before, the call raised
-  `NotImplementedError`. Uploads default to `purpose: "user_data"` - the only
-  purpose DeepSeek accepts - and requests go to the root of the API host,
-  where DeepSeek serves its Files API.
+  object now, so a file can be uploaded once and a
+  later chat request can name it instead of
+  resending its bytes. Before, the call raised
+  `NotImplementedError`. Uploads default to
+  `purpose: "user_data"`, the only purpose
+  DeepSeek accepts, and requests go to the root of
+  the API host, where DeepSeek serves its Files
+  API.
 
 ### Agent
 
@@ -60,7 +63,7 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html)
   that is delivered to a tool running on a ractor
   will travel back to the caller and raise itself
-  on the caller's thread - the same as all other
+  on the caller's thread, the same as all other
   concurrency strategies. This only happens after
   all tools have been interrupted themselves, and
   it is the last step in an interrupt. The caller
@@ -93,6 +96,57 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   in tracer callback. Any callback that lets
   an exception exit its method will be rescued
   and the exception dumped onto standard error.
+
+* **tracer: run every `on_tool_*` callback on the agent's thread** <br>
+  The
+  [`LLM::Tracer#on_tool_start`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_start-instance_method),
+  `#on_tool_finish`, `#on_tool_error`, and
+  `#on_tool_interrupt` callbacks are now
+  called on the same thread as the agent
+  they belong to - and this is true
+  across all strategies. The previous
+  implementation could call the tracer
+  across threads and fibers when given
+  the `thread`, `async`, and `fiber`
+  strategies.
+
+  Both `ractor`, and `fork` already kept the
+  tracer on one thread, and now all strategies
+  do. The last exception to the rule is
+  `LLM::Tracer#on_interrupt`, which may be
+  called on the thread that asked for the
+  interrupt rather than the thread that
+  received the interrupt. This is an open
+  issue.
+
+* **tracer: `on_interrupt` and `on_exit` raise `NotImplementedError`** <br>
+  The
+  [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_interrupt-instance_method)
+  and
+  [`LLM::Tracer#on_exit`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_exit-instance_method)
+  methods now raise `NotImplementedError`
+  by default and subclasses of
+  [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+  must implement them, otherwise
+  the tracer will crash and the crash
+  will be logged to standard error
+  (`$stderr`). A tracer crash does
+  not crash an agent, and both of
+  these methods can be implemented
+  as noops that return `nil`.
+
+* **tracer: `on_tool_{finish,interrupt,error}` receive `started_at` / `finished_at`** <br>
+  The
+  [`LLM::Tracer#on_tool_finish`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_finish-instance_method),
+  [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
+  and
+  [`LLM::Tracer#on_tool_error`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_error-instance_method)
+  methods now receive `started_at`
+  and `finished_at` attributes that can
+  determine how long a tool took to run.
+  Both are based on a monotonic clock
+  (`Process::CLOCK_MONOTONIC`) and
+  neither are `Time` objects.
 
 * **tracer: add `LLM::Tracer#on_tool_interrupt`** <br>
   The [`LLM::Tracer#on_tool_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_tool_interrupt-instance_method)
@@ -177,7 +231,6 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   change makes `on_exit` consistent with all other
   callback methods that are available on [LLM::Tracer](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html).
 
-
 ### LLM::Context
 
 * **context: inherit database ID** <br>
@@ -204,6 +257,34 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   as a parameter. This is because the ID is used
   internally to compute other attributes
   (such as `LLM::Agent#created_at`).
+
+### Registry
+
+* **refresh model metadata** <br>
+  Update `data/` with current listings, limits,
+  and pricing. Anthropic adds Claude Haiku 5.5,
+  Bedrock adds Claude Haiku 5.5, Claude Sonnet
+  5.5 in the US and EU, Claude Sonnet 5 and
+  Claude Opus 5 in India, and GLM-5.3 in the US
+  and global regions, Mistral adds the Ministral
+  3 3B, 8B, and 14B models, Mistral Large 4,
+  Codestral 25.08, Voxtral Small, GLM-5.2, and
+  Leanstral 1.5, DeepInfra adds
+  `Qwen/Qwen3-VL-30B-A3B-Instruct`, and
+  OpenRouter adds six models. OpenRouter drops
+  sixteen entries, twelve of them Qwen, and
+  Alibaba, Mistral, Moonshot, OpenAI, and xAI
+  correct limits and prices.
+
+### Fix
+
+* **tools: require `test-cmd.rb` `~> 2.7.2`** <br>
+  The exec-backed tools now need `test-cmd.rb`
+  2.7.2 or later, up from 2.7.1. Version 2.7.2
+  fixes a race where `Process.wait` could claim a
+  process another thread had spawned, so a tool
+  could answer with a status and a pid that
+  belonged to another command.
 
 ## v16.0.0
 
