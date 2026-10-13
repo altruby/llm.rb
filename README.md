@@ -245,6 +245,43 @@ agent.talk "summarize README.md"
 ```
 </details>
 
+<details>
+<summary>Serialization</summary>
+<br>
+
+Both [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
+and
+[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
+can be serialized to JSON and written to disk.
+This feature is what supports the ActiveRecord
+and Sequel integrations too but rather than
+store the agent directly on disk it is stored
+in a database column instead.
+
+An agent can be configured to read from and
+write to a file automatically with the `path`
+option. When the file already exists, the agent
+is restored from the file and continues where
+he left off. After each turn the agent flushes
+its state to the file. The text file can be shared
+like any other text file and it can be used to
+restore the agent in another process or machine:
+
+```ruby
+require "llm"
+
+path  = File.join(Dir.home, ".agents", "myagent.json")
+llm   = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm, path:)
+agent.talk "remember my name is robert"
+
+##
+# Resume the conversation where the agent left off
+agent = LLM::Agent.new(llm, path:)
+agent.talk "what's my name?"
+```
+</details>
+
 <details><summary>MCP</summary>
 <br>
 
@@ -455,42 +492,6 @@ class InterruptJob
     )
   end
 end
-```
-</details>
-<details>
-<summary>Serialization</summary>
-<br>
-
-Both [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
-and
-[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
-can be serialized to JSON and written to disk.
-This feature is what supports the ActiveRecord
-and Sequel integrations too but rather than
-store the agent directly on disk it is stored
-in a database column instead.
-
-An agent can be configured to read from and
-write to a file automatically with the `path`
-option. When the file already exists, the agent
-is restored from the file and continues where
-he left off. After each turn the agent flushes
-its state to the file. The text file can be shared
-like any other text file and it can be used to
-restore the agent in another process or machine:
-
-```ruby
-require "llm"
-
-path  = File.join(Dir.home, ".agents", "myagent.json")
-llm   = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, path:)
-agent.talk "remember my name is robert"
-
-##
-# Resume the conversation where the agent left off
-agent = LLM::Agent.new(llm, path:)
-agent.talk "what's my name?"
 ```
 </details>
 <details><summary>ActiveRecord </summary>
