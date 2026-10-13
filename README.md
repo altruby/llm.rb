@@ -263,7 +263,7 @@ The first example uses the HTTP transport to connect to
 GitHub's MCP server. The example uses a Personal Access
 Token (get yours [here](https://github.com/settings/apps))
 although it could also use a token that was obtained
-through OAuth and belongs to a user other than you.
+through OAuth and belongs to a user other than you:
 
 ```ruby
 require "llm"
@@ -283,7 +283,7 @@ It is recommended (but not required) to launch a
 stdio MCP server with a session so that the process
 is kept alive for as long as you use it, otherwise
 the process can be launched multiple times and it
-can add latency to your requests.
+can add latency to your requests:
 
 ```ruby
 require "llm"
