@@ -248,23 +248,62 @@ agent.talk "summarize README.md"
 <details><summary>MCP</summary>
 <br>
 
-The Model Context Protocol (MCP) has first-class support
-in llm.rb. The stdio and http transports work out of the
-box. MCP tools are translated into subclasses of
-[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) that can be
-used with
-[`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html) or
-[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html).
+The runtime can communicate with MCP servers via HTTP(S)
+and stdio. The stdio transport spawns a local process that
+uses its standard input and output streams for communication.
+The runtime provides a full-featured MCP client and the tools
+that an MCP server has announced are available as
+[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
+subclasses that can be used like any other subclass
+of
+[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html).
+.
+
+The first example uses the HTTP transport to connect to
+GitHub's MCP server. The example uses a Personal Access
+Token (get yours [here](https://github.com/settings/apps))
+although it could also use a token that was obtained
+through OAuth and belongs to a user other than you.
 
 ```ruby
 require "llm"
 
-llm   = LLM.deepseek(key: ENV["KEY"])
-mcp   = LLM::MCP.stdio(argv: ["ruby", "server.rb"])
+llm = LLM.deepseek(key: ENV["KEY"])
+mcp = LLM::MCP.http(
+  url: "https://api.githubcopilot.com/mcp/",
+  headers: {"Authorization" => "Bearer #{ENV['GITHUB_PAT']}"},
+  transport: :net_http_persistent
+)
 agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
-agent.talk "Run the tool"
+agent.talk "Find me an interesting Ruby project on GitHub"
 ```
 </details>
+
+The second example focuses on the second transport.
+It is recommended (but not required) to launch a
+stdio MCP server with a session so that the process
+is kept alive for as long as you use it, otherwise
+the process can be launched multiple times and it
+can add latency to your requests.
+
+```ruby
+require "llm"
+
+llm = LLM.deepseek(key: ENV["KEY"])
+mcp = LLM::MCP.stdio(
+  argv: ["bundle", "exec", "mcp-server"],
+  env: {"VAR1" => "FOO", "VAR2" => "BAR"}
+)
+
+##
+# 'mcp.session' is optional, but recommended.
+# It can be dropped but then the process may
+# be launched once per-request.
+mcp.session do
+  agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
+  agent.talk "What tools are available?"
+end
+```
 
 <details>
 <summary>Concurrency</summary>
