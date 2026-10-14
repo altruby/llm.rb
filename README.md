@@ -317,10 +317,26 @@ fans out every callback to multiple tracers.
 A simple example:
 
 ```ruby
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, tracer: LLM::Tracer.pretty(llm))
+llm    = LLM.deepseek(key: ENV["KEY"])
+tracer = LLM::Tracer.pretty(llm)
+agent  = LLM::Agent.new(llm, tracer:)
 agent.talk "Hello"
 ```
+
+A multi-tracer example:
+
+```ruby
+llm    = LLM.deepseek(key: ENV["KEY"])
+tracer = LLM::Tracer.multi(
+  llm,
+  LLM::Tracer::Logger,
+  LLM::Tracer::Telemetry,
+  LLM::Tracer::Foobar.new(llm, {option1: "foo", option2: "bar"})
+)
+agent = LLM::Agent.new(llm, tracer:)
+agent.talk "Hello"
+```
+
 </details>
 
 <details><summary>MCP</summary>

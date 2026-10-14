@@ -94,11 +94,20 @@ module LLM
 
     ##
     # Builds a {LLM::Tracer::Multi}
+    # @param [LLM::Provider] llm
     # @param [Array<LLM::Tracer>] tracers
     #  One or more tracers
     # @return [LLM::Tracer::Multi]
-    def self.multi(*tracers)
-      Multi.new(*tracers)
+    def self.multi(llm, *tracers)
+      Multi.new(
+        tracers.map do |tracer|
+          if Class === tracer
+            tracer.new(llm)
+          else
+            tracer
+          end
+        end
+      )
     end
 
     ##
