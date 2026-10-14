@@ -99,14 +99,6 @@ RSpec.describe "a turn interrupted between its requests" do
       interrupt!: nil)
   end
 
-  ##
-  # The response the transport answers with, as a pair rather than a value.
-  #
-  # `handle_response` parses the body and writes the parsed result back
-  # through the same reader, so a stub that always answered the raw string
-  # would hand the adapter a String where it expects a completion. The
-  # wrapper delegates both to this object, so the pair is what the parse
-  # round trips through.
   let(:response) do
     Net::HTTPOK.new("1.1", "200", "OK").tap do |res|
       body = LLM.json.dump(payload)
@@ -116,27 +108,17 @@ RSpec.describe "a turn interrupted between its requests" do
     end
   end
 
-  ##
-  # What the loop tells the example, and what it waits on. The example holds
-  # the gate closed until it has cancelled, so the loop is provably inside
-  # the window when the interrupt is made.
   let(:arrived) { Queue.new }
   let(:gate) { Queue.new }
   let(:requests) { [] }
   let(:failing) { false }
 
-  ##
-  # The chat completions API, because the body the transport answers with is
-  # a chat completion, and OpenAI defaults to the responses API.
   let(:agent) { LLM::Agent.new(provider, model:, mode: :completions) }
   let(:ctx) { agent.instance_variable_get(:@ctx) }
 
   before do
     fails = 0
     allow(provider).to receive(:transport).and_return(transport)
-    ##
-    # Answered where the real transport answers it, so the caller's fiber is
-    # the turn's rather than this example's.
     allow(transport).to receive(:request_owner) { Fiber.current }
     allow(transport).to receive(:set_body_stream)
     allow(transport).to receive(:request) do |*|
@@ -147,36 +129,7 @@ RSpec.describe "a turn interrupted between its requests" do
   end
 
   after do
-    ##
-    # A turn that is still waiting would outlive the stubs this example
-    # installed, and its next call would be a real one.
     @turn&.kill
-  end
-
-  ##
-  # A queue read that cannot wait forever.
-  def settle(queue, timeout = 5)
-    Timeout.timeout(timeout) { queue.pop }
-  end
-
-  ##
-  # And the same for anything else that might not come back.
-  def within(timeout = 5, &block)
-    Timeout.timeout(timeout, &block)
-  end
-
-  ##
-  # The turn, on a thread of its own, which is what a cancel has to reach:
-  # the caller is a thread that is not the one asking for the interrupt.
-  def run_turn
-    agent.talk("hi")
-    nil
-  rescue LLM::Interrupt => ex
-    ex
-  end
-
-  def turn
-    @turn ||= Thread.new { run_turn }
   end
 
   describe "when the cancel arrives between two requests" do
@@ -219,10 +172,6 @@ RSpec.describe "a turn interrupted between its requests" do
           expect(settle(arrived)).to eq([:interrupt, :agent])
         end
 
-        ##
-        # The callback is the canceller's to ask for and the turn's to make:
-        # a tracer that holds anything thread-confined is written through on
-        # one thread, which is what this pull request is for.
         it "announces from the turn's thread rather than the canceller's" do
           expect(tracer.interrupt_thread).to be(turn)
         end
@@ -291,10 +240,6 @@ RSpec.describe "a turn interrupted between its requests" do
     end
   end
 
-  ##
-  # What a caller does with the names it holds, without a turn: the record is
-  # built here the way `run_loop` builds it, and the context is asked to
-  # cancel.
   describe "when the cancel comes from the turn's own thread" do
     let(:context) { LLM::Context.new(provider) }
     let(:ended) { [] }
@@ -339,5 +284,24 @@ RSpec.describe "a turn interrupted between its requests" do
     it "does not raise into the canceller" do
       expect { LLM::Context.new(provider).interrupt! }.not_to raise_error
     end
+  end
+
+  def settle(queue, timeout = 5)
+    Timeout.timeout(timeout) { queue.pop }
+  end
+
+  def within(timeout = 5, &block)
+    Timeout.timeout(timeout, &block)
+  end
+
+  def run_turn
+    agent.talk("hi")
+    nil
+  rescue LLM::Interrupt => ex
+    ex
+  end
+
+  def turn
+    @turn ||= Thread.new { run_turn }
   end
 end
