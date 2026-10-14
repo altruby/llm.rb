@@ -2,20 +2,31 @@
 
 class LLM::Agent
   ##
-  # What a turn's caller answers to.
+  # The {LLM::Agent::Interrupt} module extends
+  # the instance variable `@caller` (an instance
+  # of {LLM::Object}) that belongs to an agent
+  # and its context.
   #
-  # A turn is a loop, and between two of its requests there is nothing in
-  # flight to close and nothing running to raise into. {LLM::Agent#run_loop}
-  # records where it is running - the thread, the fiber, the scheduler that
-  # fiber belongs to, and the tracer the turn is traced with - and extends
-  # this onto that record, so an interrupt with nothing more precise to do
-  # has somewhere to land: {LLM::Context#interrupt!} calls `interrupt!` on
-  # the caller it holds, and what the caller does with the names is its own
-  # business.
+  # The `@caller` instance variable captures the
+  # agent's thread, fiber, and scheduler. The
+  # variable is in scope for as long as an agent
+  # is running and it provides other threads and
+  # fibers with access to the agent's thread,
+  # fiber and scheduler.
   #
-  # It is public rather than private because the runtime is not the only
-  # thing that runs a loop: an application with a loop of its own can record
-  # a caller the same way, and a spec can build one without running a turn.
+  # A different thread or fiber can use this module
+  # and the object it extends (`@caller`) to stop
+  # an agent in its tracks via the raise of
+  # {LLM::Interrupt LLM::Interrupt} on the
+  # agent's thread, or fiber.
+  #
+  # @note
+  #  The method provided by this module is
+  #  not called directly, and the `@caller`
+  #  instance variable is private. The
+  #  {LLM::Agent#interrupt!} and {LLM::Context#interrupt!}
+  #  methods call it on your behalf.
+  #
   # @see LLM::Agent#run_loop
   # @see LLM::Context#interrupt!
   module Interrupt
