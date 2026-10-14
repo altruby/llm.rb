@@ -474,6 +474,51 @@ by default, and the easiest way to grab them is via
 ![llm.rb console demo](demo.gif)
 
 </details>
+<details><summary>Budgets</summary>
+<br>
+
+An agent has a retry budget, and a tool call
+budget. The retry budget is enabled by default,
+and it determines how many times we will retry
+when our request is rate limited. Between retries
+we will sleep, and each retry sleeps a little longer
+than the last.
+
+The default retry budget is usually 5 but
+it can vary by provider and it is determined
+by the `LLM::Provider#retry_budget` method. When
+the budget is spent and we are still rate limited,
+an exception (`LLM::RateLimitError`) is raised. The
+budget can be disabled by setting `retry_budget`
+to zero:
+
+```ruby
+require "llm"
+
+llm = LLM.deepseek
+agent = LLM::Agent.new(llm, retry_budget: 0)
+```
+
+The second budget describes how many tool calls
+are allowed in a single turn, and it is disabled
+by default. When the limit is reached or breached
+the agent will reply with an in-band error that
+tells the model it has spent its tool call budget,
+and that it should stop requesting tool calls for
+this turn. This exchange repeats until the model
+complies.
+
+The budget is restored after a turn completes and the
+model will normally provide a response from the tool
+calls made before the budget was spent:
+
+```ruby
+require "llm"
+
+llm = LLM.deepseek
+agent = LLM::Agent.new(llm, tool_budget: 25)
+```
+</details>
 
 #### Database
 
