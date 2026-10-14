@@ -973,56 +973,26 @@ module LLM
         end
         res
       end
-      ##
-      # One turn, one trace group. A tracer
-      # is told where the turn begins and
-      # where it ends. The trace group ID
-      # identifies the turn.
-      tracer = @tracer || @llm.tracer
-      tracer.start_trace(name: "llm.turn", trace_group_id: SecureRandom.uuid_v7)
-      ##
-      # Where the turn is running, for as long as it runs.
-      #
-      # A cancel reaches a request in flight and the tools that are
-      # running, and between those it reached nothing: the loop is
-      # between two requests, or waiting out a retry, or building the
-      # next one. What is left over is a raise into the caller the turn
-      # is running under, and this names it - recorded here rather than in
-      # `Context#talk`, because a turn is a loop and not a request.
-      #
-      # The scheduler is part of it, and read here rather than by the
-      # caller: a cancel runs on the canceller's thread, which is not the
-      # thread a scheduler was installed on. The fiber strategy names it
-      # for the same reason. The tracer is part of it too, because the
-      # caller announces the turn's last phase to it before raising.
-      #
-      # Set to nil below once the turn is over, and that is not a
-      # formality: a worker's thread is reused for the turn after this
-      # one, and a cancel that arrived late would otherwise land in
-      # whatever that thread is doing.
-      @ctx.instance_variable_set(
-        :@caller,
-        LLM::Object.from(
-          thread: Thread.current,
-          fiber: @llm.request_owner,
-          scheduler: Fiber.scheduler,
-          tracer:
-        ).extend(Interrupt)
-      )
-      ##
-      # And where the turn can be found by whoever does not hold it.
-      #
-      # The caller above is for a cancel that has the agent and needs to
-      # know what to raise into; this is for a cancel that has only an
-      # identity - a route with a row id - and no agent at all. Registered
-      # for as long as the turn runs, and forgotten in the same `ensure`,
-      # which is the whole of its lifetime.
-      REGISTRY.enter(self)
-      @llm.with_tracer(tracer, &run)
-    ensure
-      REGISTRY.exit(self)
-      @ctx.instance_variable_set(:@caller, nil)
-      tracer&.stop_trace
+
+      begin
+        tracer = @tracer || @llm.tracer
+        caller = LLM::Object.from(thread: Thread.current,
+                                  fiber: @llm.request_owner,
+                                  scheduler: Fiber.scheduler).extend(Interrupt)
+        @ctx.instance_variable_set(:@caller, caller)
+        tracer.start_trace(name: "llm.turn", trace_group_id: SecureRandom.uuid_v7)
+        REGISTRY.enter(self)
+        @llm.with_tracer(tracer) do
+          run.call
+        rescue LLM::Interrupt
+          tracer&.on_interrupt(scope: :agent)
+          raise
+        end
+      ensure
+        REGISTRY.exit(self)
+        @ctx.instance_variable_set(:@caller, nil)
+        tracer&.stop_trace
+      end
     end
 
     ##

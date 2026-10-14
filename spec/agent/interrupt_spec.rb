@@ -3,15 +3,9 @@
 require "setup"
 require "timeout"
 
-##
-# A turn is a loop, and between two of its requests there is nothing in
-# flight to close and nothing running to raise into - so a cancel that
-# arrived there reached nothing at all, until the loop named the caller it is
-# running under and the caller learned to answer `interrupt!`.
-#
-# Every wait here has a deadline, so a hook that never fires is a failing
-# example rather than a suite that stops where the hook was expected.
 class BlockingTracer < LLM::Tracer
+  attr_reader :interrupt_thread
+
   def initialize(llm, arrived:, gate:)
     super(llm)
     @arrived, @gate = arrived, gate
@@ -21,15 +15,6 @@ class BlockingTracer < LLM::Tracer
     nil
   end
 
-  ##
-  # The end of a request, which is the window itself: the provider has
-  # answered, the transport has taken the request out of its map, and no
-  # tool is running. The example is told the loop is there, and the loop
-  # waits to be cancelled.
-  #
-  # A tracer rather than a stream, because a stream would put the response
-  # through the streaming path and this example is about the turn between
-  # two requests, not about how a response arrives.
   def on_request_finish(operation:, res:, model: nil, span: nil, outputs: nil, metadata: nil, request_id: nil)
     @arrived << :finish
     @gate.pop
@@ -40,20 +25,13 @@ class BlockingTracer < LLM::Tracer
     nil
   end
 
-  ##
-  # The phase the caller ends, announced by `LLM::Agent::Interrupt` before it
-  # raises - the same hook the tool phase is announced through.
   def on_interrupt(scope: nil)
+    @interrupt_thread = Thread.current
     @arrived << [:interrupt, scope]
     nil
   end
 end
 
-##
-# The same window, on the path a retry opens: the request that was made
-# failed and the next one has not been, so there is nothing in flight and
-# nothing running. A retry is announced before the backoff, so a stream is
-# the interface for it and no response is parsed to reach it.
 class BlockingRetry < LLM::Stream
   def initialize(arrived:, gate:)
     @arrived, @gate = arrived, gate
@@ -65,12 +43,6 @@ class BlockingRetry < LLM::Stream
   end
 end
 
-##
-# And the window before any request was made. A compactor runs at the top
-# of `Context#talk`, before a prompt is built and before the transport is
-# asked for anything, so a turn cancelled here has nothing at all in
-# flight - which is the moment an application that offers a cancel from
-# the first claim has to be able to honour.
 class BlockingCompactor < LLM::Compactor
   def call(arrived:, gate:, **)
     arrived << :compaction
@@ -90,14 +62,6 @@ RSpec.describe "a turn interrupted between its requests" do
       interrupt!: nil)
   end
 
-  ##
-  # The response the transport answers with, as a pair rather than a value.
-  #
-  # `handle_response` parses the body and writes the parsed result back
-  # through the same reader, so a stub that always answered the raw string
-  # would hand the adapter a String where it expects a completion. The
-  # wrapper delegates both to this object, so the pair is what the parse
-  # round trips through.
   let(:response) do
     Net::HTTPOK.new("1.1", "200", "OK").tap do |res|
       body = LLM.json.dump(payload)
@@ -107,27 +71,17 @@ RSpec.describe "a turn interrupted between its requests" do
     end
   end
 
-  ##
-  # What the loop tells the example, and what it waits on. The example holds
-  # the gate closed until it has cancelled, so the loop is provably inside
-  # the window when the interrupt is made.
   let(:arrived) { Queue.new }
   let(:gate) { Queue.new }
   let(:requests) { [] }
   let(:failing) { false }
 
-  ##
-  # The chat completions API, because the body the transport answers with is
-  # a chat completion, and OpenAI defaults to the responses API.
   let(:agent) { LLM::Agent.new(provider, model:, mode: :completions) }
   let(:ctx) { agent.instance_variable_get(:@ctx) }
 
   before do
     fails = 0
     allow(provider).to receive(:transport).and_return(transport)
-    ##
-    # Answered where the real transport answers it, so the caller's fiber is
-    # the turn's rather than this example's.
     allow(transport).to receive(:request_owner) { Fiber.current }
     allow(transport).to receive(:set_body_stream)
     allow(transport).to receive(:request) do |*|
@@ -138,42 +92,13 @@ RSpec.describe "a turn interrupted between its requests" do
   end
 
   after do
-    ##
-    # A turn that is still waiting would outlive the stubs this example
-    # installed, and its next call would be a real one.
     @turn&.kill
   end
 
-  ##
-  # A queue read that cannot wait forever.
-  def settle(queue, timeout = 5)
-    Timeout.timeout(timeout) { queue.pop }
-  end
-
-  ##
-  # And the same for anything else that might not come back.
-  def within(timeout = 5, &block)
-    Timeout.timeout(timeout, &block)
-  end
-
-  ##
-  # The turn, on a thread of its own, which is what a cancel has to reach:
-  # the caller is a thread that is not the one asking for the interrupt.
-  def run_turn
-    agent.talk("hi")
-    nil
-  rescue LLM::Interrupt => ex
-    ex
-  end
-
-  def turn
-    @turn ||= Thread.new { run_turn }
-  end
-
   describe "when the cancel arrives between two requests" do
+    let(:tracer) { BlockingTracer.new(provider, arrived:, gate:) }
     let(:agent) do
-      LLM::Agent.new(provider, model:, mode: :completions,
-                     tracer: BlockingTracer.new(provider, arrived:, gate:))
+      LLM::Agent.new(provider, model:, mode: :completions, tracer:)
     end
     let(:caller) { ctx.instance_variable_get(:@caller) }
 
@@ -208,6 +133,10 @@ RSpec.describe "a turn interrupted between its requests" do
 
         it "tells the tracer which phase ended" do
           expect(settle(arrived)).to eq([:interrupt, :agent])
+        end
+
+        it "announces from the turn's thread rather than the canceller's" do
+          expect(tracer.interrupt_thread).to be(turn)
         end
 
         it "makes no request of its own" do
@@ -274,10 +203,6 @@ RSpec.describe "a turn interrupted between its requests" do
     end
   end
 
-  ##
-  # What a caller does with the names it holds, without a turn: the record is
-  # built here the way `run_loop` builds it, and the context is asked to
-  # cancel.
   describe "when the cancel comes from the turn's own thread" do
     let(:context) { LLM::Context.new(provider) }
     let(:ended) { [] }
@@ -318,12 +243,28 @@ RSpec.describe "a turn interrupted between its requests" do
     end
   end
 
-  ##
-  # And the turn that never named a caller - a raw context, which has no loop
-  # of its own - keeps the behaviour it had.
   describe "when no caller was recorded" do
     it "does not raise into the canceller" do
       expect { LLM::Context.new(provider).interrupt! }.not_to raise_error
     end
+  end
+
+  def settle(queue, timeout = 5)
+    Timeout.timeout(timeout) { queue.pop }
+  end
+
+  def within(timeout = 5, &block)
+    Timeout.timeout(timeout, &block)
+  end
+
+  def run_turn
+    agent.talk("hi")
+    nil
+  rescue LLM::Interrupt => ex
+    ex
+  end
+
+  def turn
+    @turn ||= Thread.new { run_turn }
   end
 end
