@@ -58,7 +58,6 @@ class LLM::Agent
     def interrupt!
       if thread.equal?(Thread.current)
         if fiber
-          tracer&.on_interrupt(scope: :agent)
           if scheduler
             scheduler.fiber_interrupt(fiber, LLM::Interrupt.new("agent interrupted"))
           else
@@ -66,7 +65,6 @@ class LLM::Agent
           end
         end
       else
-        tracer&.on_interrupt(scope: :agent)
         thread.raise(LLM::Interrupt, "agent interrupted")
       end
       nil

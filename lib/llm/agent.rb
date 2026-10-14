@@ -1018,7 +1018,12 @@ module LLM
       # for as long as the turn runs, and forgotten in the same `ensure`,
       # which is the whole of its lifetime.
       REGISTRY.enter(self)
-      @llm.with_tracer(tracer, &run)
+      begin
+        @llm.with_tracer(tracer, &run)
+      rescue LLM::Interrupt
+        tracer&.on_interrupt(scope: :agent)
+        raise
+      end
     ensure
       REGISTRY.exit(self)
       @ctx.instance_variable_set(:@caller, nil)
