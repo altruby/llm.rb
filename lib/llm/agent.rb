@@ -981,12 +981,14 @@ module LLM
                                   scheduler: Fiber.scheduler,
                                   tracer:).extend(Interrupt)
         @ctx.instance_variable_set(:@caller, caller)
-        REGISTRY.enter(self)
         tracer.start_trace(name: "llm.turn", trace_group_id: SecureRandom.uuid_v7)
-        @llm.with_tracer(tracer, &run)
-      rescue LLM::Interrupt
-        tracer&.on_interrupt(scope: :agent)
-        raise
+        REGISTRY.enter(self)
+        @llm.with_tracer(tracer) do
+          run.call
+        rescue LLM::Interrupt
+          tracer&.on_interrupt(scope: :agent)
+          raise
+        end
       ensure
         REGISTRY.exit(self)
         @ctx.instance_variable_set(:@caller, nil)
