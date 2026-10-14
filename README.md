@@ -522,6 +522,53 @@ agent = LLM::Agent.new(llm, tools:, tool_budget: 25)
 agent.talk "fix every FIXME in this repository"
 ```
 </details>
+<details>
+<summary>class Agent < LLM::Agent</summary>
+<br>
+
+The examples so far have focused on
+[LLM::Agent](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
+as an object but you can create a subclass that inherits from
+[LLM::Agent](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
+too. Both support the same features and accept the same options
+but a subclass can be configured with the `set` method, implement
+its own methods, inherit from other modules and create multiple
+instances of itself.
+
+The
+[`LLM::Agent.set`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#set-class_method)
+method can be used to configure your agent, and
+it accepts all the same options that an instance
+of [LLM::Agent](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
+accepts. An option can be resolved lazily via
+a Proc or a Symbol that represents a method
+on your class, and all options are optional -
+you can set many or none, and your subclass
+will still work. For example:
+
+```ruby
+require "llm"
+require "llm/tools"
+
+class Agent < LLM::Agent
+  set name: "sysadmin",
+      description: "performs system administration tasks",
+      instructions: proc { File.read("prompt.md") },
+      concurrency: :fork,
+      tools: :mytools
+
+  private
+
+  def mytools
+    [LLM::Tool::Exec]
+  end
+end
+
+llm = LLM.deepseek(key: ENV["KEY"])
+agent = Agent.new(llm)
+agent.talk "What's our uptime?"
+```
+</details>
 
 #### Database
 
@@ -1050,35 +1097,6 @@ require "llm"
 llm   = LLM.deepseek(key: ENV["KEY"])
 agent = LLM::Agent.new(llm, skills: ["summary.md"])
 agent.talk "Summarize the last week of work"
-```
-</details>
-
-<details>
-<summary>As a subclass</summary>
-<br>
-
-[`LLM::Agent.set`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#set-class_method)
-is a class-level DSL that accepts a Hash of properties. Each key resolves to a
-corresponding class accessor: `name`, `description`, `model`, `tools`,
-`instructions`, `schema`, `stream`, `tracer`, `concurrency`, `confirm`,
-`path`, `skills`, `tool_budget`, and `retry_budget`. All options are
-optional; zero or more can be set.
-An error is raised for unknown keys so that typos are caught early.
-
-```ruby
-require "llm"
-require "llm/tools"
-
-class Agent < LLM::Agent
-  set name: "sysadmin",
-      description: "system administration agent",
-      model: "deepseek-v4-pro",
-      tools: [LLM::Tool::Exec]
-end
-
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = Agent.new(llm)
-agent.talk "Run 'date'"
 ```
 </details>
 
