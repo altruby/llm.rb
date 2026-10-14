@@ -514,9 +514,12 @@ calls made before the budget was spent:
 
 ```ruby
 require "llm"
+require "llm/tools"
 
-llm = LLM.deepseek
-agent = LLM::Agent.new(llm, tool_budget: 25)
+llm   = LLM.deepseek
+tools = LLM::Tool.subclasses
+agent = LLM::Agent.new(llm, tools:, tool_budget: 25)
+agent.talk "fix every FIXME in this repository"
 ```
 </details>
 
