@@ -107,6 +107,81 @@ RSpec.describe LLM::Tracer::Multi do
     end
   end
 
+  describe ".multi" do
+    let(:llm) { LLM.openai(key: "test") }
+
+    let(:tracer_class) do
+      Class.new(LLM::Tracer::Null) do
+        attr_reader :calls
+
+        def initialize(llm)
+          super(llm)
+          @calls = []
+        end
+
+        def on_request_start(operation:, model: nil, inputs: nil, request_id:)
+          @calls << :on_request_start
+          self
+        end
+
+        def on_interrupt(scope:, span: nil, request_id: nil)
+          @calls << :on_interrupt
+          nil
+        end
+      end
+    end
+
+    let(:first) { tracer_class.new(llm) }
+    let(:second) { tracer_class.new(llm) }
+    let(:multi) { LLM::Tracer.multi(llm, tracer_class, tracer_class) }
+    let(:spans) { multi.on_request_start(operation: "chat", request_id:) }
+
+    it "builds one tracer per class given" do
+      expect(multi.tracers.size).to eq(2)
+    end
+
+    it "builds a tracer of the class given" do
+      expect(multi.tracers).to all(be_a(tracer_class))
+    end
+
+    it "builds every tracer with the provider" do
+      expect(multi.tracers.map(&:llm)).to eq([llm, llm])
+    end
+
+    it "builds the built-in tracers as well" do
+      expect(LLM::Tracer.multi(llm, LLM::Tracer::Null).tracers).to all(be_a(LLM::Tracer::Null))
+    end
+
+    it "keeps the tracers in the order they are given" do
+      expect(LLM::Tracer.multi(llm, first, second).tracers).to eq([first, second])
+    end
+
+    it "uses a tracer that is already an instance as it is" do
+      expect(LLM::Tracer.multi(llm, first).tracers.first).to be(first)
+    end
+
+    it "builds a class given beside an instance" do
+      expect(LLM::Tracer.multi(llm, first, tracer_class).tracers.last).to be_a(tracer_class)
+    end
+
+    it "holds no tracers when none are given" do
+      expect(LLM::Tracer.multi(llm).tracers).to eq([])
+    end
+
+    it "returns no spans when it holds no tracers" do
+      expect(LLM::Tracer.multi(llm).on_request_start(operation: "chat", request_id:)).to eq([])
+    end
+
+    it "returns the span each tracer answered with" do
+      expect(spans).to eq(multi.tracers)
+    end
+
+    it "fans an interrupt out to every tracer" do
+      multi.on_interrupt(scope: :request)
+      expect(multi.tracers.map(&:calls)).to eq([[:on_interrupt], [:on_interrupt]])
+    end
+  end
+
   describe "#on_request_start / #on_request_finish" do
     let(:res) { double("LLM::Response") }
 
