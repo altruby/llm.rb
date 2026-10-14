@@ -523,7 +523,7 @@ agent.talk "fix every FIXME in this repository"
 ```
 </details>
 <details>
-<summary>class Agent < LLM::Agent</summary>
+<summary><code>class Agent < LLM::Agent</code></summary>
 <br>
 
 The examples so far have focused on
