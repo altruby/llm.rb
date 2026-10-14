@@ -976,17 +976,13 @@ module LLM
 
       begin
         tracer = @tracer || @llm.tracer
-        tracer.start_trace(name: "llm.turn", trace_group_id: SecureRandom.uuid_v7)
-        @ctx.instance_variable_set(
-          :@caller,
-          LLM::Object.from(
-            thread: Thread.current,
-            fiber: @llm.request_owner,
-            scheduler: Fiber.scheduler,
-            tracer:
-          ).extend(Interrupt)
-        )
+        caller = LLM::Object.from(thread: Thread.current,
+                                  fiber: @llm.request_owner,
+                                  scheduler: Fiber.scheduler,
+                                  tracer:).extend(Interrupt)
+        @ctx.instance_variable_set(:@caller, caller)
         REGISTRY.enter(self)
+        tracer.start_trace(name: "llm.turn", trace_group_id: SecureRandom.uuid_v7)
         @llm.with_tracer(tracer, &run)
       rescue LLM::Interrupt
         tracer&.on_interrupt(scope: :agent)
