@@ -100,7 +100,7 @@ module LLM
     # @return [LLM::Tracer::Multi]
     def self.multi(llm, *tracers)
       Multi.new(
-        tracers.map do |tracer|
+        *tracers.map do |tracer|
           if Class === tracer
             tracer.new(llm)
           else
