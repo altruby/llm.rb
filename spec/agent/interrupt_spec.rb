@@ -12,6 +12,13 @@ require "timeout"
 # Every wait here has a deadline, so a hook that never fires is a failing
 # example rather than a suite that stops where the hook was expected.
 class BlockingTracer < LLM::Tracer
+  ##
+  # The thread the interrupt was announced on. It is the assertion this
+  # class exists for: the callback belongs to the turn's thread, not to the
+  # canceller's.
+  # @return [Thread, nil]
+  attr_reader :interrupt_thread
+
   def initialize(llm, arrived:, gate:)
     super(llm)
     @arrived, @gate = arrived, gate
@@ -41,9 +48,11 @@ class BlockingTracer < LLM::Tracer
   end
 
   ##
-  # The phase the caller ends, announced by `LLM::Agent::Interrupt` before it
-  # raises - the same hook the tool phase is announced through.
+  # The phase the caller ends, announced by `LLM::Agent#run_loop` where it
+  # catches the raise - the same hook the tool phase is announced through,
+  # and on the thread the raise was delivered to.
   def on_interrupt(scope: nil)
+    @interrupt_thread = Thread.current
     @arrived << [:interrupt, scope]
     nil
   end
@@ -171,9 +180,9 @@ RSpec.describe "a turn interrupted between its requests" do
   end
 
   describe "when the cancel arrives between two requests" do
+    let(:tracer) { BlockingTracer.new(provider, arrived:, gate:) }
     let(:agent) do
-      LLM::Agent.new(provider, model:, mode: :completions,
-                     tracer: BlockingTracer.new(provider, arrived:, gate:))
+      LLM::Agent.new(provider, model:, mode: :completions, tracer:)
     end
     let(:caller) { ctx.instance_variable_get(:@caller) }
 
@@ -208,6 +217,14 @@ RSpec.describe "a turn interrupted between its requests" do
 
         it "tells the tracer which phase ended" do
           expect(settle(arrived)).to eq([:interrupt, :agent])
+        end
+
+        ##
+        # The callback is the canceller's to ask for and the turn's to make:
+        # a tracer that holds anything thread-confined is written through on
+        # one thread, which is what this pull request is for.
+        it "announces from the turn's thread rather than the canceller's" do
+          expect(tracer.interrupt_thread).to be(turn)
         end
 
         it "makes no request of its own" do
