@@ -2,6 +2,8 @@
 
 class LLM::Agent
   ##
+  # Stop an agent in its tracks.
+  #
   # The {LLM::Agent::Interrupt} module extends
   # the instance variable `@caller` (an instance
   # of {LLM::Object}) that belongs to an agent
