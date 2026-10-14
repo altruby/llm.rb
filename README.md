@@ -566,7 +566,7 @@ end
 
 llm = LLM.deepseek(key: ENV["KEY"])
 agent = Agent.new(llm)
-agent.talk "What's our uptime?"
+agent.talk "What's our uptime?", stream: $stdout
 ```
 </details>
 
