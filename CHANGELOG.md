@@ -87,6 +87,24 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   than taking the request down with it, and
   `LLM::Interrupt` still travels up the stack.
 
+* **tracer: add `LLM::Tracer.multi`** <br>
+  Add
+  [`LLM::Tracer.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#multi-class_method)
+  as a factory for `LLM::Tracer::Multi`. The
+  provider comes first and is required, so a
+  tracer given as a class is built with it,
+  while a tracer given as an instance is used
+  as it is. Builtin tracers and a custom one
+  can be mixed in a single call.
+
+* **tracer: alias `LLM::Tracer.pretty_logger` as `LLM::Tracer.pretty`** <br>
+  Add
+  [`LLM::Tracer.pretty`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty_logger-class_method)
+  as an alias for `LLM::Tracer.pretty_logger`,
+  so the shorter name builds the same tracer
+  with the same options. The README uses
+  `pretty` throughout.
+
 * **tracer: protect an agent from a tracer crash** <br>
   The
   [`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
@@ -112,12 +130,23 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
   Both `ractor`, and `fork` already kept the
   tracer on one thread, and now all strategies
-  do. The last exception to the rule is
-  `LLM::Tracer#on_interrupt`, which may be
+  do. The last exception to the rule was
+  `LLM::Tracer#on_interrupt`, which could be
   called on the thread that asked for the
   interrupt rather than the thread that
-  received the interrupt. This is an open
-  issue.
+  received the interrupt.
+
+* **tracer: run `LLM::Tracer#on_interrupt` on the agent's thread** <br>
+  The
+  [`LLM::Tracer#on_interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#on_interrupt-instance_method)
+  callback is now called on the agent's thread,
+  or fiber, the same as every other callback.
+  Before, it was called by whoever asked for the
+  interrupt, so a tracer could be called across
+  threads for an interrupt alone. The raise now
+  unwinds to the turn it stopped, the tracer is
+  told `scope: :agent` there, and the interrupt
+  is re-raised for the caller.
 
 * **tracer: `on_interrupt` and `on_exit` raise `NotImplementedError`** <br>
   The
