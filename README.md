@@ -564,7 +564,7 @@ class Agent < LLM::Agent
   end
 end
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = Agent.new(llm)
 agent.talk "What's our uptime?", stream: $stdout
 ```
