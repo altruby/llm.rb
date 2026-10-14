@@ -335,9 +335,6 @@ RSpec.describe "a turn interrupted between its requests" do
     end
   end
 
-  ##
-  # And the turn that never named a caller - a raw context, which has no loop
-  # of its own - keeps the behaviour it had.
   describe "when no caller was recorded" do
     it "does not raise into the canceller" do
       expect { LLM::Context.new(provider).interrupt! }.not_to raise_error
