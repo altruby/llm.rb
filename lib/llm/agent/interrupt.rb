@@ -20,7 +20,7 @@ class LLM::Agent
   # @see LLM::Context#interrupt!
   module Interrupt
     ##
-    # Ends the turn where it is, and tells the tracer first.
+    # Ends the turn where it is.
     #
     # Which name receives the raise is decided by who is cancelling:
     #
@@ -43,17 +43,18 @@ class LLM::Agent
     # behind it - a turn an application ran in a fiber of its own - is raised
     # into directly, which is what such a fiber is for.
     #
-    # The tracer is told `scope: :agent`, before the raise, the way
-    # {LLM::Context#wait} tells it `scope: :tool` before the caller is given
-    # that interrupt. A tracer that has to account for every interrupt a turn
-    # receives needs this one too, and the alternative - announcing it from
-    # the turn as it unwinds - is not available: between two requests there
-    # is no frame of the turn's own to announce it from.
+    # Nothing is announced to the tracer here, and that is the point: this
+    # delivers the raise and nothing else, so the callback belongs to the
+    # frame that catches it rather than to the canceller's thread.
+    # {LLM::Agent#run_loop} catches a turn's and announces `scope: :agent`,
+    # and {LLM::Context#wait} announces `scope: :tool` from its own rescue
+    # the same way, before the caller is given the interrupt either of them
+    # ended.
     #
-    # Nothing is raised, and nothing is announced, when there is no fiber to
-    # raise into - and nothing is raised when the turn ended between the read
-    # and the raise, which is the ordinary race, because a cancel that
-    # arrives after a turn is not a failure.
+    # Nothing is raised when the record holds no fiber, and nothing is raised
+    # when the turn ended between the read and the raise, which is the
+    # ordinary race, because a cancel that arrives after a turn is not a
+    # failure.
     # @return [nil]
     def interrupt!
       if thread.equal?(Thread.current)
