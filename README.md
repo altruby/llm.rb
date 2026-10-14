@@ -263,7 +263,7 @@ of the spec is supported: objects, enums,
 arrays, nested objects, strings, integers,
 and so on.
 [`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
-also supports the parameter definitions
+also provides the parameter definitions
 available to
 [`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
 subclasses and the same range of types are
