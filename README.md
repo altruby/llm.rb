@@ -244,7 +244,53 @@ agent = LLM::Agent.new(llm, tools: [ReadFile], stream: $stdout)
 agent.talk "summarize README.md"
 ```
 </details>
+<details><summary>Schema</summary>
+<br>
 
+The
+[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
+class describes an object that has properties
+of different types, and it can also reference
+other objects, or schemas. The object describes
+the shape of a JSON object that the model will
+return in place of the usual free-form text that
+a model replies with.
+
+This feature is implemented with
+[JSONSchema](https://json-schema.org/)
+under the hood and a large portion
+of the spec is supported: objects, enums,
+arrays, nested objects, strings, integers,
+and so on.
+[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
+also supports the parameter definitions
+available to
+[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html)
+subclasses and the same range of types are
+supported.
+
+The
+[`LLM::DeepSeek`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html)
+provider does not support structured outputs
+officially but the runtime implements structured
+outputs on top of the `json_object` API and it
+works the same as all other providers who do
+support structured outputs:
+
+```ruby
+class Forecast < LLM::Schema
+  property :city, String, "The city name"
+  property :temperature, Number, "Current temperature"
+  property :conditions, String, "Weather conditions"
+  required %i[city temperature conditions]
+end
+
+llm = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm)
+res = agent.talk "Weather in Paris?", schema: Forecast
+res.content!  # => {city: "Paris", temperature: 15.0, conditions: "Cloudy"}
+```
+</details>
 <details>
 <summary>Serialization</summary>
 <br>
@@ -427,48 +473,6 @@ by default, and the easiest way to grab them is via
 
 ![llm.rb console demo](demo.gif)
 
-</details>
-
-<details><summary>Structured outputs</summary>
-<br>
-
-[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
-subclasses produce typed, structured
-output from any model call. Pass a schema to
-[`LLM::Context#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#talk-instance_method),
-[`LLM::Agent#talk`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#talk-instance_method),
-or
-[`LLM::Provider#complete`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#complete-instance_method)
-to receive validated JSON instead of free text. Schemas work alongside tools and streams.
-
-[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
-can define objects, arrays, enums, nested schemas,
-and more. It is also used internally by
-[`LLM::Tool`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html) for parameter
-definitions, so you already benefit from it when you declare tool
-parameters.
-
-The
-[`LLM::DeepSeek`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html)
-provider includes runtime-level optimisations such as structured
-output support (despite no official structured outputs API) and
-SVG image generation. This example uses
-[`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html) with
-DeepSeek:
-
-```ruby
-class Weather < LLM::Schema
-  property :city, String, "The city name"
-  property :temperature, Number, "Current temperature"
-  property :conditions, String, "Weather conditions"
-  required %i[city temperature conditions]
-end
-
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, schema: Weather)
-res = agent.talk "Weather in Paris?"
-res.content!  # => {city: "Paris", temperature: 15.0, conditions: "Cloudy"}
-```
 </details>
 
 #### Database
