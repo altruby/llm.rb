@@ -68,7 +68,6 @@ module LLM
     private_constant :INSTRUCTIONS
 
     ##
-    # Ugh :)
     # @api private
     FIELDS = %i[record
                 name description
@@ -77,12 +76,15 @@ module LLM
                 skills schema
                 tracer stream
                 tools concurrency
-                instructions confirm]
+                instructions confirm
+                intercept]
     IVARS  =  %i[record
                  name description
                  path tool_budget
                  tracer concurrency
-                 instructions confirm]
+                 instructions confirm
+                 intercept]
+
     private_constant :FIELDS, :IVARS
 
     ##
@@ -269,18 +271,14 @@ module LLM
     end
 
     ##
-    # Set or get the tool names that require confirmation before they can run.
-    #
-    # When a single Symbol is given, it is stored as-is and resolved at
-    # initialization time by calling the method with that name on the agent
-    # instance. This allows dynamic tool confirmation lists.
+    # Set or get the agent tools that require confirmation.
     #
     # @example
     #   class MyAgent < LLM::Agent
-    #     confirm :tools_that_need_confirmation
-    #
-    #     def tools_that_need_confirmation
-    #       some_condition ? %w[delete destroy] : %w[delete]
+    #     confirm :dangerous_tools
+    #     private
+    #     def dangerous_tools
+    #       %w[delete]
     #     end
     #   end
     #
@@ -298,17 +296,6 @@ module LLM
       else
         @confirm = tool_names.flatten.map(&:to_s)
       end
-    end
-
-    ##
-    # Set or get the default instructions
-    # @param [String, nil] instructions
-    #  The system instructions
-    # @return [String, nil]
-    #  Returns the current instructions when no argument is provided
-    def self.instructions(instructions = nil)
-      return @instructions if instructions.nil?
-      @instructions = instructions
     end
 
     ##
@@ -332,43 +319,75 @@ module LLM
     end
 
     ##
-    # Set or get the default tracer.
+    # Set or get an agent's instructions
     #
-    # When a block is provided, it is stored and evaluated lazily against the
-    # agent instance during initialization so it can build a tracer from the
-    # resolved provider.
-    #
-    # @example
-    #   class Agent < LLM::Agent
-    #     tracer { LLM::Tracer.logger(llm, io: $stdout) }
-    #   end
-    #
-    # @param [LLM::Tracer, Proc, nil] tracer
-    # @yieldreturn [LLM::Tracer, nil]
-    # @return [LLM::Tracer, Proc, nil]
-    def self.tracer(tracer = nil, &block)
-      return @tracer if tracer.nil? && !block
-      @tracer = block || tracer
+    # @param [String, Symbol, nil] instructions
+    #  The system instructions
+    # @param [Proc] block
+    #  A block that is lazy-evaled.
+    # @return [String, nil]
+    #  Returns the instructions
+    def self.instructions(instructions = UNDEFINED, &block)
+     if instructions.equal?(UNDEFINED) and block.nil?
+        @instructions
+      else
+        @instructions = block || instructions
+      end
     end
 
     ##
-    # Set or get the default stream.
-    #
-    # When a block is provided, it is stored and evaluated lazily against the
-    # agent instance during initialization so it can build a fresh stream for
-    # each agent.
+    # Set or get an agent's tracer.
     #
     # @example
     #   class Agent < LLM::Agent
-    #     stream { MyStream.new }
+    #     set tracer: proc { LLM::Tracer.logger(llm, io: $stdout) }
+    #   end
+    #
+    # @param [LLM::Tracer, Symbol, nil] tracer
+    #  A tracer.
+    # @param [Proc] block
+    #  A block that is lazy-evaled.
+    # @return [LLM::Tracer, Proc, nil]
+    def self.tracer(tracer = UNDEFINED, &block)
+     if tracer.equal?(UNDEFINED) and block.nil?
+        @tracer
+      else
+        @tracer = block || tracer
+      end
+    end
+
+    ##
+    # Set or get an agent's intercept.
+    # @param [LLM::Intercept] intercept
+    #  An intercept object
+    # @param [Proc] block
+    #  A block that is lazy-evaled.
+    # @return [LLM::Intercept, nil]
+    def self.intercept(intercept = UNDEFINED, &block)
+     if intercept.equal?(UNDEFINED) and block.nil?
+        @intercept
+      else
+        @intercept = block || intercept
+      end
+    end
+
+    ##
+    # Set or get an agent's stream
+    #
+    # @example
+    #   class Agent < LLM::Agent
+    #     set stream: proc { MyStream.new }
     #   end
     #
     # @param [Object, Proc, nil] stream
     # @yieldreturn [Object, nil]
     # @return [Object, Proc, nil]
-    def self.stream(stream = nil, &block)
-      return @stream if stream.nil? && !block
-      @stream = block || stream
+    def self.stream(stream = UNDEFINED, &block)
+     if stream.equal?(UNDEFINED) and block.nil?
+        @stream
+      else
+        @stream = block || stream
+      end
     end
 
     ##
@@ -387,19 +406,9 @@ module LLM
 
     ##
     # Set or get the maximum number of tool calls
-    # that are allowed in a single turn. Once the
-    # budget is spent, no further tool calls are run:
-    # we return an in-band message that informs the
-    # model it has spent its tool call budget, and
-    # keep returning it while the model keeps asking
-    # for tools - a model will usually change course
-    # afterwards. The budget counts tool calls, so a
-    # batch of calls is spent as a batch, and a batch
-    # that would take the turn past its budget is not
-    # run at all.
+    # an agent can make in a single turn.
     # @note
-    #  By default this feature is disabled
-    #  (set to `nil`).
+    #  This feature is disabled by default.
     # @param [Integer] budget
     #  The maximum number of tool calls to allow in
     #  a single turn.
@@ -413,15 +422,10 @@ module LLM
     end
 
     ##
-    # Sets or returns the retry budget for the agent.
-    #
-    # The retry budget is the maximum number of times a rate-limited
-    # request will be retried before giving up. Each retry sleeps a
-    # growing interval, so an exhausted budget surfaces the rate-limit
-    # error instead of blocking indefinitely. Enabled (5) by default; a
-    # raw {LLM::Context} disables it (0) unless configured.
+    # Set or get the number of attempts an agent
+    # will make when given a failed request.
     # @param [Integer] budget
-    #  The maximum number of rate-limit retries in a turn.
+    #  The maximum number of retries in a turn.
     # @return [Integer, nil]
     def self.retry_budget(budget = UNDEFINED)
       if budget.equal?(UNDEFINED)
