@@ -6,6 +6,19 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ## What's next
 
+### Breaking
+
+#### Migration
+
+| Old | New |
+|-----|-----|
+| the default read timeout is 600 seconds | the default read timeout is 240 seconds |
+| `LLM::Tracer#on_interrupt` and `#on_exit` do nothing | both raise `NotImplementedError`, so a tracer answers for each |
+| `LLM::Tracer#on_tool_finish(result:, span:)` and `#on_tool_error(ex:, span:)` | both also take `started_at:` and `finished_at:` |
+| `LLM::Tracer#on_tool_error` is given the `Exception` a tool raised | it is given the `LLM::Function::Return` that holds the error |
+| a tracer's tool callbacks run on the thread or fiber that ran the tool | they run on the agent's thread, like the other callbacks |
+| a cancelled `:ractor` call answers in band with `cancelled: true` | it raises `LLM::Interrupt` in the caller's thread |
+
 ### Provider
 
 * **deepseek: upload a file once and refer to it by id** <br>
