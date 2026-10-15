@@ -187,18 +187,14 @@ module LLM
 
     ##
     # Set or get the tool execution concurrency.
-    #
     # @param [Symbol, Array<Symbol>, nil] concurrency
     #  Controls how pending tool loops are executed:
     #  - `:sequential`: sequential calls
     #  - `:thread`: concurrent threads
     #  - `:async`: concurrent async tasks
     #  - `:fiber`: concurrent scheduler-backed fibers
-    #  - `:fork`: forked child processes
-    #  - `:ractor`: concurrent Ruby ractors for class-based tools; MCP tools are not supported,
-    #    and this mode is especially useful for CPU-bound tool work
-    #  Usually pass a single strategy. Arrays are only for advanced mixed-work
-    #  cases and are not needed for normal queued stream tool loops.
+    #  - `:fork`: a child process
+    #  - `:ractor`: Ruby-based ractors
     # @return [Symbol, Array<Symbol>, nil]
     def self.concurrency(concurrency = UNDEFINED)
       if concurrency.equal?(UNDEFINED)
