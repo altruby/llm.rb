@@ -482,19 +482,20 @@ budget. The retry budget is enabled by default,
 and it determines how many times we will retry
 when a request raises an error. The errors
 that are retried are returned by
-`LLM::Provider#retry_errors` and can vary
-by provider but typically cover rate limits,
-and time outs. Between retries we will sleep,
-and each retry sleeps a little longer
-(`sleep 2.0 * attempts`) than the last.
+[`LLM::Provider#retry_errors`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#retry_errors-instance_method)
+and can vary by provider but typically cover
+rate limits, and time outs. Between retries
+we will sleep, and each retry sleeps a little
+longer (`sleep 2.0 * attempts`) than the last.
 
 The default retry budget is usually 5 but
-it can vary by provider and it is determined
-by the `LLM::Provider#retry_budget` method. When
-the budget is spent and we are still rate limited,
-an exception (`LLM::RateLimitError`) is raised. The
-budget can be disabled by setting `retry_budget`
-to zero:
+it can also vary by provider and it is determined by the
+[`LLM::Provider#retry_budget`]((https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#retry_budget-instance_method))
+method. When the budget is spent but the an
+exception continues to raise we will give up
+and let the exception bubble up to the caller.
+The budget can be disabled by setting
+`retry_budget` to zero:
 
 ```ruby
 require "llm"
