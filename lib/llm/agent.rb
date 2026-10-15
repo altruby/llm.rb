@@ -87,17 +87,26 @@ module LLM
     attr_reader :llm
 
     ##
-    # Bulk-assign class-level agent defaults from a Hash.
-    #
-    # Each key is resolved by calling the corresponding class method on the
-    # agent subclass. An error is raised for unknown keys so that typos are
-    # caught early.
+    # Returns an instance of {LLM::Agent::Registry LLM::Agent::Registry}.
+    # @note
+    #  The registry holds all _active_
+    #  instances of {LLM::Agent LLM::Agent}
+    #  and inactive agents are automatically
+    #  removed from the registry. The registry
+    #  is local to a process, and its children.
+    # @return [LLM::Agent::Registry]
+    def self.registry
+      REGISTRY
+    end
+
+    ##
+    # Bulk-assign class-level defaults
     #
     # @example
-    #   class AdminAgent < LLM::Agent
-    #     set name: "admin",
-    #         instructions: "You are a system administrator",
-    #         model: "gpt-4.1-nano",
+    #   class Agent < LLM::Agent
+    #     set name: "007",
+    #         description: "a secret agrent",
+    #         instructions: "find top secret material",
     #         tools: [LLM::Tool::Exec, LLM::Tool::ReadFile]
     #   end
     #
@@ -113,7 +122,8 @@ module LLM
     # @option properties [Array<String>, Symbol, Proc] :skills
     # @option properties [Symbol, Array<Symbol>] :concurrency
     # @option properties [String, Symbol, Array<String, Symbol>, Proc] :confirm
-    # @raise [KeyError] when a property key does not match a class-level accessor
+    # @raise [KeyError]
+    #   When a given key does not match a class-level accessor
     # @return [void]
     def self.set(properties)
       properties.each do
@@ -123,19 +133,6 @@ module LLM
           raise KeyError, "key not found: #{_1}"
         end
       end
-    end
-
-    ##
-    # Returns an instance of {LLM::Agent::Registry LLM::Agent::Registry}.
-    # @note
-    #  The registry holds all _active_
-    #  instances of {LLM::Agent LLM::Agent}
-    #  and inactive agents are automatically
-    #  removed from the registry. The registry
-    #  is local to a process, and its children.
-    # @return [LLM::Agent::Registry]
-    def self.registry
-      REGISTRY
     end
 
     ##
