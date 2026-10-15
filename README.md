@@ -1004,11 +1004,9 @@ A multi-intercept example. <br>
 Each intercept is called in order they're given
 and the first one that returns an
 [`LLM::Function::Return`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Return.html)
-stops the tool call from being made.
-
-This feature lets you combine multiple intercepts
-into a single intercept that calls out to all of
-them:
+stops the tool call from being made. This feature
+lets you combine multiple intercepts into a single
+intercept that calls out to all of them:
 
 ```ruby
 require "llm"
