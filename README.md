@@ -1430,27 +1430,8 @@ are running on your own hardware.
 <summary>I have a limited budget. What should I do?</summary>
 <br>
 
-There are a few options. The first option is to host
-your own model, and use the ollama or llamacpp
-providers. This can be difficult though because
-a capable model requires hardware that can
-match it. If you have the ability to self-host,
-this would be my first option.
-
-The second option is DeepSeek. <br>
-The deepseek-v4-flash model costs pennies to use. <br>
-And llm.rb has been optimized for deepseek. For example,
-DeepSeek does not have image generation capabilities
-but on the llm.rb runtime it does (vector graphics only,
-though).
-
-The same is true for structured outputs. DeepSeek does
-not support structured outputs in the same way as OpenAI or
-Google, but the llm.rb runtime makes it appear as
-though it does, through the `json_object` response
-type.
-
-If you're on a budget, DeepSeek is hard to beat.
+If you're on a budget, [DeepSeek](https://platform.deepseek.com)
+is hard to beat and it works really well with llm.rb.
 </details>
 
 <details>
@@ -1462,9 +1443,9 @@ years ago by
 [@altruby](https://github.com/altruby) and
 [@antaz](https://github.com/altruby). The primary
 maintainer is [@altruby](https://github.com/altruby).
-Over those three years multiple other contributors have
-contributed to llm.rb as well, and new contributors are
-always welcome.
+There have been multiple other contributors over the
+last three years and new contributors are always
+welcome.
 </details>
 
 <details>
@@ -1473,18 +1454,9 @@ always welcome.
 
 It is battle tested daily.
 
-The console that is distributed with llm.rb is used
-to build llm.rb so there is a healthy, active feedback
-loop. It also powers the [r.uby.dev](https://r.uby.dev)
-website where multiple llm.rb agents are deployed. I'm
-aware of at least one production Rails deployment
-at a large-ish company.
-
-And this git repository includes llm.rb agents that help me
-maintain the documentation and perform other repository
-maintainence. The feedback loop is constant. Outside of that
-there is a large test suite that covers live requests (recorded
-by VCR) and database interactions.
+It powers the [r.uby.dev](https://r.uby.dev)
+website and I'm aware of at least one production
+Rails deployment at a large-ish company.
 </details>
 
 ## License
