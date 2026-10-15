@@ -528,7 +528,7 @@ agent.talk "fix every FIXME in this repository"
 ```
 </details>
 <details>
-<summary>Usage | Cost</summary>
+<summary>Usage|Cost</summary>
 <br>
 
 An agent knows how many tokens it has spent,
