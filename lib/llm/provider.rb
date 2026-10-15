@@ -482,6 +482,21 @@ class LLM::Provider
     raise NotImplementedError
   end
 
+  ##
+  # Returns an array of exceptions that a request
+  # could raise and that will be retried up to
+  # {LLM::Provider#retry_budget} times.
+  # @return [Array<Exception>]
+  def retry_errors
+    [
+      LLM::InsufficientQuotaError,
+      LLM::RateLimitError,
+      Net::ReadTimeout,
+      Net::WriteTimeout,
+      Net::OpenTimeout
+    ]
+  end
+
   private
 
   def path(suffix, base_path: true)

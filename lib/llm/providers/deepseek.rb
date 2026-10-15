@@ -83,5 +83,16 @@ module LLM
     def default_model
       "deepseek-flash"
     end
+
+    ##
+    # @note
+    #  This method extends the default errors
+    #  that are retried to include LLM::ServerError -
+    #  a common error that DeepSeek returns when
+    #  it is overloaded.
+    # @return [Array<Exception>]
+    def retry_errors
+      super.concat [LLM::ServerError]
+    end
   end
 end

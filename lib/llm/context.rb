@@ -39,15 +39,6 @@ module LLM
     include Serializer
     include Deserializer
 
-    TRY_ERRORS = [
-      "LLM::InsufficientQuotaError",
-      "LLM::RateLimitError",
-      "Net::ReadTimeout",
-      "Net::WriteTimeout",
-      "Net::OpenTimeout"
-    ]
-    private_constant :TRY_ERRORS
-
     ##
     # Returns the set of runtime parameters that
     # configure this context and must never be forwarded
@@ -670,17 +661,12 @@ module LLM
     def try
       attempts ||= 0
       yield
-    rescue => ex
-      case ex.class.to_s
-      when *TRY_ERRORS
-        raise if attempts >= retry_budget
-        attempts += 1
-        stream.on_retry(ex, attempts)
-        sleep 2.0 * attempts
-        retry
-      else
-        raise(ex)
-      end
+    rescue *llm.retry_errors => ex
+      raise if attempts >= retry_budget
+      attempts += 1
+      stream.on_retry(ex, attempts)
+      sleep 2.0 * attempts
+      retry
     end
 
     # Executes a turn through the Responses API.
