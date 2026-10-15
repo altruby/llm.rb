@@ -674,6 +674,16 @@ class Octocat < ActiveRecord::Base
       transport: :net_http_persistent
     )
   end
+
+  ##
+  # @note
+  #  All models who call 'acts_as_agent' must implement
+  #  this method. It returns the provider that the agent
+  #  will use. It can be determined dynamically. 
+  # @return [LLM::Provider]
+  def set_provider
+    LLM.deepseek
+  end
 end
 
 agent = Octocat.create!
