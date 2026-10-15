@@ -998,7 +998,6 @@ end
 llm = LLM.deepseek(key: ENV["KEY"])
 agent = LLM::Agent.new(llm, tools: [LLM::Tool::Exec, ReadFile], intercept: Sandbox)
 ```
-</details>
 
 A multi-intercept example. <br>
 
@@ -1021,7 +1020,7 @@ agent     = LLM::Agent.new(llm, tools: [mcp.tools], intercept:)
 
 agent.talk "Tell slack channel I'm AFK", stream: $stdout
 ```
-
+</details>
 <details>
 <summary>Transformers</summary>
 <br>
