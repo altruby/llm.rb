@@ -528,6 +528,47 @@ agent.talk "fix every FIXME in this repository"
 ```
 </details>
 <details>
+<summary>Usage | Cost</summary>
+<br>
+
+An agent knows how many tokens it has spent,
+and how much those tokens cost. The runtime
+embeds the [models.dev](https://models.dev)
+registry (only the parts it uses, and on-demand)
+that gives it access to model information that
+includes costs and limits.
+
+The `token_usage` method sums the whole conversation as a
+[LLM::Usage](https://r.uby.dev/api-docs/llm.rb/LLM/Usage.html)
+object and [LLM::Cost](https://r.uby.dev/api-docs/llm.rb/LLM/Cost.html)
+combines it with the model registry to determine how much money
+has been spent. These numbers should not be taken as gospel though.
+They're a best-guess estimate, and your provider's dashboard
+might disagree:
+
+```ruby
+require "llm"
+
+llm = LLM.deepseek(key: ENV["KEY"])
+agent = LLM::Agent.new(llm)
+agent.talk "Hello"
+
+agent.token_usage  # => LLM::Usage for the whole conversation
+agent.cost         # => LLM::Cost, priced from the registry
+```
+
+The `context_*` methods can tell you about the model's context
+window: its total capacity, and how much of it have we already
+spent:
+
+```ruby
+agent.context_used    # => tokens in the latest turn
+agent.context_window  # => the model's limit, or nil when unknown
+agent.context_usage   # => Rational, eg Rational(100, 10_000)
+```
+
+</details>
+<details>
 <summary><code>class Agent < LLM::Agent</code></summary>
 <br>
 
@@ -1009,40 +1050,6 @@ agent.talk "Hello"
 </details>
 
 #### Everything else
-
-<details>
-<summary>Usage and cost</summary>
-<br>
-
-Every context and agent reports what a conversation has spent and how
-much room is left, and the numbers answer different questions. A
-`token_usage` is the whole conversation, summed as an
-[LLM::Usage](https://r.uby.dev/api-docs/llm.rb/LLM/Usage.html), and it
-is what [LLM::Cost](https://r.uby.dev/api-docs/llm.rb/LLM/Cost.html)
-prices against the model registry:
-
-```ruby
-require "llm"
-
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm)
-agent.talk "Hello"
-
-agent.token_usage  # => LLM::Usage for the whole conversation
-agent.cost         # => LLM::Cost, priced from the registry
-```
-
-A `context_used` is one turn's worth - the live size of the most recent
-assistant message - so it is what a context window is really being
-spent on, and `context_usage` is that as a fraction of the window:
-
-```ruby
-agent.context_used    # => tokens in the latest turn
-agent.context_window  # => the model's limit, or nil when unknown
-agent.context_usage   # => Rational, eg Rational(100, 10_000)
-```
-
-</details>
 
 <details><summary>A2A</summary>
 <br>
