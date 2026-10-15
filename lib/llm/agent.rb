@@ -2,48 +2,30 @@
 
 module LLM
   ##
-  # {LLM::Agent LLM::Agent} is the recommended entry point for most
-  # use-cases. It provides a class-level DSL for defining reusable,
-  # preconfigured assistants with defaults for model, tools, schema,
-  # and instructions.
+  # Unlike {LLM::Context LLM::Context}
+  # the {LLM::Agent LLM::Agent} class
+  # automatically manages the tool loop.
   #
-  # It wraps the same stateful runtime surface as
-  # {LLM::Context LLM::Context}: message history, usage, persistence,
-  # streaming parameters, and provider-backed requests still flow through
-  # an underlying context. The defining behavior of an agent is that it
-  # automatically resolves pending tool calls for you during `talk`,
-  # instead of leaving tool loops to the caller.
+  # @example class Agent < LLM::Agent
+  #   class Agent < LLM::Agent
+  #     set name: "sam altman",
+  #         description: "a ceo",
+  #         instructions: "beat the competition",
+  #         tools: :toolset,
+  #         stream: proc { Stream.new(llm) }
   #
-  # **Notes:**
-  # * Instructions are injected once, and kept in step after that. A
-  #   restored conversation carries the instructions that were current
-  #   when it started, and the message is brought up to date before the
-  #   next request goes out.
-  # * An agent automatically executes tool loops (unlike {LLM::Context LLM::Context}).
-  # * The tool loop can be bounded with `tool_budget`. Once the budget is
-  #   spent, no further tool calls are run for that turn: the agent sends an
-  #   in-band advisory message back through the model instead, and keeps
-  #   sending it while the model keeps asking for tools. The budget counts
-  #   tool calls, so a batch of calls is spent as a batch, and a batch that
-  #   would take the turn past its budget is not run at all. By default no
-  #   budget is set (`nil`), so the feature is disabled.
-  # * Tool loop execution can be configured with `concurrency :sequential`,
-  #   `:thread`, `:async`, `:fiber`, `:fork`, or `:ractor`.
-  #
-  # @example Subclass with defaults
-  #   class SystemAdmin < LLM::Agent
-  #     set model: "gpt-4.1-nano",
-  #         instructions: "You are a Linux system admin",
-  #         tools: [LLM::Tool::Exec],
-  #         schema: Result
+  #     private
+  #     def toolset
+  #       [LLM::Tool::Exec]
+  #     end
   #   end
   #
-  #   llm = LLM.openai(key: ENV["KEY"])
-  #   agent = SystemAdmin.new(llm)
-  #   agent.talk("Run 'date'")
+  #   llm   = LLM.openai
+  #   agent = Agent.new(llm)
+  #   agent.talk("setup ollama to run gpt-oss")
   #
-  # @example Direct instance
-  #   llm = LLM.deepseek(key: ENV["KEY"])
+  # @example LLM::Agent.new
+  #   llm   = LLM.deepseek
   #   agent = LLM::Agent.new(llm, stream: $stdout)
   #   agent.talk "Hello world"
   #
