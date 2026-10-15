@@ -480,9 +480,13 @@ by default, and the easiest way to grab them is via
 An agent has a retry budget, and a tool call
 budget. The retry budget is enabled by default,
 and it determines how many times we will retry
-when our request is rate limited. Between retries
-we will sleep, and each retry sleeps a little longer
-than the last.
+when a request raises an error. The errors
+that are retried are returned by
+`LLM::Provider#retry_errors` and can vary
+by provider but typically cover rate limits,
+and time outs. Between retries we will sleep,
+and each retry sleeps a little longer
+(`sleep 2.0 * attempts`) than the last.
 
 The default retry budget is usually 5 but
 it can vary by provider and it is determined
