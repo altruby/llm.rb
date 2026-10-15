@@ -19,6 +19,52 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `LLM::Tracer#on_tool_error` is given the `Exception` a tool raised | it is given the `LLM::Function::Return` that holds the error |
 | a tracer's tool callbacks run on the thread or fiber that ran the tool | they run on the agent's thread, like the other callbacks |
 | a cancelled `:ractor` call answers in band with `cancelled: true` | it raises `LLM::Interrupt` in the caller's thread |
+| `LLM::Guard`, `LLM::Guard::Null` | `LLM::Intercept`, `LLM::Intercept::Null` |
+| `guard:` and `guard_options:` on a context or agent | `intercept:` and `intercept_options:` |
+| `LLM::Context#guard` | `LLM::Context#intercept` |
+
+### Intercept
+
+* **intercept: rename `LLM::Guard` to `LLM::Intercept`** <br>
+  The hook that sees a pending tool call before it
+  runs is an
+  [`LLM::Intercept`](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html)
+  now, because it does more than guard a call:
+  `#call` receives the `LLM::Function`, so an
+  intercept can rewrite a call and let it run by
+  returning `nil`. A subclass of `LLM::Guard` is
+  renamed, the `guard:` and `guard_options:` a
+  context or agent takes are `intercept:` and
+  `intercept_options:`, and `LLM::Context#guard` is
+  `LLM::Context#intercept`. `LLM::Guard` is
+  removed, and no alias is left for it.
+
+* **intercept: add `LLM::Intercept.multi`** <br>
+  The
+  [`LLM::Intercept.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html#multi-class_method)
+  factory combines one or more intercepts into a
+  single
+  [`LLM::Intercept::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept/Multi.html)
+  that a context or agent can be given as
+  `intercept:`. Each intercept is called in the
+  order it was given, and the first that returns an
+  [`LLM::Function::Return`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Return.html)
+  ends the call, so an intercept that returns `nil`
+  lets the next one decide. An `intercept:` is
+  taken as an instance now as well as a class,
+  which is what lets the factory's return value be
+  used as it is.
+
+* **intercept: give an intercept the options it was built with** <br>
+  The `intercept_options:` a context or agent is
+  built with now reach
+  [`LLM::Intercept#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html#call-instance_method)
+  as keywords, and an intercept can read them
+  through
+  [`LLM::Intercept#options`](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html#options-instance_method).
+  Before, the options were held on the context and
+  never passed to the intercept, so a subclass that
+  wanted them had no way to read them.
 
 ### Provider
 
@@ -360,7 +406,16 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   OpenRouter adds six models. OpenRouter drops
   sixteen entries, twelve of them Qwen, and
   Alibaba, Mistral, Moonshot, OpenAI, and xAI
-  correct limits and prices.
+  correct limits and prices. Google adds Gemini 4
+  Argon, a reasoning model with a 1M-token context,
+  DeepInfra adds Claude Fable 5 and Mistral Small 3
+  and deprecates `Qwen/Qwen3.8-2.4T-A95B`, and
+  OpenRouter adds `liquid/lfm-2.5-24b-a2b`,
+  `google/gemini-4-argon`, the Scaledown extract
+  and summarize models, and the Pareto models,
+  drops `unbiased/pareto` and three Ling 3.0 Flash
+  and Apodex entries, and reprices several DeepSeek,
+  Z.ai, Tencent, Moonshot, Meta, and Gemma models.
 
 ### Fix
 
@@ -373,6 +428,17 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   belonged to another command, and 2.7.3 stops
   looking for `/bin/false` when a command is not
   found, which Windows does not have.
+
+* **tools: name the tool that was not found** <br>
+  The in-band error returned when a model asks for
+  a tool that does not exist names it now, as
+  `tool 'exec' not found`, where it said only
+  `tool not found`. That is the same message
+  [`LLM::Tool.find_by_name!`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#find_by_name!-class_method)
+  raises when it cannot resolve a name, so the two
+  paths read alike: the class raises
+  [`LLM::NoSuchToolError`](https://r.uby.dev/api-docs/llm.rb/LLM/NoSuchToolError.html)
+  rather than the `no such tool "exec"` it used to.
 
 ## v16.0.0
 
