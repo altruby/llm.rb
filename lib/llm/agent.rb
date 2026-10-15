@@ -60,9 +60,7 @@ module LLM
     private_constant :UNDEFINED
 
     ##
-    # Marks the message an agent injects as its own, so that a later
-    # turn can tell it from a message the caller composed. The role
-    # cannot do that: it is true of whatever the caller put there.
+    # @return [Hash]
     # @api private
     INSTRUCTIONS = {instructions: true}.freeze
     private_constant :INSTRUCTIONS
@@ -84,7 +82,6 @@ module LLM
                  tracer concurrency
                  instructions confirm
                  intercept]
-
     private_constant :FIELDS, :IVARS
 
     ##
@@ -98,12 +95,7 @@ module LLM
     private_constant :File
 
     ##
-    # The agents running a turn in this process.
-    #
-    # Reached through `LLM::Agent.registry` rather than through this name,
-    # which is private for the same reason the other constants here are: it
-    # is the class's own, and `run_loop` is the only thing that writes it.
-    # @api private
+    # @return [LLM::Agent::Registry]
     REGISTRY = Registry.new
     private_constant :REGISTRY
 
@@ -130,14 +122,14 @@ module LLM
     # @param [Hash] properties
     # @option properties [String, Symbol, Proc] :name
     # @option properties [String, Symbol, Proc] :description
-    # @option properties [String] :instructions
-    # @option properties [String] :model
-    # @option properties [Array<LLM::Function>] :tools
-    # @option properties [Array<String>] :skills
-    # @option properties [#to_json] :schema
+    # @option properties [String, Symbol, Proc] :instructions
+    # @option properties [String, Symbol, Proc] :model
+    # @option properties [LLM::Tracer, Symbol, Proc] :tracer
+    # @option properties [LLM::Stream, Symbol, Proc] :stream
+    # @option properties [LLM::Schema, Symbol, Proc] :schema
+    # @option properties [Array<LLM::Function>, Symbol, Proc] :tools
+    # @option properties [Array<String>, Symbol, Proc] :skills
     # @option properties [Symbol, Array<Symbol>] :concurrency
-    # @option properties [LLM::Tracer, Proc] :tracer
-    # @option properties [Object, Proc] :stream
     # @option properties [String, Symbol, Array<String, Symbol>, Proc] :confirm
     # @raise [KeyError] when a property key does not match a class-level accessor
     # @return [void]
@@ -152,13 +144,13 @@ module LLM
     end
 
     ##
-    # The agents running a turn, in this process.
-    #
-    # What a cancel reaches: an identity a host already has - a record's
-    # id, an agent's own id, an agent, or a record - answered with the
-    # agent running under it, or nil. `LLM.interrupt(agent:)` is the call
-    # most hosts want; this is the map underneath it.
-    # @see LLM::Agent::Registry
+    # Returns an instance of {LLM::Agent::Registry LLM::Agent::Registry}.
+    # @note
+    #  The registry holds all _active_
+    #  instances of {LLM::Agent LLM::Agent}
+    #  and inactive agents are automatically
+    #  removed from the registry. The registry
+    #  is local to a process, and its children.
     # @return [LLM::Agent::Registry]
     def self.registry
       REGISTRY
