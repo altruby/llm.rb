@@ -256,7 +256,7 @@ module LLM
 
     def function_missing(name)
       LLM.function(name) do |fn|
-        fn.define { raise LLM::NoSuchToolError, "tool not found" }
+        fn.define { raise LLM::NoSuchToolError, "tool '#{name}' not found" }
       end
     end
 

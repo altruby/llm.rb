@@ -117,7 +117,7 @@ RSpec.describe LLM::Tool do
 
     it "raises when not found" do
       expect { described_class.find_by_name!("missing") }
-        .to raise_error(LLM::NoSuchToolError, 'no such tool "missing"')
+        .to raise_error(LLM::NoSuchToolError, "tool 'missing' not found")
     end
   end
 

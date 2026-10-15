@@ -205,7 +205,7 @@ class LLM::Tool
   # @return [Class<LLM::Tool>]
   # @raise [LLM::NoSuchToolError]
   def self.find_by_name!(name)
-    find_by_name(name) || raise(LLM::NoSuchToolError, "no such tool #{name.inspect}")
+    find_by_name(name) || raise(LLM::NoSuchToolError, "tool '#{name}' not found")
   end
 
   ##
