@@ -698,7 +698,7 @@ agent.console
 </details>
 
 <details>
-<summary> SQL optimizations </summary>
+<summary>SQL optimizations </summary>
 <br>
 
 In a database environment the runtime optimizes for
