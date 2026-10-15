@@ -288,7 +288,7 @@ class LLM::Function
   # @return [LLM::Function::Task]
   #   Returns a task whose `#value` is an {LLM::Function::Return}.
   def task(strategy, options = {})
-    ioptions = @intercept.options
+    ioptions = @intercept&.options
     options  = options.merge(intercepted: @intercept&.call(function: self, **ioptions))
     options  = options.merge(tracer:, intercepted: options[:intercepted] || resolve(strategy))
 
