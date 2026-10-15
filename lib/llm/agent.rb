@@ -456,14 +456,9 @@ module LLM
           instance_variable_set(:"@#{field}", resolved)
         end
       end
-      ##
-      # The provider decides how patient a turn should be: it
-      # knows its own API, and how often it recovers from a
-      # rate limit rather than failing outright.
-      params[:retry_budget] = llm.retry_budget if params[:retry_budget].equal?(UNDEFINED)
-      ##
-      # The context is bound to the same record the agent holds, so code
-      # written against a context alone can find it through `ctx.record`.
+      if params[:retry_budget].nil?
+        params[:retry_budget] = llm.retry_budget
+      end
       @ctx = LLM::Context.new(llm, params.merge(record: @record).compact)
       @path and File.readable?(@path) ? @ctx.restore(path:) : nil
     end
