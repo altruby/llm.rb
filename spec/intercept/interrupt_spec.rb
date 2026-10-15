@@ -48,6 +48,11 @@ RSpec.describe LLM::Intercept do
     it "keeps a custom intercept class" do
       expect(wired.intercept).to be_a(blocking)
     end
+
+    it "keeps an intercept that is already an instance" do
+      multi = LLM::Intercept.multi(provider, blocking)
+      expect(LLM::Context.new(provider, intercept: multi).intercept).to be(multi)
+    end
   end
 
   describe "intercept options" do
@@ -62,9 +67,8 @@ RSpec.describe LLM::Intercept do
       end
     end
     let(:ctx) { LLM::Context.new(provider, intercept:, intercept_options: {threshold: 5}) }
-    let(:called) { ctx.intercept.call(function:, **ctx.instance_variable_get(:@intercept)[:options]) }
 
-    before { called }
+    before { function.tap { _1.intercept = ctx.intercept }.task(:sequential) }
 
     it "passes intercept_options to the intercept" do
       expect(seen).to eq([5])

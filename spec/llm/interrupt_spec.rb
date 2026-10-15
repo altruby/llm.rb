@@ -7,7 +7,7 @@ require "setup"
 #
 # The registry is local to a process - that is the premise of the wait, not a
 # limitation of it - and what is worth pinning is the count of looks and the
-# count of sleeps. A loop like this one goes wrong in the guard, and there are
+# count of sleeps. A loop like this one goes wrong in the check, and there are
 # two ways: looking once and giving up, or sleeping after the last look.
 #
 # The agent and the registry are both real. An agent entered into the registry
