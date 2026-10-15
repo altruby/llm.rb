@@ -48,7 +48,7 @@ require "setup"
 RSpec.describe LLM::Function::Ractor::Job do
   ##
   # The parser is compared as it is written rather than as CI spells it,
-  # which is `JSON`, so this is not a guard that always skips.
+  # which is `JSON`, so this is not a check that always skips.
   before do
     skip "not supported by yajl or oj" unless ENV.fetch("JSON_PARSER", "json").downcase == "json"
   end

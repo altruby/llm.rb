@@ -7,7 +7,7 @@ require "timeout"
 ##
 # The four moments a cancel can arrive in, for a fiber.
 #
-# `interrupt!` was guarded by `@fiber&.alive?`, so a cancel that arrived
+# `interrupt!` was gated on `@fiber&.alive?`, so a cancel that arrived
 # before `spawn` - when there is no fiber to raise on - was dropped and the
 # tool ran as if nothing had happened. The examples run inside a reactor
 # because Ruby ships no default `Fiber.scheduler`, and `Async` is what
