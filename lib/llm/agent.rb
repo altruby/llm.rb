@@ -186,68 +186,6 @@ module LLM
     end
 
     ##
-    # Set or get the default tools
-    # @param [Array<LLM::Function>, nil] tools
-    #  One or more tools
-    # @return [Array<LLM::Function>]
-    #  Returns the current tools when no argument is provided
-    def self.tools(*tools, &block)
-      return @tools || [] if tools.empty? and !block
-      if block
-        @tools = block
-      elsif single_callable?(tools)
-        @tools = tools.first
-      else
-        @tools = tools.flatten
-      end
-    end
-
-    ##
-    # Set or get the default skills
-    # @param [Array<String>, nil] skills
-    #  One or more skill directories
-    # @return [Array<String>, nil]
-    #  Returns the current skills when no argument is provided
-    def self.skills(*skills, &block)
-      return @skills if skills.empty? and !block
-      if block
-        @skills = block
-      elsif single_callable?(skills)
-        @skills = skills.first
-      else
-        @skills = skills.flatten
-      end
-    end
-
-    ##
-    # Set or get the agent tools that require confirmation.
-    #
-    # @example
-    #   class MyAgent < LLM::Agent
-    #     confirm :dangerous_tools
-    #     private
-    #     def dangerous_tools
-    #       %w[delete]
-    #     end
-    #   end
-    #
-    # @param [String, Symbol, Array<String, Symbol>, Proc] tool_names
-    #  One or more tool names.
-    # @param [Proc] block
-    #  An optional, lazy-evaluated Proc
-    # @return [Array<String>, Proc, Symbol, nil]
-    def self.confirm(*tool_names, &block)
-      return @confirm if tool_names.empty? and !block
-      if block
-        @confirm = block
-      elsif single_callable?(tool_names)
-        @confirm = tool_names.first
-      else
-        @confirm = tool_names.flatten.map(&:to_s)
-      end
-    end
-
-    ##
     # Set or get the tool execution concurrency.
     #
     # @param [Symbol, Array<Symbol>, nil] concurrency
@@ -411,6 +349,68 @@ module LLM
         @retry_budget.nil? ? UNDEFINED : @retry_budget
       else
         @retry_budget = budget
+      end
+    end
+
+    ##
+    # Set or get the default tools
+    # @param [Array<LLM::Function>, nil] tools
+    #  One or more tools
+    # @return [Array<LLM::Function>]
+    #  Returns the current tools when no argument is provided
+    def self.tools(*tools, &block)
+      return @tools || [] if tools.empty? and !block
+      if block
+        @tools = block
+      elsif single_callable?(tools)
+        @tools = tools.first
+      else
+        @tools = tools.flatten
+      end
+    end
+
+    ##
+    # Set or get the default skills
+    # @param [Array<String>, nil] skills
+    #  One or more skill directories
+    # @return [Array<String>, nil]
+    #  Returns the current skills when no argument is provided
+    def self.skills(*skills, &block)
+      return @skills if skills.empty? and !block
+      if block
+        @skills = block
+      elsif single_callable?(skills)
+        @skills = skills.first
+      else
+        @skills = skills.flatten
+      end
+    end
+
+    ##
+    # Set or get the agent tools that require confirmation.
+    #
+    # @example
+    #   class MyAgent < LLM::Agent
+    #     confirm :dangerous_tools
+    #     private
+    #     def dangerous_tools
+    #       %w[delete]
+    #     end
+    #   end
+    #
+    # @param [String, Symbol, Array<String, Symbol>, Proc] tool_names
+    #  One or more tool names.
+    # @param [Proc] block
+    #  An optional, lazy-evaluated Proc
+    # @return [Array<String>, Proc, Symbol, nil]
+    def self.confirm(*tool_names, &block)
+      return @confirm if tool_names.empty? and !block
+      if block
+        @confirm = block
+      elsif single_callable?(tool_names)
+        @confirm = tool_names.first
+      else
+        @confirm = tool_names.flatten.map(&:to_s)
       end
     end
 
