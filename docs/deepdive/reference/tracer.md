@@ -145,20 +145,26 @@ rather than choosing between them.
 
 #### How it works
 
-Pass the tracers to `new`. A `Multi` has no provider of its own, so it
-is not built from a factory method the way the built-in tracers are:
+[`LLM::Tracer.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#multi-class_method)
+builds a `Multi` from a provider and the tracers to fan out to. The
+provider comes first and is required, so a tracer that is given as a class
+is built with it, while one that is given as an instance is used as it is:
 
 ```ruby
 require "llm"
 
 llm = LLM.deepseek(key: ENV["KEY"])
-llm.tracer = LLM::Tracer::Multi.new(
-  LLM::Tracer.pretty_logger(llm),
+llm.tracer = LLM::Tracer.multi(
+  llm,
+  LLM::Tracer::Logger,
   LLM::Tracer.telemetry(llm)
 )
 agent = LLM::Agent.new(llm)
 agent.talk "Hello"
 ```
+
+`LLM::Tracer::Multi.new` takes the tracers themselves, so one can also be
+built by hand when a tracer has to be constructed some other way.
 
 `on_request_start` and `on_tool_start` return an array with one span per
 tracer, in the same order as
