@@ -32,7 +32,7 @@ class LLM::Provider
   #  Requires the net-http-persistent gem.
   # @param [LLM::Transport, Class, nil] transport
   #  Optional override with any {LLM::Transport} instance or subclass.
-  def initialize(key:, host:, port: 443, timeout: 600, read_timeout: nil, connect_timeout: 5, ssl: true, base_path: "", persistent: false, transport: nil)
+  def initialize(key:, host:, port: 443, timeout: 240, read_timeout: nil, connect_timeout: 5, ssl: true, base_path: "", persistent: false, transport: nil)
     @key = key
     @host = host
     @port = port
