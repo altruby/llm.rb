@@ -717,17 +717,14 @@ module LLM
     end
 
     ##
-    # Start an agent console that can interact
-    # with the agent and its current state. This
-    # method requires the following gems to be
-    # installed and available to require:
-    # 'unicode-display_width', 'kramdown', 'curses',
-    # 'test-cmd.rb', and 'xchan.rb'.
+    # Start an agent console.
     #
     # @note
-    #  By default this method disables the tracer for
-    #  the duration of the console session, and restores
-    #  it afterwards.
+    # This method requires the following gems
+    # to be installed and available to require:
+    # 'unicode-display_width', 'kramdown',
+    # 'curses', 'test-cmd.rb', and 'xchan.rb'.
+    #
     # @param [String] name
     #  The agent's name.
     #  Defaults to {LLM::Agent#name}.
@@ -742,11 +739,7 @@ module LLM
     #  When true, the tracer is kept alive during the
     #  console session. Default is false.
     # @return [void]
-    def console(name: self.name, path: nil, tools: [], skills: [], tracer: false, trace: nil)
-      if trace != nil
-        warn "llm.rb: trace option is deprecated, use tracer instead"
-        tracer = trace
-      end
+    def console(name: self.name, path: nil, tools: [], skills: [], tracer: false)
       if !tracer
         previous    = self.tracer
         self.tracer = nil
