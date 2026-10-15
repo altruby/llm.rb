@@ -999,6 +999,7 @@ end
 llm   = LLM.deepseek(key: ENV["KEY"])
 tools = [LLM::Tool::Exec, LLM::Tool::ReadFile]
 agent = LLM::Agent.new(llm, tools:, intercept: Sandbox)
+agent.talk "run 'rm -rf myapp/' right now", stream: $stdout
 ```
 
 A multi-intercept example. <br>
