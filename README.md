@@ -490,7 +490,7 @@ longer (`sleep 2.0 * attempts`) than the last.
 
 The default retry budget is usually 5 but
 it can also vary by provider and it is determined by the
-[`LLM::Provider#retry_budget`]((https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#retry_budget-instance_method))
+[`LLM::Provider#retry_budget`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#retry_budget-instance_method)
 method. When the budget is spent but the an
 exception continues to raise we will give up
 and let the exception bubble up to the caller.
