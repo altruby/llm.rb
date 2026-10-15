@@ -59,7 +59,7 @@ Without further ado, a classic "hello world" example:
 ```ruby
 require "llm"
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = LLM::Agent.new(llm, stream: $stdout)
 agent.talk "hello world"
 ```
