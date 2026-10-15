@@ -88,6 +88,30 @@ jobs:
         JSON_PARSER: ${{ matrix.json-parser }}
       run: bundle exec rake spec
 
+  windows:
+    runs-on: windows-latest
+    name: Windows (Ruby ${{ matrix.ruby-version }})
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        ruby-version: ['4.0']
+        json-parser: ['JSON']
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+    - name: Verify pg loads
+      run: bundle exec ruby -rpg -e "puts :ok"
+    - name: Run tests (windows)
+      env:
+        DASHSCOPE_API_HOST: token-plan.ap-southeast-1.maas.aliyuncs.com
+        JSON_PARSER: ${{ matrix.json-parser }}
+      run: bundle exec rake spec
+
 #  openbsd:
 #    runs-on: ubuntu-latest
 #    name: OpenBSD

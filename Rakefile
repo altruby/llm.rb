@@ -39,7 +39,15 @@ end
 
 desc "Run all tests"
 task :spec do
-  sh "#{bundler} exec rspec spec"
+  has_curses = -> do
+    require "curses"
+    true
+  rescue LoadError
+    false
+  end
+  paths = ["spec"]
+  paths = Dir["spec/**/*_spec.rb"].reject { _1.start_with?("spec/console/") } unless has_curses.()
+  sh(bundler, "exec", "rspec", *paths)
 end
 
 desc "Start a console with all providers loaded"

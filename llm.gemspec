@@ -63,8 +63,6 @@ DESCRIPTION
   spec.add_development_dependency "xchan.rb", "~> 0.24"
   spec.add_development_dependency "pg", "~> 1.5"
   spec.add_development_dependency "irb", "~> 1.18"
-  spec.add_development_dependency "curb", "~> 1.3"
-  spec.add_development_dependency "curses", "~> 1.6"
   spec.add_development_dependency "kramdown", "~> 2.5"
   spec.add_development_dependency "unicode-display_width", "~> 3.2"
   spec.add_development_dependency "async", "~> 2.45"

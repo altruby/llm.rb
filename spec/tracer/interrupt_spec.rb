@@ -136,6 +136,11 @@ RSpec.describe "the tracer's interrupt hook" do
   end
 
   RSpec.shared_examples "an interrupted call" do |strategy|
+    before do
+      strategy == :fork and Process.respond_to?(:fork) ?
+      nil : skip("fork is not available on this platform")
+    end
+
     let(:wait) do
       Thread.new do
         ctx.wait(strategy)
