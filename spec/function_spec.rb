@@ -175,11 +175,18 @@ RSpec.describe LLM::Function do
         expect(task.wait.to_h).to eq(id: "call_1", name: "system", value: {"ok" => true})
       end
 
+      let(:intercept) do
+        Class.new(LLM::Intercept) do
+          def call(function:, **)
+            function.return(error: true, type: "intercept_error", message: "stop")
+          end
+        end.new(LLM.openai(key: "test"))
+      end
       let(:intercepted_tool) do
         tool_class.function.dup.tap do |fn|
           fn.id = "call_5"
           fn.arguments = {"command" => "date"}
-          fn.intercept = ->(function:) { function.return(error: true, type: "intercept_error", message: "stop") }
+          fn.intercept = intercept
         end
       end
 
@@ -360,9 +367,15 @@ RSpec.describe LLM::Function do
       end
 
       context "when the tool is blocked by an intercept" do
-        before do
-          function.intercept = ->(function:) { function.return(error: true, type: "intercept_error", message: "stop") }
+        let(:intercept) do
+          Class.new(LLM::Intercept) do
+            def call(function:, **)
+              function.return(error: true, type: "intercept_error", message: "stop")
+            end
+          end.new(LLM.openai(key: "test"))
         end
+
+        before { function.intercept = intercept }
 
         it "does not resolve the runner" do
           expect { function.task(:thread) }.not_to change { tool_class.instances }
