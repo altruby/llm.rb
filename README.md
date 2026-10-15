@@ -1385,6 +1385,30 @@ the quick start. Each chapter is a topic of its own:
 ## FAQ
 
 <details>
+<summary>Does it work on Windows?</summary>
+<br>
+I think so. Our Windows build is green on CI.
+That's the only signal I have to go by.
+
+However support is limited compared to
+other platforms. The `fork` strategy is not
+available (Windows does not provide fork),
+and the `ractor` strategy has one test out
+of many that hangs - so it is assumed ractor
+support is not perfect.
+
+The `curses` gem that the console requires has
+to be compiled from source, and this can be a
+challenge on Windows without a compiler toolchain.
+By default the console does not work but it might
+work if you are able to install the `curses` gem.
+
+So it mostly works as long as you avoid the
+parts that don't work. Pull requests that
+improve Windows support are very welcome.
+</details>
+
+<details>
 <summary>Where can I see llm.rb in action?</summary>
 <br>
 
