@@ -21,6 +21,31 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   the API host, where DeepSeek serves its Files
   API.
 
+* **provider: add `LLM::Provider#retry_errors`** <br>
+  The
+  [`LLM::Provider#retry_errors`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#retry_errors-instance_method)
+  method returns the exceptions that a request can
+  raise and that are retried up to the provider's
+  retry budget. A provider extends the array it
+  inherits rather than replacing it, and
+  [`LLM::DeepSeek#retry_errors`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html#retry_errors-instance_method)
+  adds `LLM::ServerError`, the error DeepSeek
+  returns when its servers are overloaded, so a
+  request that finds an overloaded server is retried
+  with a growing delay like a rate limit instead of
+  failing on the first response.
+
+* **provider: drop the default read timeout to 240 seconds** <br>
+  The default read timeout is now 240 seconds (four
+  minutes), down from 600 seconds (ten minutes). A
+  timeout is retried, so the old default could be
+  spent on a response that never arrives, and the
+  new one fails sooner and opens a new session
+  instead. DeepSeek prompted the change: it can
+  stall past four minutes when it is under heavy
+  load. Pass `read_timeout:` or `timeout:` to a
+  provider to choose your own.
+
 ### Agent
 
 * **agent: interrupt an agent via `LLM::Agent#id`** <br>
@@ -96,6 +121,18 @@ This file covers the v16 series. Releases up to and including v15 are kept in
   while a tracer given as an instance is used
   as it is. Builtin tracers and a custom one
   can be mixed in a single call.
+
+* **tracer: build every tracer given to `LLM::Tracer.multi`** <br>
+  Fix a bug where
+  [`LLM::Tracer.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#multi-class_method)
+  passed its tracers to `LLM::Tracer::Multi.new` as
+  a single array rather than one argument each,
+  so a `Multi` held that array as its only
+  tracer and every callback raised `NoMethodError`
+  on it.
+  [`LLM::Tracer::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer/Rescue.html)
+  reported the crash to standard error and
+  swallowed it, so the request was not traced.
 
 * **tracer: alias `LLM::Tracer.pretty_logger` as `LLM::Tracer.pretty`** <br>
   Add
@@ -307,13 +344,15 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 
 ### Fix
 
-* **tools: require `test-cmd.rb` `~> 2.7.2`** <br>
+* **tools: require `test-cmd.rb` `~> 2.7.3`** <br>
   The exec-backed tools now need `test-cmd.rb`
-  2.7.2 or later, up from 2.7.1. Version 2.7.2
+  2.7.3 or later, up from 2.7.1. Version 2.7.2
   fixes a race where `Process.wait` could claim a
   process another thread had spawned, so a tool
   could answer with a status and a pid that
-  belonged to another command.
+  belonged to another command, and 2.7.3 stops
+  looking for `/bin/false` when a command is not
+  found, which Windows does not have.
 
 ## v16.0.0
 
