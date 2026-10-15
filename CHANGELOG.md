@@ -320,9 +320,15 @@ This file covers the v16 series. Releases up to and including v15 are kept in
 * **context: an ID must be in the UUIDv7 format** <br>
   An agent and context ID must __always__ carry a
   UUIDv7 format, even when given an explicit `id`
-  as a parameter. This is because the ID is used
+  as a parameter, and anything else raises
+  `LLM::Error`. This is because the ID is used
   internally to compute other attributes
-  (such as `LLM::Agent#created_at`).
+  (such as `LLM::Agent#created_at`). The runtime
+  checks it with
+  [`LLM::Utils.uuidv7?`](https://r.uby.dev/api-docs/llm.rb/LLM/Utils.html#uuidv7?-instance_method),
+  the same predicate `LLM::Utils.timestamp` reads
+  a time through, so an id this predicate accepts
+  is an id `created_at` can answer for.
 
 ### Registry
 
