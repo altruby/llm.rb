@@ -1240,7 +1240,7 @@ new session than to hold a connection open for a response that never
 comes. This is especially true for `read_timeout`. Both timeouts can
 be given as a custom value that is higher or lower than the default.
 
-A request that times out is retried automaticaly. The
+A request that times out is retried automatically. The
 [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
 class retries a timed out request up to its
 [`retry_budget`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#retry_budget-class_method)
