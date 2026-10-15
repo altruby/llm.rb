@@ -51,13 +51,20 @@ module LLM
     # @param [LLM::Function] function
     #  A pending function
     # @param opts [Hash]
-    #  The contents of 'guard_options:'
+    #  The contents of `intercept_options:`
     # @return [LLM::Function::Return, nil]
     #  Returns a {LLM::Function::Return LLM::Function::Return},
     #  or nil. When nil is returned, the tool call continues,
     #  otherwise the Return object is the tool call's response
     def call(function:, **opts)
       raise NotImplementedError
+    end
+
+    ##
+    # Returns the options the context passed to `intercept_options:`.
+    # @return [Hash]
+    def options
+      @options || {}
     end
 
     private

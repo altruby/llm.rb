@@ -90,7 +90,7 @@ class LLM::Function
         runner = runner_class.new
         ::Thread.new do
           ##
-          # Only the receive is guarded: it raises when the ractor this
+          # Only the receive is rescued: it raises when the ractor this
           # one talks to has gone, and nothing else here should be
           # answerable to that rescue. A hook that raises must not be
           # swallowed by it, and must not take the raise with it either -

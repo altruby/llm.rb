@@ -171,9 +171,12 @@ module LLM
     # @see LLM::Intercept
     # @return [LLM::Intercept]
     def intercept
-      @intercept[:klass]
-        .new(llm)
-        .tap { _1.instance_variable_set(:@context, self) }
+      klass = @intercept[:klass]
+      intercept = Class === klass ? klass.new(llm) : klass
+      intercept.tap do |it|
+        it.instance_variable_set(:@context, self)
+        it.instance_variable_set(:@options, @intercept[:options])
+      end
     end
 
     ##

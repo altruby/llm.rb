@@ -86,7 +86,7 @@ class LLM::Function
       thread = ::Thread.new do
         ready << true
         ##
-        # Only the receive is guarded: it raises when the parent has gone,
+        # Only the receive is rescued: it raises when the parent has gone,
         # and nothing else in this block should be answerable to that
         # rescue. A hook that raises must not be swallowed by it, and must
         # not take the raise with it either - hence the `ensure` below,

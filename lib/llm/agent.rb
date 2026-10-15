@@ -873,7 +873,7 @@ module LLM
     #
     # An agent with no instructions returns first. The caller reaches
     # this through `apply_instructions`, which already returns early for
-    # the same reason, and the guard is repeated here so that the method
+    # the same reason, and the check is repeated here so that the method
     # cannot replace a message with nil however it is reached.
     #
     # Comparing content rather than the message is deliberate.

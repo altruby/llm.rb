@@ -276,49 +276,22 @@ class LLM::Function
   #   task = tool.task(:thread)
   #   result = task.value
   #
-  # @note
-  #   An in-process strategy resolves the tool here, so a task that has
-  #   not been spawned already holds a live instance, and
-  #   {LLM::Function::Array#task} builds one for every pending function at
-  #   once. A tool that cannot be built carries the same in-band error the
-  #   intercept produces rather than raising, so a constructor's failure
-  #   answers the model on every strategy.
   # @param [Symbol] strategy
   #   Controls concurrency strategy:
   #   - `:sequential`: Call the function sequentially
   #   - `:thread`: Use threads
   #   - `:async`: Use async tasks (requires async gem)
-  #   - `:fork`: Use a forked child process (requires xchan.rb support)
+  #   - `:fork`: Use a forked child process (requires xchan.rb gem)
   #   - `:fiber`: Use scheduler-backed fibers (requires Fiber.scheduler)
-  #   - `:ractor`: Use Ruby ractors (class-based tools only; MCP tools are not supported)
+  #   - `:ractor`: Use Ruby ractors
   #
   # @return [LLM::Function::Task]
   #   Returns a task whose `#value` is an {LLM::Function::Return}.
   def task(strategy, options = {})
-    ##
-    # Check the function's intercept on the calling thread before handing
-    # the tool to the strategy. The task carries the blocked result and
-    # returns it without running if the intercept intervenes.
-    options = options.merge(intercepted: @intercept&.call(function: self))
-    ##
-    # Resolve the runner here, on the calling thread, before the task
-    # returned below exists for another thread to interrupt.
-    #
-    # `#interrupt!` resolves the same instance, and `@_runner ||=` is a
-    # check-then-create: reached from two threads at once it builds two,
-    # runs the call on one and tells the hook on the other.
-    #
-    # `:async` is in the list because its reactor runs on a background
-    # thread, which is the exposure `:thread` has. The cost is that the
-    # tool is built on the calling thread rather than inside the reactor,
-    # so a tool whose `initialize` wants a current `Async::Task` or a
-    # scheduler-installed fiber does not get one.
-    #
-    # An intercepted task runs nothing, so it resolves nothing. A strategy in
-    # {LLM::Function.isolated} stays lazy on purpose, because there the
-    # tool is built in the child process or the ractor and this instance
-    # is not the one that runs.
-    options = options.merge(tracer:, intercepted: options[:intercepted] || resolve(strategy))
+    ioptions = @intercept.options
+    options  = options.merge(intercepted: @intercept&.call(function: self, **ioptions))
+    options  = options.merge(tracer:, intercepted: options[:intercepted] || resolve(strategy))
+
     case strategy
     when :sequential
       Sequential::Task.new(self, options)

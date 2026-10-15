@@ -132,14 +132,15 @@ module LLM
     end
 
     ##
-    # Called when a streamed tool call has been fully constructed.
-    # A stream implementation may start tool execution here by pushing
-    # `@queue << tool.task(:thread).tap(&:spawn)` onto {#queue} — `spawn`
-    # returns nil, so `tap` keeps the task while starting it. The task
-    # carries the context's guard, so it is checked before the tool runs —
-    # a blocked call yields its guard return without executing.
+    # This method is called when the model
+    # requests a tool call. A little known
+    # feature: it is possible to spawn a tool
+    # call during a stream through:
+    #
+    #   @queue << tool.task(:thread).tap(&:spawn)
+    #
     # @param [LLM::Function] tool
-    #  The parsed tool call.
+    #  An instance of {LLM::Function LLM::Function}
     # @return [nil]
     def on_tool_call(tool)
       nil
