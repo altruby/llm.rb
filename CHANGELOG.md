@@ -141,6 +141,21 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   asks it to wait. It returns `true` when an interrupt
   took place, and `false` otherwise.
 
+* **agent: set an intercept at the class level** <br>
+  [`LLM::Agent.intercept`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#intercept-class_method)
+  is where an agent's intercept is declared, so it
+  can sit beside the agent's other defaults. It
+  takes an intercept, or a block that is resolved
+  when the agent is built, and `set intercept:`
+  takes a `Symbol` that names an instance method,
+  which is how
+  [`LLM::Intercept.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html#multi-class_method)
+  is composed. An `intercept:` given to
+  [`LLM::Agent.new`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#initialize-instance_method)
+  is resolved the same way, and an ActiveRecord or
+  Sequel model that wraps an agent carries it into
+  the context it builds.
+
 ### Function
 
 * **function: `:ractor` raises `LLM::Interrupt` (like everyone else)** <br>
