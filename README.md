@@ -986,6 +986,7 @@ A simple example:
 
 ```ruby
 require "llm"
+require "llm/tools"
 
 class Sandbox < LLM::Intercept
   def call(function:)
@@ -995,8 +996,9 @@ class Sandbox < LLM::Intercept
   end
 end
 
-llm = LLM.deepseek(key: ENV["KEY"])
-agent = LLM::Agent.new(llm, tools: [LLM::Tool::Exec, ReadFile], intercept: Sandbox)
+llm   = LLM.deepseek(key: ENV["KEY"])
+tools = [LLM::Tool::Exec, LLM::Tool::ReadFile]
+agent = LLM::Agent.new(llm, tools:, intercept: Sandbox)
 ```
 
 A multi-intercept example. <br>
@@ -1398,7 +1400,7 @@ the quick start. Each chapter is a topic of its own:
   [Context](docs/deepdive/advanced/context.md),
   [Compaction](docs/deepdive/advanced/compaction.md),
   [Cancellation](docs/deepdive/advanced/cancellation.md),
-  [Guard](docs/deepdive/advanced/guard.md),
+  [Intercept](docs/deepdive/advanced/intercept.md),
   [Transformer](docs/deepdive/advanced/transformer.md),
   [Transports](docs/deepdive/advanced/transports.md)
 - **Media**:
