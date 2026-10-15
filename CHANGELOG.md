@@ -2,7 +2,7 @@
 > [r.uby.dev](https://r.uby.dev) project
 
 This file covers the (upcoming) v17 series,
-and the v16 series. Previous releases (v15 and
+and the v16 series. <br> Previous releases (v15 and
 before) can be seen in [changelog/old.md](changelog/old.md).
 
 ## What's next
