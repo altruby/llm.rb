@@ -1233,13 +1233,16 @@ Providers accept two timeouts:
 
 * `connect_timeout` - opening the connection. Defaults to 5 seconds.
 * `read_timeout` - waiting for a response on an idle connection.
-  Defaults to 600 seconds (10 minutes).
+  Defaults to 240 seconds (4 minutes).
 
-The longer read timeout leaves room for slow reasoning models and
-local models. The legacy `timeout:` option remains as a shorthand for
-`read_timeout`. Timeouts are retriable:
+A timeout is retriable, so it is often better to fail early and open a
+new session than to hold a connection open for a response that never
+comes. This is especially true for `read_timeout`. Both timeouts can
+be given as a custom value that is higher or lower than the default.
+
+A request that times out is retried automaticaly. The
 [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
-retries a timed out request up to its
+class retries a timed out request up to its
 [`retry_budget`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#retry_budget-class_method)
 (five by default), so a dropped connection or a slow first token
 is often something we can recover from.
@@ -1247,7 +1250,7 @@ is often something we can recover from.
 ```ruby
 llm = LLM.deepseek(
   connect_timeout: 5,   # opening the connection
-  read_timeout: 600     # waiting for the next bytes
+  read_timeout: 600     # raise it when a model needs longer
 )
 ```
 </details>
