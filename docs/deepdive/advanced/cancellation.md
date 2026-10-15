@@ -113,7 +113,7 @@ should pick the hook.
 
 A cancel is delivered at the point the turn has reached, which can be
 any point of it: inside a stream callback, a compactor, a transformer,
-a guard, or the persistence write a step makes.
+an intercept, or the persistence write a step makes.
 [`LLM::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Interrupt.html)
 sits outside `StandardError`, so neither a bare `rescue` nor a
 `rescue => ex` catches it, and the language is what keeps a cancel from

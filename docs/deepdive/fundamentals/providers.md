@@ -37,7 +37,7 @@ as `LLM.aliyun`.
 Providers are the first building block of every llm.rb program.
 Because the whole runtime shares one provider interface, you can
 swap one provider for another with a single line change, and the
-same tools, schemas, streaming, and guards work unchanged.
+same tools, schemas, streaming, and intercepts work unchanged.
 
 #### Notes
 

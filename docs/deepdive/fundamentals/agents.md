@@ -30,7 +30,7 @@ prompt already carries a system message of the caller's own.
 Agents manage the tool loop for you. They keep conversation state
 across turns and let you define reusable configurations at the
 class level. The loop runs until the model stops requesting tools
-unless you bound it with `tool_budget` or a guard. If you need
+unless you bound it with `tool_budget` or an intercept. If you need
 manual control over the tool loop, use
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
 directly instead.
@@ -244,10 +244,15 @@ of hanging.
 
 #### Notes
 
-The retry budget applies to rate-limited requests
-(`LLM::RateLimitError`) and timeouts (`Timeout::Error`, covering
-`Net::OpenTimeout` and `Net::ReadTimeout`); other errors are never
-retried. The budget lives on the provider, where it defaults to five
+The retry budget applies to the errors the provider lists in
+[`LLM::Provider#retry_errors`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#retry_errors-instance_method):
+rate limits (`LLM::RateLimitError`), an exhausted quota, and timeouts
+(`Net::OpenTimeout`, `Net::ReadTimeout`, `Net::WriteTimeout`). A
+provider extends that list rather than replacing it, so
+[`LLM::DeepSeek`](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek.html)
+also retries `LLM::ServerError`, the error it returns when its servers
+are overloaded; anything not on the list is never retried. The budget
+lives on the provider, where it defaults to five
 (eight on Alibaba, which rate limits more often), and an agent that
 sets none of its own takes the provider's. A raw
 [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)

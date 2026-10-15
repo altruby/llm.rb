@@ -81,7 +81,7 @@ is the best place to start if you are new to llm.rb.
 - [Cancellation](deepdive/advanced/cancellation.md)
 - [Transports](deepdive/advanced/transports.md)
 - [Transformer](deepdive/advanced/transformer.md)
-- [Guard](deepdive/advanced/guard.md)
+- [Intercept](deepdive/advanced/intercept.md)
 
 ## Media
 

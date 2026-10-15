@@ -183,9 +183,10 @@ in production, and neither has to know about the other.
 
 #### Notes
 
-A `Multi` holds no provider, so its inherited `on_exit`, `spans`, and
-`flush!` are its own rather than any child's: the callbacks are fanned
-out, but a span list or a flush is asked of the tracer that owns it.
+A `Multi` holds no provider, so `spans` and `flush!` are its own rather
+than any child's: the callbacks are fanned out, but a span list or a
+flush is asked of the tracer that owns it. `on_exit` is fanned out like
+the rest, so every tracer it holds is told when the last scope ends.
 
 ### Hooks
 
@@ -206,8 +207,13 @@ for that request, so a tracer can correlate its events even when a
 turn makes several requests.
 
 Three more hooks cover a local tool call. `on_tool_start` fires before
-the tool runs and returns the span that `on_tool_finish` and
-`on_tool_error` receive.
+the tool runs and returns the span that `on_tool_finish`,
+`on_tool_error`, and `on_tool_interrupt` receive. Each ending is also
+handed a `started_at:` and a `finished_at:`, the monotonic clock times
+the call opened and ended at. The endings are delivered in the order
+the group holds its calls, so a call that finished first can still be
+announced after one that finished later. Those two times, and not the
+moment the callback runs, are what say how long a call took.
 
 An interrupt is neither a finish nor an error, and it is reported to a
 hook of its own. `on_interrupt` is called with a `scope:` of `:request`,

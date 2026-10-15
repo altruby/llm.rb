@@ -511,3 +511,10 @@ the same `LLM::Response`, so anything that works with `talk` works with
 `ask`. It also accepts a `stream:` target and a block, the way `talk`
 does. An agent delegates all four methods to the context it wraps.
 
+A file the provider cannot take is refused with
+[`LLM::PromptError`](https://r.uby.dev/api-docs/llm.rb/LLM/PromptError.html),
+raised while the prompt is built rather than by the tool call. The
+message names what was rejected: DeepSeek has no Files API, so a remote
+file raises there, and it reads images only, so anything else raises for
+its own reason.
+

@@ -100,7 +100,7 @@ at the end of a session to keep a spend trail.
 [`LLM::Cost#to_s`](https://r.uby.dev/api-docs/llm.rb/LLM/Cost.html#to_s-instance_method)
 returns the total in a compact, human-friendly format, rounded to
 two decimals (`"0.01"`). Components that were not used are `0`, so
-you never need to guard against `nil` when aggregating.
+you never need to check for `nil` when aggregating.
 
 The console renders context usage as a proportion, not a cost.
 [`LLM::Context#context_usage`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#context_usage-instance_method)
