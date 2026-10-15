@@ -207,28 +207,6 @@ module LLM
     end
 
     ##
-    # Set or get the default model
-    # @param [String, nil] model
-    #  The model identifier
-    # @return [String, nil]
-    #  Returns the current model when no argument is provided
-    def self.model(model = nil, &block)
-      return @model if model.nil? and !block
-      @model = block || model
-    end
-
-    ##
-    # Set or get the default schema
-    # @param [#to_json, nil] schema
-    #  The schema
-    # @return [#to_json, nil]
-    #  Returns the current schema when no argument is provided
-    def self.schema(schema = nil, &block)
-      return @schema if schema.nil? and !block
-      @schema = block || schema
-    end
-
-    ##
     # Set or get the default tools
     # @param [Array<LLM::Function>, nil] tools
     #  One or more tools
@@ -305,14 +283,48 @@ module LLM
     #  Usually pass a single strategy. Arrays are only for advanced mixed-work
     #  cases and are not needed for normal queued stream tool loops.
     # @return [Symbol, Array<Symbol>, nil]
-    def self.concurrency(concurrency = nil)
-      return @concurrency if concurrency.nil?
-      @concurrency = concurrency
+    def self.concurrency(concurrency = UNDEFINED)
+      if concurrency.equal?(UNDEFINED)
+        @concurrency
+      else
+        @concurrency = concurrency
+      end
+    end
+
+    ##
+    # Set or get the model an agent will use
+    # @param [String, Symbol] model
+    #  The model
+    # @param [Proc] block
+    #  A block that is lazy-evaled.
+    # @return [String, nil]
+    #  Returns the model
+    def self.model(model = UNDEFINED, &block)
+     if model.equal?(UNDEFINED) and block.nil?
+        @model
+      else
+        @model = block || model
+      end
+    end
+
+    ##
+    # Set or get an agent's schema
+    # @param [LLM::Schema, Symbol] schema
+    #  The schema
+    # @param [Proc] block
+    #  A block that is lazy-evaled.
+    # @return [LLM::Schema, nil]
+    #  Returns a schema
+    def self.schema(schema = UNDEFINED, &block)
+     if schema.equal?(UNDEFINED) and block.nil?
+        @schema
+      else
+        @schema = block || schema
+      end
     end
 
     ##
     # Set or get an agent's instructions
-    #
     # @param [String, Symbol, nil] instructions
     #  The system instructions
     # @param [Proc] block
@@ -329,12 +341,10 @@ module LLM
 
     ##
     # Set or get an agent's tracer.
-    #
     # @example
     #   class Agent < LLM::Agent
     #     set tracer: proc { LLM::Tracer.logger(llm, io: $stdout) }
     #   end
-    #
     # @param [LLM::Tracer, Symbol, nil] tracer
     #  A tracer.
     # @param [Proc] block
@@ -365,12 +375,10 @@ module LLM
 
     ##
     # Set or get an agent's stream
-    #
     # @example
     #   class Agent < LLM::Agent
-    #     set stream: proc { MyStream.new }
+    #     set stream: proc { Stream.new }
     #   end
-    #
     # @param [Object, Proc, nil] stream
     # @yieldreturn [Object, nil]
     # @return [Object, Proc, nil]
