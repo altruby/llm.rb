@@ -325,6 +325,8 @@ module LLM
     # @param [Integer] budget
     #  The maximum number of tool calls to allow in
     #  a single turn.
+    # @param [Proc] block
+    #  A block that is lazy-evaled
     # @return [Integer, nil]
     def self.tool_budget(budget = UNDEFINED, &block)
       if budget.equal?(UNDEFINED) and block.nil?
@@ -339,12 +341,14 @@ module LLM
     # will make when given a failed request.
     # @param [Integer] budget
     #  The maximum number of retries in a turn.
+    # @param [Proc] block
+    #  A block that is lazy-evaled
     # @return [Integer, nil]
-    def self.retry_budget(budget = UNDEFINED)
+    def self.retry_budget(budget = UNDEFINED, &block)
       if budget.equal?(UNDEFINED)
-        @retry_budget.nil? ? UNDEFINED : @retry_budget
+        @retry_budget
       else
-        @retry_budget = budget
+        @retry_budget = block || budget
       end
     end
 
