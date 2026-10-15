@@ -511,7 +511,7 @@ the agent will reply with an in-band error that
 tells the model it has spent its tool call budget,
 and that it should stop requesting tool calls for
 this turn. This exchange repeats until the model
-complies.
+stops requesting tool calls.
 
 The budget is restored after a turn completes and the
 model will normally provide a response from the tool
