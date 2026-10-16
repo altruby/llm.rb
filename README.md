@@ -54,7 +54,10 @@ interrupt or power loss) so the runtime automatically closes
 tool calls that fall into that category by telling the model
 the tool call(s) were cancelled.
 
-Without further ado, a classic "hello world" example:
+Without further ado, a classic "hello world" example. The environment
+variable `$DEEPSEEK_API_KEY` is assumed to have been set and reference
+a valid DeepSeek API key, otherwise you can provide a key explicitly
+as well, eg: `LLM.deepseek(key: ENV["MYKEY"])`:
 
 ```ruby
 require "llm"
@@ -200,7 +203,7 @@ class Stream < LLM::Stream
   end
 end
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = LLM::Agent.new(llm, stream: Stream.new)
 agent.talk "Explain Ruby fibers."
 ```
@@ -239,7 +242,7 @@ class ReadFile < LLM::Tool
   end
 end
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = LLM::Agent.new(llm, tools: [ReadFile], stream: $stdout)
 agent.talk "summarize README.md"
 ```
@@ -285,7 +288,7 @@ class Forecast < LLM::Schema
   required %i[city temperature conditions]
 end
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = LLM::Agent.new(llm)
 res = agent.talk "Weather in Paris?", schema: Forecast
 res.content!  # => {city: "Paris", temperature: 15.0, conditions: "Cloudy"}
@@ -317,7 +320,7 @@ restore the agent in another process or machine:
 require "llm"
 
 path  = File.join(Dir.home, ".agents", "myagent.json")
-llm   = LLM.deepseek(key: ENV["KEY"])
+llm   = LLM.deepseek
 agent = LLM::Agent.new(llm, path:)
 agent.talk "remember my name is robert"
 
@@ -363,7 +366,7 @@ fans out every callback to multiple tracers.
 A simple example:
 
 ```ruby
-llm    = LLM.deepseek(key: ENV["KEY"])
+llm    = LLM.deepseek
 tracer = LLM::Tracer.pretty(llm)
 agent  = LLM::Agent.new(llm, tracer:)
 agent.talk "Hello"
@@ -372,7 +375,7 @@ agent.talk "Hello"
 A multi-tracer example:
 
 ```ruby
-llm    = LLM.deepseek(key: ENV["KEY"])
+llm    = LLM.deepseek
 tracer = LLM::Tracer.multi(
   llm,
   LLM::Tracer::Logger,
@@ -408,7 +411,7 @@ through OAuth and belongs to a user other than you:
 ```ruby
 require "llm"
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 mcp = LLM::MCP.http(
   url: "https://api.githubcopilot.com/mcp/",
   headers: {"Authorization" => "Bearer #{ENV['GITHUB_PAT']}"},
@@ -558,7 +561,7 @@ might disagree:
 ```ruby
 require "llm"
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = LLM::Agent.new(llm)
 agent.talk "Hello"
 
@@ -851,7 +854,7 @@ it runs tools sequentially on a single thread.
 require "llm"
 require "llm/tools"
 
-llm   = LLM.deepseek(key: ENV["KEY"])
+llm   = LLM.deepseek
 tools = LLM::Tool.subclasses
 agent = LLM::Agent.new(llm, tools:, concurrency: :fork)
 agent.talk "implement the feature described in todo.txt"
@@ -1060,7 +1063,7 @@ class RedactEmails < LLM::Transformer
   end
 end
 
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = LLM::Agent.new(llm, transformer: RedactEmails)
 agent.talk "Contact support@example.com for help"
 ```
@@ -1089,7 +1092,7 @@ and
 callbacks.
 
 ```ruby
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 agent = LLM::Agent.new(
   llm,
   compactor: LLM::Compactor::Truncate,
@@ -1115,7 +1118,7 @@ used with
 ```ruby
 require "llm"
 
-llm   = LLM.deepseek(key: ENV["KEY"])
+llm   = LLM.deepseek
 a2a   = LLM::A2A.rest(url: "https://remote-agent.example.com")
 agent = LLM::Agent.new(llm, stream: $stdout, tools: a2a.skills)
 agent.talk "Run the skill"
@@ -1156,7 +1159,7 @@ and write a summary to summary.txt.
 ```ruby
 require "llm"
 
-llm   = LLM.deepseek(key: ENV["KEY"])
+llm   = LLM.deepseek
 agent = LLM::Agent.new(llm, skills: ["summary.md"])
 agent.talk "Summarize the last week of work"
 ```
@@ -1282,7 +1285,6 @@ libcurl. They share one interface, so switching is a one-word change.
 
 ```ruby
 llm = LLM.deepseek(
-  key: ENV["KEY"],
   transport: :net_http_persistent
 )
 ```
@@ -1352,7 +1354,7 @@ that here.
 ```ruby
 require "llm"
 
-llm  = LLM.openai(key: ENV["KEY"])
+llm  = LLM.openai
 body = "llm.rb is Ruby's capable AI runtime."
 embedding = llm.embed([body]).embeddings.first
 
@@ -1374,7 +1376,7 @@ the same across providers:
 ```ruby
 require "llm"
 
-llm = LLM.openai(key: ENV["KEY"])
+llm = LLM.openai
 res = llm.images.create(prompt: "a dog on a rocket to the moon")
 IO.copy_stream res.images[0], "rocket.png"
 ```
@@ -1389,7 +1391,7 @@ to maintain a session across generations:
 
 ```ruby
 require "llm"
-llm = LLM.deepseek(key: ENV["KEY"])
+llm = LLM.deepseek
 
 ##
 # First generation
