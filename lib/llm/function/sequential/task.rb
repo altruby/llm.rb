@@ -29,9 +29,10 @@ module LLM::Function::Sequential
     ##
     # @return [LLM::Function::Return]
     def wait
+      return @intercepted if intercepted?
       @result = @result ? @result : begin
         @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        @result = LLM::Object.from(unbox: @intercepted || function.call)
+        @result = LLM::Object.from(unbox: function.call)
         @finished_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @result
       end

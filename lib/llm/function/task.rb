@@ -101,5 +101,13 @@ class LLM::Function
     def group_class
       raise NotImplementedError
     end
+
+    ##
+    # Returns true when an intercept has
+    # returned {LLM::Function::Return}.
+    # @return [Boolean]
+    def intercepted?
+      LLM::Function::Return === @intercepted
+    end
   end
 end

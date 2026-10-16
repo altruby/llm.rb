@@ -26,7 +26,7 @@ class LLM::Function
         arguments: @function.arguments,
         model: @function.model
       )
-      return if @intercepted
+      return if intercepted?
       @ch = channels
       ##
       # **A cancel that arrived before this is written now, before the fork.**
@@ -134,7 +134,7 @@ class LLM::Function
     # it would be an exception to the rule that a tool's failure is in band.
     # @return [LLM::Function::Return]
     def wait
-      return @intercepted if @intercepted
+      return @intercepted if intercepted?
       return @result.unbox if @result
       spawn unless @spawned
       kind, data, @finished_at = @ch.result.recv

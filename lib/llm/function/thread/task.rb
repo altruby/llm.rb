@@ -37,7 +37,7 @@ module LLM::Function::Thread
         arguments: @function.arguments,
         model: @function.model
       )
-      return if @intercepted
+      return if intercepted?
       @ready = Queue.new
       @thread = ::Thread.new do
         ##
@@ -147,7 +147,7 @@ module LLM::Function::Thread
     ##
     # @return [LLM::Function::Return]
     def wait
-      return @intercepted if @intercepted
+      return @intercepted if intercepted?
       return @result.unbox if @result
       spawn unless @thread
       begin

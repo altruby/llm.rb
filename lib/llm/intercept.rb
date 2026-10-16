@@ -16,7 +16,8 @@ module LLM
   # and it can modify them in-place before the
   # tool is called.
   #
-  # The default intercept is {LLM::Intercept::Null LLM::Intercept::Null}
+  # The default intercept is
+  # {LLM::Intercept::Null LLM::Intercept::Null}
   # and it is a noop.
   class Intercept
     require_relative "intercept/null"
@@ -52,10 +53,15 @@ module LLM
     #  A pending function
     # @param opts [Hash]
     #  The contents of `intercept_options:`
-    # @return [LLM::Function::Return, nil]
-    #  Returns a {LLM::Function::Return LLM::Function::Return},
-    #  or nil. When nil is returned, the tool call continues,
-    #  otherwise the Return object is the tool call's response
+    # @return [LLM::Function::Return, Object]
+    #  When this method returns a
+    #  {LLM::Function::Return LLM::Function::Return},
+    #  object it stops a tool call
+    #  in its track and the Return
+    #  object is the answer we give
+    #  to the model for the tool call
+    #  that was stopped. Any other return
+    #  value lets the tool call through.
     def call(function:, **opts)
       raise NotImplementedError
     end
