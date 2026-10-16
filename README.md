@@ -1244,13 +1244,19 @@ llm = LLM.bedrock(
 </details>
 
 <details>
-<summary>Model Registry</summary>
+<summary>Registry</summary>
 <br>
 
-Each provider ships its model catalog, pricing, limits, and
-modalities with the gem, sourced from [models.dev](https://models.dev).
-Reach it from any provider, context, or agent, enumerate models, or
-sort them by price.
+The runtime ships with the [models.dev](https://models.dev)
+registry. The registry is a moving target and each new release
+of llm.rb includes an updated copy of it. The registry is loaded
+per-provider, on-demand and it provides information about the limits,
+costs, and capabilities of a model. The runtime uses the registry
+to implement methods like
+[LLM::Agent#cost]((https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#cost-instance_method)
+and the registry can be accessed through the
+[LLM::Provider#registry]((https://r.uby.dev/api-docs/llm.rb/LLM/Registry.html#registry-instance_method)
+method as well:
 
 ```ruby
 require "llm"
