@@ -157,11 +157,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "low",
             "medium",
@@ -251,11 +249,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "low",
             "medium",
@@ -308,11 +304,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high"
@@ -411,11 +405,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -443,9 +435,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.36,
-        "output": 14,
-        "cache_read": 0.3
+        "input": 0.294,
+        "output": 28,
+        "cache_read": 0.284
       }
     },
     "poolside/laguna-s-2.1:free": {
@@ -600,11 +592,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "medium",
             "xhigh"
           ]
@@ -726,11 +716,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high",
@@ -797,11 +785,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high",
@@ -866,11 +852,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high",
@@ -929,11 +913,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high",
@@ -1021,11 +1003,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high",
@@ -1266,64 +1246,6 @@
       },
       "canonical_model_id": "anthropic/claude-fable-5"
     },
-    "anthropic/claude-sonnet-4": {
-      "id": "anthropic/claude-sonnet-4",
-      "name": "Claude Sonnet 4",
-      "description": "Balanced Claude model for coding, analysis, agent workflows, and cost control",
-      "family": "claude-sonnet",
-      "attachment": true,
-      "reasoning": true,
-      "reasoning_options": [
-        {
-          "type": "toggle"
-        }
-      ],
-      "tool_call": true,
-      "structured_output": false,
-      "temperature": true,
-      "knowledge": "2025-01-31",
-      "release_date": "2025-05-22",
-      "last_updated": "2025-05-22",
-      "modalities": {
-        "input": [
-          "image",
-          "text",
-          "pdf"
-        ],
-        "output": [
-          "text"
-        ]
-      },
-      "open_weights": false,
-      "limit": {
-        "context": 200000,
-        "output": 64000
-      },
-      "cost": {
-        "input": 3,
-        "output": 15,
-        "cache_read": 0.3,
-        "cache_write": 3.75,
-        "tiers": [
-          {
-            "input": 6,
-            "output": 22.5,
-            "cache_read": 0.6,
-            "cache_write": 7.5,
-            "tier": {
-              "type": "context",
-              "size": 200000
-            }
-          }
-        ],
-        "context_over_200k": {
-          "input": 6,
-          "output": 22.5,
-          "cache_read": 0.6,
-          "cache_write": 7.5
-        }
-      }
-    },
     "anthropic/claude-sonnet-5": {
       "id": "anthropic/claude-sonnet-5",
       "name": "Claude Sonnet 5",
@@ -1333,11 +1255,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high",
@@ -1384,11 +1304,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high",
@@ -1822,11 +1740,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -1853,9 +1769,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.016,
-        "output": 0.64,
-        "cache_read": 0.016
+        "input": 0.008,
+        "output": 1.28,
+        "cache_read": 0.008
       },
       "canonical_model_id": "deepseek/deepseek-v4-flash-0731"
     },
@@ -1868,11 +1784,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -1900,9 +1814,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.01368,
-        "output": 0.891,
-        "cache_read": 0.0036
+        "input": 0.036,
+        "output": 0.684,
+        "cache_read": 0.0054
       },
       "canonical_model_id": "deepseek/deepseek-v4.1-flash"
     },
@@ -1915,11 +1829,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -2012,11 +1924,11 @@
       "open_weights": true,
       "limit": {
         "context": 163840,
-        "output": 16384
+        "output": 16000
       },
       "cost": {
-        "input": 0.32,
-        "output": 0.89
+        "input": 0.2574,
+        "output": 1.0287
       },
       "canonical_model_id": "deepseek/deepseek-chat"
     },
@@ -2029,11 +1941,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -2059,9 +1969,9 @@
         "output": 393216
       },
       "cost": {
-        "input": 0.66,
-        "output": 1.98,
-        "cache_read": 0.022
+        "input": 1.32,
+        "output": 3.96,
+        "cache_read": 0.044
       },
       "canonical_model_id": "deepseek/deepseek-v4-pro-0813"
     },
@@ -2176,11 +2086,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "high",
             "xhigh"
           ]
@@ -2295,11 +2203,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "high",
             "xhigh"
           ]
@@ -2333,37 +2239,6 @@
         "cache_read": 0.0182
       },
       "canonical_model_id": "deepseek/deepseek-v4-flash"
-    },
-    "unbiased/pareto-26.10-preview": {
-      "id": "unbiased/pareto-26.10-preview",
-      "name": "Pareto 26.10 Preview",
-      "description": "Preview model for early access evaluation, prototyping, and compatibility testing",
-      "attachment": true,
-      "reasoning": false,
-      "tool_call": true,
-      "structured_output": false,
-      "temperature": true,
-      "release_date": "2026-10-01",
-      "last_updated": "2026-10-01",
-      "modalities": {
-        "input": [
-          "text",
-          "image"
-        ],
-        "output": [
-          "text"
-        ]
-      },
-      "open_weights": false,
-      "limit": {
-        "context": 1048576,
-        "output": 131072
-      },
-      "cost": {
-        "input": 0.8,
-        "output": 3.2,
-        "cache_read": 0.03
-      }
     },
     "unbiased/pareto-26.9": {
       "id": "unbiased/pareto-26.9",
@@ -2900,11 +2775,11 @@
       "open_weights": true,
       "limit": {
         "context": 131072,
-        "output": 72000
+        "output": 117964
       },
       "cost": {
-        "input": 0.0509,
-        "output": 0.335
+        "input": 0.05,
+        "output": 0.33
       }
     },
     "meta-llama/llama-3.1-70b-instruct": {
@@ -3355,12 +3230,12 @@
       "open_weights": true,
       "limit": {
         "context": 1048576,
-        "output": 943718
+        "output": 131072
       },
       "cost": {
-        "input": 0.036,
-        "output": 0.9,
-        "cache_read": 0.01125
+        "input": 0.0167,
+        "output": 0.7796,
+        "cache_read": 0.0125
       },
       "canonical_model_id": "zhipuai/glm-5.3-flash"
     },
@@ -3614,11 +3489,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "high",
             "xhigh"
           ]
@@ -4730,6 +4603,54 @@
         "cache_read": 0.002
       }
     },
+    "meta/muse-spark-open": {
+      "id": "meta/muse-spark-open",
+      "name": "Muse Spark Open",
+      "description": "Open Llama multimodal model for image understanding and text reasoning",
+      "family": "muse",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "effort",
+          "values": [
+            "low",
+            "medium",
+            "high",
+            "xhigh"
+          ]
+        }
+      ],
+      "tool_call": true,
+      "structured_output": true,
+      "temperature": true,
+      "knowledge": "2026-01-04",
+      "release_date": "2026-10-15",
+      "last_updated": "2026-10-15",
+      "modalities": {
+        "input": [
+          "text",
+          "image",
+          "video",
+          "pdf",
+          "audio"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 1048576,
+        "output": 943718
+      },
+      "cost": {
+        "input": 1.25,
+        "output": 4.25,
+        "cache_read": 0.15
+      },
+      "canonical_model_id": "meta/muse-spark-open"
+    },
     "nousresearch/hermes-3-llama-3.1-70b": {
       "id": "nousresearch/hermes-3-llama-3.1-70b",
       "name": "Hermes 3 70B Instruct",
@@ -4805,7 +4726,7 @@
         }
       ],
       "tool_call": false,
-      "structured_output": false,
+      "structured_output": true,
       "temperature": true,
       "knowledge": "2024-08-31",
       "release_date": "2025-08-26",
@@ -4925,12 +4846,12 @@
       "open_weights": false,
       "limit": {
         "context": 1048576,
-        "output": 943718
+        "output": 131072
       },
       "cost": {
-        "input": 0.036,
-        "output": 0.9,
-        "cache_read": 0.01125
+        "input": 0.0167,
+        "output": 0.7796,
+        "cache_read": 0.0125
       }
     },
     "~z-ai/glm-latest": {
@@ -4969,9 +4890,9 @@
         "output": 131072
       },
       "cost": {
-        "input": 0.06,
+        "input": 0.0608,
         "output": 4.4,
-        "cache_read": 0.0558
+        "cache_read": 0.0565
       }
     },
     "arcee-ai/trinity-large-thinking": {
@@ -5904,11 +5825,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "high",
@@ -6191,11 +6110,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -6222,9 +6139,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.01368,
-        "output": 0.891,
-        "cache_read": 0.0036
+        "input": 0.036,
+        "output": 0.684,
+        "cache_read": 0.0054
       }
     },
     "~deepseek/deepseek-pro-latest": {
@@ -6236,11 +6153,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -6263,12 +6178,12 @@
       "open_weights": false,
       "limit": {
         "context": 1048576,
-        "output": 393216
+        "output": 943718
       },
       "cost": {
-        "input": 0.225,
-        "output": 8,
-        "cache_read": 0.23
+        "input": 0.25,
+        "output": 5,
+        "cache_read": 0.249
       }
     },
     "~deepseek/deepseek-v4-flash-latest": {
@@ -6280,11 +6195,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -6310,9 +6223,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.0144,
-        "output": 0.576,
-        "cache_read": 0.0108
+        "input": 0.0072,
+        "output": 1.152,
+        "cache_read": 0.0072
       }
     },
     "~x-ai/grok-latest": {
@@ -6517,11 +6430,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "high"
           ]
@@ -6848,9 +6759,9 @@
         "output": 235929
       },
       "cost": {
-        "input": 0.0765,
-        "output": 0.255,
-        "cache_read": 0.0425
+        "input": 0.09,
+        "output": 0.3,
+        "cache_read": 0.05
       },
       "canonical_model_id": "google/gemma-4-26b-a4b-it"
     },
@@ -6951,11 +6862,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "high"
           ]
@@ -7325,11 +7234,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "high"
           ]
@@ -7488,11 +7395,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "low",
             "medium",
@@ -7575,10 +7480,10 @@
         "output": 65536
       },
       "cost": {
-        "input": 0.75,
-        "output": 3.75,
-        "reasoning": 3.75,
-        "cache_read": 0.075,
+        "input": 0.825,
+        "output": 4.125,
+        "reasoning": 4.125,
+        "cache_read": 0.0825,
         "cache_write": 0.041667
       },
       "canonical_model_id": "google/gemini-3.8-flash"
@@ -7730,11 +7635,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "low",
             "medium",
@@ -7783,11 +7686,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "high"
           ]
@@ -7877,11 +7778,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "minimal",
             "low",
             "medium",
@@ -7949,6 +7848,76 @@
       "cost": {
         "input": 0.6,
         "output": 6
+      }
+    },
+    "moondream/moondream3-preview": {
+      "id": "moondream/moondream3-preview",
+      "name": "Moondream 3 Preview",
+      "description": "Multimodal reasoning model for visual analysis, planning, and tool use",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "toggle"
+        }
+      ],
+      "tool_call": false,
+      "structured_output": false,
+      "temperature": true,
+      "release_date": "2026-10-15",
+      "last_updated": "2026-10-15",
+      "modalities": {
+        "input": [
+          "text",
+          "image"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 32000,
+        "output": 4096
+      },
+      "cost": {
+        "input": 0.3,
+        "output": 2.5
+      }
+    },
+    "moondream/moondream3.1-9b-a2b": {
+      "id": "moondream/moondream3.1-9b-a2b",
+      "name": "Moondream 3.1",
+      "description": "Multimodal reasoning model for visual analysis, planning, and tool use",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "toggle"
+        }
+      ],
+      "tool_call": false,
+      "structured_output": false,
+      "temperature": true,
+      "release_date": "2026-10-15",
+      "last_updated": "2026-10-15",
+      "modalities": {
+        "input": [
+          "text",
+          "image"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 32000,
+        "output": 4096
+      },
+      "cost": {
+        "input": 0.3,
+        "output": 2.5
       }
     },
     "ibm-granite/granite-4.0-h-micro": {
@@ -8030,11 +7999,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -8336,8 +8303,8 @@
         "output": 16384
       },
       "cost": {
-        "input": 0.075,
-        "output": 0.2
+        "input": 0.09375,
+        "output": 0.25
       },
       "canonical_model_id": "mistral/mistral-small-3.2-24b-instruct"
     },
@@ -9089,11 +9056,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "high",
             "max"
@@ -9121,9 +9086,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.45,
-        "output": 15,
-        "cache_read": 0.28
+        "input": 0.304,
+        "output": 11.936,
+        "cache_read": 0.21
       },
       "canonical_model_id": "moonshotai/kimi-k3"
     },
@@ -9410,6 +9375,43 @@
         "output": 0.1
       }
     },
+    "nvidia/nemotron-3.5-super-vl:free": {
+      "id": "nvidia/nemotron-3.5-super-vl:free",
+      "name": "Nemotron 3.5 Super VL (free)",
+      "description": "Nemotron multimodal model for visual reasoning and agentic AI workflows",
+      "family": "nemotron",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "toggle"
+        }
+      ],
+      "tool_call": true,
+      "structured_output": true,
+      "temperature": true,
+      "release_date": "2026-10-15",
+      "last_updated": "2026-10-15",
+      "modalities": {
+        "input": [
+          "text",
+          "image",
+          "video"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 1000000,
+        "output": 131072
+      },
+      "cost": {
+        "input": 0,
+        "output": 0
+      }
+    },
     "nvidia/nemotron-3-nano-30b-a3b": {
       "id": "nvidia/nemotron-3-nano-30b-a3b",
       "name": "Nemotron 3 Nano 30B A3B",
@@ -9571,11 +9573,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium"
           ]
@@ -9608,6 +9608,44 @@
       },
       "canonical_model_id": "nvidia/nemotron-3-super-120b-a12b"
     },
+    "nvidia/nemotron-3.5-super-vl": {
+      "id": "nvidia/nemotron-3.5-super-vl",
+      "name": "Nemotron 3.5 Super VL",
+      "description": "Nemotron multimodal model for visual reasoning and agentic AI workflows",
+      "family": "nemotron",
+      "attachment": true,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "toggle"
+        }
+      ],
+      "tool_call": true,
+      "structured_output": true,
+      "temperature": true,
+      "release_date": "2026-10-15",
+      "last_updated": "2026-10-15",
+      "modalities": {
+        "input": [
+          "text",
+          "image",
+          "video"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 1048576,
+        "output": 235929
+      },
+      "cost": {
+        "input": 0.15,
+        "output": 0.5,
+        "cache_read": 0.02
+      }
+    },
     "nvidia/nemotron-3-ultra-550b-a55b:free": {
       "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "name": "Nemotron 3 Ultra (free)",
@@ -9617,11 +9655,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "medium",
             "high"
           ]
@@ -9663,11 +9699,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "medium",
             "high"
           ]
@@ -9710,11 +9744,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium"
           ]
@@ -10435,7 +10467,7 @@
       "cost": {
         "input": 1,
         "output": 2.7,
-        "cache_read": 0.05
+        "cache_read": 0.1
       },
       "canonical_model_id": "stepfun/step-5-preview"
     },
@@ -11174,11 +11206,9 @@
       "reasoning": true,
       "reasoning_options": [
         {
-          "type": "toggle"
-        },
-        {
           "type": "effort",
           "values": [
+            "none",
             "low",
             "medium",
             "xhigh"
@@ -11785,12 +11815,11 @@
       "open_weights": true,
       "limit": {
         "context": 262144,
-        "output": 235929
+        "output": 16384
       },
       "cost": {
-        "input": 0.1,
-        "output": 1.1,
-        "cache_read": 0.07
+        "input": 0.09,
+        "output": 1.1
       },
       "canonical_model_id": "alibaba/qwen3-next-80b-a3b-instruct"
     },
@@ -12540,11 +12569,12 @@
       "open_weights": true,
       "limit": {
         "context": 262144,
-        "output": 81920
+        "output": 65536
       },
       "cost": {
-        "input": 0.32,
-        "output": 3.2
+        "input": 0.25,
+        "output": 2,
+        "cache_read": 0.025
       },
       "canonical_model_id": "alibaba/qwen3.6-27b"
     },
@@ -15537,9 +15567,6 @@
       "attachment": true,
       "reasoning": true,
       "reasoning_options": [
-        {
-          "type": "toggle"
-        },
         {
           "type": "effort",
           "values": [
