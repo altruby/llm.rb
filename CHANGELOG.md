@@ -22,6 +22,8 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `LLM::Guard`, `LLM::Guard::Null` | `LLM::Intercept`, `LLM::Intercept::Null` |
 | `guard:` and `guard_options:` on a context or agent | `intercept:` and `intercept_options:` |
 | `LLM::Context#guard` | `LLM::Context#intercept` |
+| a guard that returned anything truthy stopped the tool call | only a `LLM::Function::Return` stops it, and any other value lets the call run |
+| `trace:` on `LLM::Agent#console`, a deprecated alias | it is removed, and `tracer:` is the keyword |
 
 ### Intercept
 
@@ -156,6 +158,15 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   Sequel model that wraps an agent carries it into
   the context it builds.
 
+* **agent: remove the deprecated `trace:` keyword from `LLM::Agent#console`** <br>
+  The `trace:` keyword is gone from
+  [`LLM::Agent#console`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#console-instance_method)
+  and from its `repl` alias. It was renamed to
+  `tracer:` in an earlier release, and it was kept
+  for a caller that still passed it, with a warning
+  each time. The keyword is `tracer:`, so
+  `trace: true` is `tracer: true`.
+
 ### Function
 
 * **function: `:ractor` raises `LLM::Interrupt` (like everyone else)** <br>
@@ -169,6 +180,19 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   it is the last step in an interrupt. The caller
   is expected to rescue `LLM::Interrupt` and handle
   the interrupt from there.
+
+* **function: add `LLM::Function::Task#intercepted?`** <br>
+  An intercept stops a tool call when it returns
+  an
+  [`LLM::Function::Return`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Return.html),
+  because that Return is the answer the model is
+  given for the call. Any other value lets the call
+  through, where only `nil` did that before, so a
+  guard that returned anything else stopped a tool
+  call and answered the model with it.
+  [`LLM::Function::Task#intercepted?`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#intercepted?-instance_method)
+  is the predicate a task asks, and it is true only
+  for a Return.
 
 ### Tracer
 
