@@ -54,7 +54,7 @@ interrupt or power loss) so the runtime automatically closes
 tool calls that fall into that category by telling the model
 the tool call(s) were cancelled.
 
-**helloworld.rb**
+##### helloworld.rb
 
 A classic "hello world" example. <br> The environment variable
 `$DEEPSEEK_API_KEY` is assumed to have been set and reference
