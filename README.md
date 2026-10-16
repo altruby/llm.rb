@@ -1253,9 +1253,9 @@ of llm.rb includes an updated copy of it. The registry is loaded
 per-provider, on-demand and it provides information about the limits,
 costs, and capabilities of a model. The runtime uses the registry
 to implement methods like
-[LLM::Agent#cost]((https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#cost-instance_method)
+[LLM::Agent#cost](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#cost-instance_method)
 and the registry can be accessed through the
-[LLM::Provider#registry]((https://r.uby.dev/api-docs/llm.rb/LLM/Registry.html#registry-instance_method)
+[LLM::Provider#registry](https://r.uby.dev/api-docs/llm.rb/LLM/Registry.html#registry-instance_method)
 method as well:
 
 ```ruby
