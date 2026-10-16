@@ -345,7 +345,7 @@ module LLM
     #  A block that is lazy-evaled
     # @return [Integer, nil]
     def self.retry_budget(budget = UNDEFINED, &block)
-      if budget.equal?(UNDEFINED)
+      if budget.equal?(UNDEFINED) and block.nil?
         @retry_budget
       else
         @retry_budget = block || budget
