@@ -436,7 +436,7 @@
       },
       "cost": {
         "input": 0.294,
-        "output": 28,
+        "output": 24,
         "cache_read": 0.284
       }
     },
@@ -1815,7 +1815,7 @@
       },
       "cost": {
         "input": 0.036,
-        "output": 0.684,
+        "output": 0.6435,
         "cache_read": 0.0054
       },
       "canonical_model_id": "deepseek/deepseek-v4.1-flash"
@@ -1924,11 +1924,11 @@
       "open_weights": true,
       "limit": {
         "context": 163840,
-        "output": 16000
+        "output": 16384
       },
       "cost": {
-        "input": 0.2574,
-        "output": 1.0287
+        "input": 0.32,
+        "output": 0.89
       },
       "canonical_model_id": "deepseek/deepseek-chat"
     },
@@ -1969,9 +1969,9 @@
         "output": 393216
       },
       "cost": {
-        "input": 1.32,
-        "output": 3.96,
-        "cache_read": 0.044
+        "input": 0.66,
+        "output": 1.98,
+        "cache_read": 0.022
       },
       "canonical_model_id": "deepseek/deepseek-v4-pro-0813"
     },
@@ -2117,9 +2117,9 @@
         "output": 384000
       },
       "cost": {
-        "input": 0.95526,
-        "output": 1.91052,
-        "cache_read": 0.079605
+        "input": 0.297192,
+        "output": 0.594384,
+        "cache_read": 0.024766
       },
       "canonical_model_id": "deepseek/deepseek-v4-pro"
     },
@@ -2448,9 +2448,9 @@
         "output": 128000
       },
       "cost": {
-        "input": 0.132,
-        "output": 0.528,
-        "cache_read": 0.033
+        "input": 0.0825,
+        "output": 0.33,
+        "cache_read": 0.020625
       },
       "canonical_model_id": "tencent/hy3"
     },
@@ -2521,9 +2521,9 @@
         "output": 64000
       },
       "cost": {
-        "input": 0.834,
-        "output": 2.501,
-        "cache_read": 0.042
+        "input": 0.7506,
+        "output": 2.2509,
+        "cache_read": 0.0378
       },
       "canonical_model_id": "tencent/hy4-preview"
     },
@@ -2582,11 +2582,11 @@
       "open_weights": true,
       "limit": {
         "context": 1310720,
-        "output": 117964
+        "output": 16384
       },
       "cost": {
-        "input": 0.18,
-        "output": 0.59
+        "input": 0.1,
+        "output": 0.3
       }
     },
     "meta-llama/llama-guard-4-12b": {
@@ -2678,12 +2678,11 @@
       "open_weights": true,
       "limit": {
         "context": 131072,
-        "output": 32768
+        "output": 16384
       },
       "cost": {
-        "input": 0.59,
-        "output": 0.79,
-        "cache_read": 0.295
+        "input": 0.1,
+        "output": 0.32
       },
       "canonical_model_id": "meta/llama-3.3-70b-instruct"
     },
@@ -3230,12 +3229,12 @@
       "open_weights": true,
       "limit": {
         "context": 1048576,
-        "output": 131072
+        "output": 943718
       },
       "cost": {
-        "input": 0.0167,
-        "output": 0.7796,
-        "cache_read": 0.0125
+        "input": 0.036,
+        "output": 0.585,
+        "cache_read": 0.01125
       },
       "canonical_model_id": "zhipuai/glm-5.3-flash"
     },
@@ -3519,9 +3518,9 @@
         "output": 943718
       },
       "cost": {
-        "input": 0.037,
-        "output": 7,
-        "cache_read": 0.036
+        "input": 0.62,
+        "output": 2.42,
+        "cache_read": 0.14
       },
       "canonical_model_id": "zhipuai/glm-5.2"
     },
@@ -3684,6 +3683,50 @@
         "cache_read": 0.078
       },
       "canonical_model_id": "zhipuai/glm-5.3"
+    },
+    "reflection/beam-1.0-501b-a23b": {
+      "id": "reflection/beam-1.0-501b-a23b",
+      "name": "Beam 1.0 501B A23B",
+      "description": "Reasoning model for deliberate analysis, multi-step problem solving, and tool use",
+      "family": "beam",
+      "attachment": false,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "effort",
+          "values": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ]
+        }
+      ],
+      "tool_call": true,
+      "structured_output": true,
+      "temperature": true,
+      "knowledge": "2026-06-30",
+      "release_date": "2026-10-16",
+      "last_updated": "2026-10-16",
+      "modalities": {
+        "input": [
+          "text"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 1048576,
+        "output": 943718
+      },
+      "cost": {
+        "input": 1,
+        "output": 3,
+        "cache_read": 0.1
+      }
     },
     "inference-net/schematron-v2-small": {
       "id": "inference-net/schematron-v2-small",
@@ -4846,12 +4889,12 @@
       "open_weights": false,
       "limit": {
         "context": 1048576,
-        "output": 131072
+        "output": 943718
       },
       "cost": {
-        "input": 0.0167,
-        "output": 0.7796,
-        "cache_read": 0.0125
+        "input": 0.036,
+        "output": 0.585,
+        "cache_read": 0.01125
       }
     },
     "~z-ai/glm-latest": {
@@ -6140,7 +6183,7 @@
       },
       "cost": {
         "input": 0.036,
-        "output": 0.684,
+        "output": 0.6435,
         "cache_read": 0.0054
       }
     },
@@ -6178,12 +6221,12 @@
       "open_weights": false,
       "limit": {
         "context": 1048576,
-        "output": 943718
+        "output": 393216
       },
       "cost": {
-        "input": 0.25,
-        "output": 5,
-        "cache_read": 0.249
+        "input": 0.24948,
+        "output": 0.74844,
+        "cache_read": 0.007938
       }
     },
     "~deepseek/deepseek-v4-flash-latest": {
@@ -6224,7 +6267,7 @@
       },
       "cost": {
         "input": 0.0072,
-        "output": 1.152,
+        "output": 1.2672,
         "cache_read": 0.0072
       }
     },
@@ -6759,9 +6802,9 @@
         "output": 235929
       },
       "cost": {
-        "input": 0.09,
-        "output": 0.3,
-        "cache_read": 0.05
+        "input": 0.0675,
+        "output": 0.225,
+        "cache_read": 0.0375
       },
       "canonical_model_id": "google/gemma-4-26b-a4b-it"
     },
@@ -12773,6 +12816,41 @@
         "cache_read": 0.25
       },
       "canonical_model_id": "alibaba/qwen3.8-max-0902"
+    },
+    "xingchen-agi/xing4.0-29b-a4b:free": {
+      "id": "xingchen-agi/xing4.0-29b-a4b:free",
+      "name": "Xing4.0 29B A4B (free)",
+      "description": "Free provider route for experiments, demos, and cost-sensitive chat workloads",
+      "family": "agi",
+      "attachment": false,
+      "reasoning": true,
+      "reasoning_options": [
+        {
+          "type": "toggle"
+        }
+      ],
+      "tool_call": true,
+      "structured_output": true,
+      "temperature": true,
+      "release_date": "2026-10-16",
+      "last_updated": "2026-10-16",
+      "modalities": {
+        "input": [
+          "text"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "open_weights": true,
+      "limit": {
+        "context": 262144,
+        "output": 235929
+      },
+      "cost": {
+        "input": 0,
+        "output": 0
+      }
     },
     "morph/morph-v3-large": {
       "id": "morph/morph-v3-large",
