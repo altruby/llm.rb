@@ -57,7 +57,7 @@ module LLM
     #  When this method returns a
     #  {LLM::Function::Return LLM::Function::Return},
     #  object it stops a tool call
-    #  in its track and the Return
+    #  in its tracks and the Return
     #  object is the answer we give
     #  to the model for the tool call
     #  that was stopped. Any other return
