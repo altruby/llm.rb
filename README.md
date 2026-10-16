@@ -975,9 +975,11 @@ When a model requests a tool call, the
 runtime represents it as a [`LLM::Function`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html)
 object that a subclass of [`LLM::Intercept`](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html)
 can see _before_ it is called. An intercept
-can return on behalf of the tool call, and so
-the tool call is never made. Or it can return
-nil, and let the tool call continue as normal.
+can return a
+[`LLM::Function::Return`]((https://r.uby.dev/api-docs/llm.rb/LLM/Function.html))
+object on behalf of the tool call, and so the tool
+call is never made. Or it can return any other
+value to let the tool continue as normal.
 
 Maybe best of all, an intercept can modify
 the arguments given to a [`LLM::Function`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html)
