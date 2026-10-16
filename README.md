@@ -79,6 +79,7 @@ llm    = LLM.deepseek
 tracer = LLM::Tracer.pretty(llm)
 tools  = [GetTime]
 stream = StringIO.new
+
 agent  = LLM::Agent.new(llm, tools:, tracer:, stream:)
 agent.talk "hello world"
 agent.talk "what time is it?"
