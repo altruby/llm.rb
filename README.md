@@ -54,7 +54,7 @@ interrupt or power loss) so the runtime automatically closes
 tool calls that fall into that category by telling the model
 the tool call(s) were cancelled.
 
-A classic "hello world" example follows. The environment variable
+A classic "hello world" example follows. <br> The environment variable
 `$DEEPSEEK_API_KEY` is assumed to have been set and reference
 a valid DeepSeek API key, otherwise you can provide a key explicitly
 (eg: `LLM.deepseek(key: ENV["MYKEY"])`) and you could swap
