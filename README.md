@@ -66,9 +66,20 @@ deepseek for any of the other 13 providers as well
 ```ruby
 require "llm"
 
-llm = LLM.deepseek
-agent = LLM::Agent.new(llm, stream: $stdout)
-agent.talk "hello world"
+class GetTime < LLM::Tool
+  name "get-time"
+  description "returns the current time"
+
+  def call
+    {now: Time.now}
+  end
+end
+
+llm    = LLM.deepseek
+tracer = LLM::Tracer.pretty(llm)
+tools  = [GetTime]
+agent  = LLM::Agent.new(llm, tools:, tracer:, stream: $stdout)
+agent.talk "what time is it?"
 ```
 
 #### Essentials
