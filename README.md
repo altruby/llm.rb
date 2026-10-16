@@ -428,7 +428,7 @@ can add latency to your requests.
 
 The example uses a local stdio MCP server from the
 [sem](https://github.com/Ataraxy-Labs/sem)
-project. It works on top of git and parses your code
+project. <br> It works on top of git and parses your code
 with tree-sitter:
 
 ```ruby
