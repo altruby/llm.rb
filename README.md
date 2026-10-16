@@ -83,7 +83,6 @@ agent  = LLM::Agent.new(llm, tools:, tracer:, stream:)
 agent.talk "hello world"
 agent.talk "what time is it?"
 puts stream.string
-
 ```
 
 #### Essentials
