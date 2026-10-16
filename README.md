@@ -424,15 +424,20 @@ It is recommended (but not required) to launch a
 stdio MCP server with a session so that the process
 is kept alive for as long as you use it, otherwise
 the process can be launched multiple times and it
-can add latency to your requests:
+can add latency to your requests.
+
+The example uses a local stdio MCP server from the
+[sem](https://github.com/Ataraxy-Labs/sem)
+project. It works on top of git and parses your code
+with tree-sitter:
 
 ```ruby
 require "llm"
 
-llm = LLM.deepseek(key: ENV["KEY"])
 mcp = LLM::MCP.stdio(
-  argv: ["bundle", "exec", "mcp-server"],
-  env: {"VAR1" => "FOO", "VAR2" => "BAR"}
+  argv: ["sem", "mcp"],
+  env: {'SEM_REPO' => Dir.getwd},
+  cwd: Dir.getwd,
 )
 
 ##
@@ -440,8 +445,12 @@ mcp = LLM::MCP.stdio(
 # It can be dropped but then the process may
 # be launched once per-request.
 mcp.session do
-  agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
-  agent.talk "What tools are available?"
+  llm    = LLM.deepseek
+  tracer = LLM::Tracer.pretty(llm)
+  tools  = mcp.tools.select { _1.name == "sem_log" }
+  stream = $stdout
+  agent  = LLM::Agent.new(llm, tracer:, stream:, tools:)
+  agent.talk "summarize recent git activity"
 end
 ```
 </details>
