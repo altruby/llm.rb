@@ -1,11 +1,48 @@
 > Changelog <br>
 > [r.uby.dev](https://r.uby.dev) project
 
-This file covers the (upcoming) v17 series,
-and the v16 series. <br> Previous releases (v15 and
+This file covers the v17 series and the previous
+v16 series. <br> Previous releases (v15 and
 before) can be seen in [changelog/old.md](changelog/old.md).
 
 ## What's next
+
+*No unreleased changes yet. Check back after the next release.*
+
+## v17.0.0
+
+Changes since `v16.0.0`.
+
+This release is large, and includes a number of breaking
+changes. It covers a lot of ground. I will try to cover the
+highlights but I won't be able to cover everything, and
+there won't be much depth. Check out the changelog entries
+to learn more.
+
+The Files API provided by deepseek is now supported
+(via [LLM::DeepSeek#files](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek/Files.html)),
+and there was a large focus on the cancellation and
+interrupt story. [LLM::Tracer]((https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+saw a lot of changes and it has the most changelog
+entries in this release.
+
+The `LLM::Guard` class was a focus as well, and it
+has been renamed to
+[LLM::Intercept](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html)
+. An intercept can block a tool call with a return
+of its own, it can mutate tool-call parameters in
+place, validate tool call parameters, and anything
+else a middleman that sits between the model and a
+tool could do.
+
+It is now possible to combine multiple tracers _or_
+intercepts into a single tracer, or intercept. The
+[LLM::Tracer.multi]((https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#multi-class_method))
+and
+[LLM::Intercept.multi]((https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html#multi-class_method))
+methods exist for this purpose.
+
+For everything else, keep reading.
 
 ### Breaking
 
