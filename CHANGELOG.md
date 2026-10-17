@@ -7,7 +7,22 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 
 ## What's next
 
-*No unreleased changes yet. Check back after the next release.*
+### Fix
+
+* **agent: forward `intercept:` to `LLM::Context`** <br>
+  An `intercept:` given to an agent was kept on the
+  agent as an instance variable and never read, so the
+  context a turn runs against fell back to
+  [`LLM::Intercept::Null`](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept/Null.html)
+  and no tool call was intercepted. The option is
+  passed to
+  [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
+  as a parameter now, the way `tools:` and `stream:`
+  are. Each way to set it works: `set intercept:`, a
+  block given to
+  [`LLM::Agent.intercept`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#intercept-class_method),
+  and an `intercept:` given to
+  [`LLM::Agent.new`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#initialize-instance_method).
 
 ## v17.0.0
 
