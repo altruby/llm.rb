@@ -7,6 +7,16 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 
 ## What's next
 
+*No unreleased changes yet. Check back after the next release.*
+
+## v17.0.1
+
+Changes since `v17.0.0`.
+
+This is a small release with a single fix. An `intercept:`
+given to an agent is passed to the context now, so the
+intercept is called when a tool call is about to run.
+
 ### Fix
 
 * **agent: forward `intercept:` to `LLM::Context`** <br>
