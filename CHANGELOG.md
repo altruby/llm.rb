@@ -37,9 +37,9 @@ tool could do.
 
 It is now possible to combine multiple tracers _or_
 intercepts into a single tracer, or intercept. The
-[LLM::Tracer.multi]((https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#multi-class_method))
+[LLM::Tracer.multi](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#multi-class_method)
 and
-[LLM::Intercept.multi]((https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html#multi-class_method))
+[LLM::Intercept.multi](https://r.uby.dev/api-docs/llm.rb/LLM/Intercept.html#multi-class_method)
 methods exist for this purpose.
 
 For everything else, keep reading.
