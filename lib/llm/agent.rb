@@ -62,8 +62,7 @@ module LLM
                  name description
                  path tool_budget
                  tracer concurrency
-                 instructions confirm
-                 intercept]
+                 instructions confirm]
     private_constant :FIELDS, :IVARS
 
     ##
