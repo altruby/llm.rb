@@ -73,29 +73,9 @@ class LLM::Function
     def spawn
       @tool = ::Ractor.new(@mailbox, @runner_class, @id, @name, @arguments, @cookie) do |mailbox, runner_class, id, name, arguments, cookie|
         finished_at = -> { Process.clock_gettime(Process::CLOCK_MONOTONIC) }
-        ##
-        # Before the watcher exists, because an interrupt can arrive
-        # first: it is a message, and it waits in the inbox until the
-        # watcher reads it. The thread the interrupt is raised on is
-        # named rather than defaulted, which is what the window asks of
-        # a caller: it is `Thread.current`, the ractor's own main
-        # thread, and the thread the tool runs on.
         window = LLM::Function::Window.new(thread: ::Thread.current)
-        ##
-        # The tool is built outside the window, so a raise from
-        # `initialize` is not answered as an interrupt, and before the
-        # watcher, so that the watcher has something to tell: a ractor
-        # cannot be handed the function, and the instance the parent
-        # holds is not this one.
         runner = runner_class.new
         ::Thread.new do
-          ##
-          # Only the receive is rescued: it raises when the ractor this
-          # one talks to has gone, and nothing else here should be
-          # answerable to that rescue. A hook that raises must not be
-          # swallowed by it, and must not take the raise with it either -
-          # hence the `ensure` below, which delivers whatever the hook
-          # does.
           kind = begin
             ::Ractor.receive
           rescue ::Ractor::Error
@@ -103,31 +83,14 @@ class LLM::Function
           end
           next unless kind == :interrupt
           begin
-            ##
-            # The tool is told first, so a tool that releases a resource
-            # has done so by the time the raise lands on it, and so that
-            # a tool which rescues `LLM::Interrupt` reads what its hook
-            # wrote.
             LLM::Function.interrupt(runner)
           ensure
-            ##
-            # The window decides whether the raise is the tool's to
-            # handle, or whether the tool has already been and gone.
             window.interrupt!
           end
         end
-        ##
-        # Everything the call needs is prepared outside the window, so
-        # the distance from `running!` to the tool's first instruction is
-        # the method dispatch and nothing else.
         kwargs = Hash === arguments ? arguments.transform_keys(&:to_sym) : arguments
         window.running!
         result = runner.call(**kwargs)
-        ##
-        # The window closes the moment the tool has returned and before
-        # the result is written, so an interrupt that arrives once the
-        # work is done is a no-op rather than a reason to throw the
-        # result away.
         window.finished!
         mailbox.send([:done, id, name, result, finished_at.()])
       rescue LLM::Interrupt

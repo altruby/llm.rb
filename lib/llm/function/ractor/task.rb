@@ -7,6 +7,11 @@ class LLM::Function
   # {LLM::Function::Ractor::Mailbox}.
   class Ractor::Task < LLM::Function::Task
     ##
+    # @api private
+    Ractor = ::Ractor
+    private_constant :Ractor
+
+    ##
     # @return [LLM::Function::Ractor::Mailbox]
     attr_reader :mailbox
 
@@ -51,24 +56,8 @@ class LLM::Function
         arguments: @arguments, model: @model
       )
       return if intercepted?
-      ##
-      # The result is delivered to a ractor of this task's own rather
-      # than through its mailbox. The mailbox ractor answers `alive?`
-      # while the tool runs and goes once the result is in, so a wait
-      # that arrives after it has gone has nobody to answer it. This one
-      # receives the result once and holds it until it is asked.
-      result = ::Ractor.new { ::Ractor.receive }
-      @mailbox = Ractor::Mailbox.new(build_task(result), result)
-      ##
-      # **A cancel that arrived before there was a mailbox is delivered now**,
-      # and the flag is cleared as it is delivered, so it means what its name
-      # says - a cancel waiting for a mailbox, rather than one that was made at
-      # some point.
-      #
-      # The watcher reads the message after it starts, and it waits on the
-      # window the job opens immediately before the call, so a message that
-      # arrives with the mailbox is held the same way one that arrives a moment
-      # later is.
+      result = Ractor.new { Ractor.receive }
+      @mailbox = LLM::Function::Ractor::Mailbox.new(build_task(result), result)
       if @cancelled
         @cancelled = false
         @mailbox.interrupt!
@@ -136,16 +125,9 @@ class LLM::Function
 
     def build_task(result)
       @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      ::Ractor.new(result, @runner_class, @id, @name, @arguments, @cookie) do |result, runner_class, id, name, arguments, cookie|
-        LLM::Function::Ractor::Job.new(
-          ::Ractor.current,
-          result,
-          runner_class,
-          id,
-          name,
-          arguments,
-          cookie
-        ).call
+      vars  = [result, @runner_class, @id, @name, @arguments, @cookie]
+      Ractor.new(*vars) do |*vars|
+        LLM::Function::Ractor::Job.new(Ractor.current, *vars).call
       end
     end
   end

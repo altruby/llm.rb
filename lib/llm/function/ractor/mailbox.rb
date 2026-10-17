@@ -2,20 +2,17 @@
 
 class LLM::Function
   ##
-  # The {LLM::Function::Ractor::Mailbox} class manages the mailbox protocol
-  # for a single ractor-backed function call.
+  # The {LLM::Function::Ractor::Mailbox} class
+  # manages the mailbox protocol for a single
+  # ractor-backed function call.
   class Ractor::Mailbox
     ##
-    # @return [::Ractor]
+    # @return [Ractor]
     attr_reader :task
 
     ##
-    # @param [::Ractor] task
-    # @param [::Ractor] result
-    #  The ractor the result is delivered to. It is not `task`: that one
-    #  answers `alive?` while the tool runs and goes once the result is
-    #  in, while this one holds the result until it is asked for, so a
-    #  wait that arrives late is still answered.
+    # @param [Ractor] task
+    # @param [Ractor] result
     # @return [LLM::Function::Ractor::Mailbox]
     def initialize(task, result)
       @task = task
@@ -24,11 +21,6 @@ class LLM::Function
 
     ##
     # Whether the task is still running.
-    #
-    # Once the result is in, the answer comes from the closed ractor below
-    # rather than from a reply: the loop hands the result over and ends,
-    # so `false` is the rescue's answer as much as a reply's, and the
-    # rescue is half of this method rather than tidying.
     # @return [Boolean]
     def alive?
       request(:alive?)
@@ -37,24 +29,25 @@ class LLM::Function
     end
 
     ##
-    # The result, taken from the ractor that holds it rather than asked
-    # of the ractor that ran the tool: the second is on its way out by the
-    # time a wait arrives late, and a request that races that is refused
-    # or accepted and never read.
+    # Returns whatever the tool ractor wrote
+    # to its mailbix.
     #
-    # Taking is a one-off - a ractor's value is given to one taker - and
-    # the first wait is the one that takes it.
-    # {LLM::Function::Ractor::Task#wait} is the only caller, and it
-    # remembers, so nothing asks twice.
+    # It taken from the ractor that holds the
+    # result instead of the ractor that ran
+    # the tool: the second is on its way out
+    # by the time a wait arrives late, and a
+    # request that races that is refused or
+    # accepted and never read.
     # @return [Array]
     def wait
       take(@result)
     end
 
     ##
-    # A cancel for a task whose ractor has gone is a no-op, the same way a
-    # cancel for a call that has already returned is one: there is nothing
-    # left to interrupt, and the raise belongs to nobody.
+    # Delivers an interrupt to the Ractor that
+    # supervises the second ractor that is running
+    # a tool. The supervisor delivers the interrupt
+    # to the tool ractor.
     # @return [nil]
     def interrupt!
       task.send([:interrupt])
@@ -66,15 +59,15 @@ class LLM::Function
     private
 
     ##
-    # Takes the value a ractor was given, the way this class takes
-    # anything: `take` where the runtime has it, `Ractor.select` where it
-    # does not.
-    # @param [::Ractor] ractor
+    # @param [Ractor] ractor
     # @return [Object]
     def take(ractor)
       ractor.respond_to?(:take) ? ractor.take : ::Ractor.select(ractor).last
     end
 
+    ##
+    # @param [Symbol] type
+    # @return [Object]
     def request(type)
       reply = ::Ractor.new { ::Ractor.receive }
       task.send([type, reply])
