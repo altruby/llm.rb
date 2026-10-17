@@ -22,7 +22,7 @@ to learn more.
 The Files API provided by deepseek is now supported
 (via [LLM::DeepSeek#files](https://r.uby.dev/api-docs/llm.rb/LLM/DeepSeek/Files.html)),
 and there was a large focus on the cancellation and
-interrupt story. [LLM::Tracer]((https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+interrupt story. [LLM::Tracer](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
 saw a lot of changes and it has the most changelog
 entries in this release.
 
