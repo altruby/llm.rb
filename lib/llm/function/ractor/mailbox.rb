@@ -7,15 +7,20 @@ class LLM::Function
   # ractor-backed function call.
   class Ractor::Mailbox
     ##
-    # @return [Ractor]
-    attr_reader :task
+    # @api private
+    Ractor = ::Ractor
+    private_constant :Ractor
 
     ##
-    # @param [Ractor] task
+    # @return [Ractor]
+    attr_reader :supervisor
+
+    ##
+    # @param [Ractor] supervisor
     # @param [Ractor] result
     # @return [LLM::Function::Ractor::Mailbox]
-    def initialize(task, result)
-      @task = task
+    def initialize(supervisor, result)
+      @supervisor = supervisor
       @result = result
     end
 
@@ -50,7 +55,7 @@ class LLM::Function
     # to the tool ractor.
     # @return [nil]
     def interrupt!
-      task.send([:interrupt])
+      supervisor.send([:interrupt])
       nil
     rescue ::Ractor::ClosedError
       nil
@@ -69,8 +74,8 @@ class LLM::Function
     # @param [Symbol] type
     # @return [Object]
     def request(type)
-      reply = ::Ractor.new { ::Ractor.receive }
-      task.send([type, reply])
+      reply = Ractor.new { Ractor.receive }
+      supervisor.send([type, reply])
       take(reply)
     end
   end
