@@ -2,20 +2,25 @@
 
 class LLM::Function
   ##
-  # The {LLM::Function::Ractor::Job} class manages execution and mailbox
-  # coordination for a single ractor-backed function call.
+  # The {LLM::Function::Ractor::Job} class has a reference
+  # to two ractors: a supervisor, and another Ractor that
+  # runs the tool call.
   class Ractor::Job
     ##
-    # @param [::Ractor] mailbox
-    # @param [::Ractor] result
-    #  The ractor the result is handed to, which the task holds it in.
+    # @api private
+    Ractor = ::Ractor
+    private_constant :Ractor
+
+    ##
+    # @param [Ractor] supervisor
+    # @param [Ractor] result
     # @param [Class] runner_class
     # @param [String, nil] id
     # @param [String] name
     # @param [Hash, Array, nil] arguments
     # @return [LLM::Function::Ractor::Job]
-    def initialize(mailbox, result, runner_class, id, name, arguments, cookie)
-      @mailbox = mailbox
+    def initialize(supervisor, result, runner_class, id, name, arguments, cookie)
+      @supervisor = supervisor
       @result = result
       @runner_class = runner_class
       @id = id
@@ -70,8 +75,11 @@ class LLM::Function
       nil
     end
 
+    ##
+    # @return [void]
     def spawn
-      @tool = ::Ractor.new(@mailbox, @runner_class, @id, @name, @arguments, @cookie) do |mailbox, runner_class, id, name, arguments, cookie|
+      vars  = [@supervisor, @runner_class, @id, @name, @arguments, @cookie]
+      @tool = Ractor.new(*vars) do |supervisor, runner_class, id, name, arguments, cookie|
         finished_at = -> { Process.clock_gettime(Process::CLOCK_MONOTONIC) }
         window = LLM::Function::Window.new(thread: ::Thread.current)
         runner = runner_class.new
@@ -92,11 +100,11 @@ class LLM::Function
         window.running!
         result = runner.call(**kwargs)
         window.finished!
-        mailbox.send([:done, id, name, result, finished_at.()])
+        supervisor.send([:done, id, name, result, finished_at.()])
       rescue LLM::Interrupt
-        mailbox.send([:done, id, name, {interrupt: true, cookie:}, finished_at.()])
+        supervisor.send([:done, id, name, {interrupt: true, cookie:}, finished_at.()])
       rescue => ex
-        mailbox.send([:done, id, name, {error: true, type: ex.class.name, message: ex.message}, finished_at.()])
+        supervisor.send([:done, id, name, {error: true, type: ex.class.name, message: ex.message}, finished_at.()])
       end
     end
   end
