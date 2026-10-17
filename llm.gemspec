@@ -25,7 +25,7 @@ and has a single coherent API that spans
 DESCRIPTION
 
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.4.0"
+  spec.required_ruby_version = ">= 4.0.0"
 
   spec.homepage = "https://r.uby.dev"
   spec.metadata["homepage_uri"] = spec.homepage
