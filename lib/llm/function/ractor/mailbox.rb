@@ -45,7 +45,7 @@ class LLM::Function
     # accepted and never read.
     # @return [Array]
     def wait
-      take(@result)
+      @result.value
     end
 
     ##
@@ -64,19 +64,12 @@ class LLM::Function
     private
 
     ##
-    # @param [Ractor] ractor
-    # @return [Object]
-    def take(ractor)
-      ractor.respond_to?(:take) ? ractor.take : ::Ractor.select(ractor).last
-    end
-
-    ##
     # @param [Symbol] type
     # @return [Object]
     def request(type)
       reply = Ractor.new { Ractor.receive }
       supervisor.send([type, reply])
-      take(reply)
+      reply.value
     end
   end
 end
