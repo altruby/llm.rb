@@ -1218,6 +1218,41 @@ RSpec.describe LLM::Agent do
     end
   end
 
+  describe "intercept" do
+    let(:llm) { LLM.openai(key: "test") }
+    let(:intercept) { LLM::Intercept::Null.new(llm) }
+
+    context "when given an object" do
+      let(:agent) { described_class.new(llm, intercept:) }
+
+      it "is forwarded to the context" do
+        expect(wrapped_context(agent).intercept).to equal(intercept)
+      end
+    end
+
+    context "when given a block" do
+      let(:agent) do
+        value = intercept
+        Class.new(described_class) { intercept { value } }.new(llm)
+      end
+
+      it "is resolved and forwarded to the context" do
+        expect(wrapped_context(agent).intercept).to equal(intercept)
+      end
+    end
+
+    context "when given to the set method" do
+      let(:agent) do
+        value = intercept
+        Class.new(described_class) { set intercept: proc { value } }.new(llm)
+      end
+
+      it "is forwarded to the context" do
+        expect(wrapped_context(agent).intercept).to equal(intercept)
+      end
+    end
+  end
+
   ##
   # Runs the agent's tool loop for the seeded pending function.
   # @return [Array<LLM::Function::Return>]
