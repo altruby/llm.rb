@@ -843,8 +843,9 @@ the whole column.
 There are six different concurrency strategies
 to choose from. A tool can be spawned on its own
 process, on its own ractor, on its own thread,
-on a thread that manages an `Async::Reactor`, or
-on its own fiber.
+on a thread that manages an `Async::Reactor`,
+on its own fiber, or on the same thread as the
+agent (sequential execution).
 
 Each strategy is built around an abstraction that
 makes them interchangeable - you can switch between
