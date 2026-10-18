@@ -12,7 +12,9 @@ Gem::Specification.new do |spec|
                   "George Pickett",
                   "Mika Mikasuki",
                   "Nikulin Nikita",
-                  "pttydou"]
+                  "pttydou",
+                  "Samad Mahmood",
+                  "Rohan Sharma"]
   spec.email = ["robert@r.uby.dev"]
 
   spec.summary = "An agentic runtime for Ruby"
