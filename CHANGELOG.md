@@ -13,7 +13,18 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 
 | Old | New |
 |-----|-----|
-| `LLM.interrupt` returns `true` when it interrupts an agent | it returns the agent it interrupted, and `false` is unchanged |
+| Ruby 3.4 or later | Ruby 4.0 or later |
+
+### Ruby
+
+* **drop Ruby 3.4 support** <br>
+  The gem now requires Ruby 4.0 or later, where the v17
+  series requires Ruby 3.4 or later. The v18 series
+  focuses on Ractor, and it drops the incompatibilities
+  between the 3.x and 4.x series: `Ractor#take` is gone
+  in Ruby 4.0.0, and `Ractor#value` replaces it (in
+  llm.rb - `Ractor#take` and `Ractor#value` are not
+  equivalent)
 
 ### Agent
 
@@ -23,12 +34,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   instead of `true`, so a caller can read its `id`,
   its `record` or its messages without a second
   lookup. It still returns `false` when nothing was
-  registered. This is a soft break:
-  `if LLM.interrupt(...)` works as before, because
-  an agent is truthy, but a caller that compares the
-  result with `true` does not, and one that stores or
-  serializes it, such as a JSON response, now holds
-  the agent.
+  registered.
 
 ## v17.0.1
 
