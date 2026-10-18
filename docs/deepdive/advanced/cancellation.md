@@ -134,8 +134,9 @@ id and interrupts it, so a controller, a job, or a socket handler can
 stop a turn it never held a reference to. A turn registers itself through
 [`LLM::Agent.registry`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#registry-class_method)
 while it runs and is forgotten when it ends, so the method answers
-`false` when nothing was registered under that name, which is the
-ordinary race rather than a failure. It takes `attempts:` and `interval:`
+the agent it interrupted when something was registered under that
+name, and `false` when nothing was, which is the ordinary race
+rather than a failure. It takes `attempts:` and `interval:`
 to poll for a turn that has not started yet, and the registry is per
 process, so a cancel that lands in another worker finds nothing.
 

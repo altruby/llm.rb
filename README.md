@@ -978,8 +978,8 @@ registry that contains every active instance of
 [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html),
 and that includes Sequel and ActiveRecord agents, too. An
 agent enters the registry when it starts a turn, and it
-exits the registry afterwards. The method returns true
-when it sent an interrupt, and otherwise it returns false.
+exits the registry afterwards. The method returns the
+agent it interrupted, and otherwise it returns false.
 
 There is often a window between when an agent is queued
 and when it runs, so a poll approach lets you eventually

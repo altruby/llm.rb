@@ -27,13 +27,18 @@ RSpec.describe LLM do
 
       before do
         allow(registry).to receive(:find).and_call_original
+        allow(agent).to receive(:interrupt!).and_call_original
         registry.enter(agent)
         interrupted
       end
 
       after { registry.exit(agent) }
 
-      it { is_expected.to be(true) }
+      it { is_expected.to be(agent) }
+
+      it "returns the agent it interrupted" do
+        expect(interrupted).to have_received(:interrupt!)
+      end
 
       it "looks once, because attempts is 1 by default" do
         expect(registry).to have_received(:find).once

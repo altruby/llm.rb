@@ -7,7 +7,28 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 
 ## What's next
 
-*No unreleased changes yet. Check back after the next release.*
+### Breaking
+
+#### Migration
+
+| Old | New |
+|-----|-----|
+| `LLM.interrupt` returns `true` when it interrupts an agent | it returns the agent it interrupted, and `false` is unchanged |
+
+### Agent
+
+* **agent: `LLM.interrupt` returns the agent it interrupted** <br>
+  [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+  returns the agent it found and interrupted
+  instead of `true`, so a caller can read its `id`,
+  its `record` or its messages without a second
+  lookup. It still returns `false` when nothing was
+  registered. This is a soft break:
+  `if LLM.interrupt(...)` works as before, because
+  an agent is truthy, but a caller that compares the
+  result with `true` does not, and one that stores or
+  serializes it, such as a JSON response, now holds
+  the agent.
 
 ## v17.0.1
 
