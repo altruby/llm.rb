@@ -1,0 +1,61 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PGHOST: database2.home.network
+  PGUSER: postgres
+  PGDATABASE: llmrb_${{ github.run_id }}_${{ github.run_attempt }}_ci
+  LLMRB_POSTGRESQL_URL: postgres://postgres@database2.home.network:5432/llmrb_${{ github.run_id }}_${{ github.run_attempt }}_ci
+
+jobs:
+  specs:
+    runs-on: freebsd
+    timeout-minutes: 20
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: show versions
+        run: |
+          ruby -v
+          bundle --version
+          psql --version
+
+      - name: verify ruby
+        run: |
+          installed=$(ruby -e "print RUBY_VERSION")
+          wanted=$(tr -d " \n" < .ruby-version)
+          if [ "$installed" != "$wanted" ]; then
+            echo "the runner has ruby $installed, .ruby-version says $wanted" >&2
+            exit 1
+          fi
+
+      - name: bundle install
+        run: bundle check || bundle install
+
+      - name: verify pg loads
+        run: bundle exec ruby -e "require \"pg\""
+
+      - name: create database
+        run: |
+          dropdb --if-exists "$PGDATABASE"
+          createdb "$PGDATABASE"
+
+      - name: run tests
+        env:
+          DASHSCOPE_API_HOST: token-plan.ap-southeast-1.maas.aliyuncs.com
+          JSON_PARSER: JSON
+        run: bundle exec rake spec
+
+      - name: drop database
+        if: always()
+        run: dropdb --if-exists "$PGDATABASE"
