@@ -37,6 +37,17 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   lookup. It still returns `false` when nothing was
   registered.
 
+### ORM
+
+* **orm: add `unwrap!` to the ActiveRecord and Sequel wrappers** <br>
+  `#unwrap!` returns the runtime a record wraps: an
+  [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
+  for `acts_as_llm` and `plugin :llm`, and an
+  [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
+  for `acts_as_agent` and `plugin :agent`, so a caller
+  no longer has to reach for `send(:ctx)`. The runtime
+  is memoized, so every call returns the same object.
+
 ## v17.0.1
 
 Changes since `v17.0.0`.

@@ -256,6 +256,16 @@ module LLM::ActiveRecord
         @llm
       end
 
+      ##
+      # Returns the runtime this record wraps: an
+      # {LLM::Context LLM::Context} for `acts_as_llm`, and an
+      # {LLM::Agent LLM::Agent} for `acts_as_agent`. The runtime is
+      # memoized, so every call returns the same object.
+      # @return [LLM::Context, LLM::Agent]
+      def unwrap!
+        ctx
+      end
+
       private
 
       ##

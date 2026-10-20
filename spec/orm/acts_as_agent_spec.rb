@@ -51,6 +51,20 @@ RSpec.describe "acts_as_agent" do
   let(:reload_record) { ->(row) { row.class.find(row.id) } }
   let(:flush_record) { ->(row) { LLM::ActiveRecord::Utils.save!(row, row.send(:ctx), row.class.llm_plugin_options) } }
 
+  describe "#unwrap!" do
+    it "returns the record's LLM::Agent" do
+      expect(record.unwrap!).to be_a(LLM::Agent)
+    end
+
+    it "returns the same object on every call" do
+      expect(record.unwrap!).to be(record.unwrap!)
+    end
+
+    it "returns the runtime the record's own methods use" do
+      expect(record.unwrap!.messages).to be(record.messages!)
+    end
+  end
+
   it "forwards confirm to the internal agent class" do
     expect(agent.agent.confirm).to eq(["delete-file"])
   end

@@ -359,10 +359,10 @@ parameters. Those two are the only callbacks `acts_as_llm` and
 An agent built by `acts_as_agent` is bound to the record it was
 loaded from, and
 [`LLM::Agent#record`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#record-instance_method)
-returns it. To persist a context instead of an agent, use
-`acts_as_llm`: the model gains `#llm` (the provider) and `#ctx` (the
-context), and persists the same state without the automatic tool
-loop.
+returns it; the record's `#unwrap!` returns the agent. To persist a
+context instead of an agent, use `acts_as_llm`: the model gains
+`#llm` (the provider) and `#unwrap!` (the context), and persists the
+same state without the automatic tool loop.
 
 ### SQL view
 
@@ -544,9 +544,9 @@ parameters. Those two are the only callbacks `plugin :llm` and
 `tracer:`.
 
 To persist a context instead of an agent, use `plugin :llm`. The
-model gains `#llm` (the provider) and `#ctx` (the context), and
+model gains `#llm` (the provider) and `#unwrap!` (the context), and
 persists the same state without the automatic tool loop. An agent
 built by `plugin :agent` is bound to its record, which
 [`LLM::Agent#record`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#record-instance_method)
-returns.
+returns; the record's `#unwrap!` returns the agent.
 

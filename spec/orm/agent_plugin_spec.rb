@@ -49,6 +49,20 @@ RSpec.describe "plugin :agent" do
 
   include_examples "inherited wrapper callbacks"
 
+  describe "#unwrap!" do
+    it "returns the record's LLM::Agent" do
+      expect(record.unwrap!).to be_a(LLM::Agent)
+    end
+
+    it "returns the same object on every call" do
+      expect(record.unwrap!).to be(record.unwrap!)
+    end
+
+    it "returns the runtime the record's own methods use" do
+      expect(record.unwrap!.messages).to be(record.messages!)
+    end
+  end
+
   it "forwards confirm to the internal agent class" do
     expect(agent.agent.confirm).to eq(["delete-file"])
   end

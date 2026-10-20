@@ -35,6 +35,20 @@ RSpec.describe "acts_as_llm" do
 
   include_examples "inherited wrapper callbacks"
 
+  describe "#unwrap!" do
+    it "returns the record's LLM::Context" do
+      expect(record.unwrap!).to be_a(LLM::Context)
+    end
+
+    it "returns the same object on every call" do
+      expect(record.unwrap!).to be(record.unwrap!)
+    end
+
+    it "returns the runtime the record's own methods use" do
+      expect(record.unwrap!.messages).to be(record.messages!)
+    end
+  end
+
   describe "#messages" do
     it "reads the messages from the runtime" do
       expect(record.messages).to be_a(LLM::Buffer)
