@@ -1,8 +1,8 @@
 > Changelog <br>
 > [r.uby.dev](https://r.uby.dev) project
 
-This file covers the v17 series and the previous
-v16 series. <br> Previous releases (v15 and
+This file covers the upcoming v18 series, and
+the previous v17 and v16 series. <br> Older releases (v15 and
 before) can be seen in [changelog/old.md](changelog/old.md).
 
 ## What's next
