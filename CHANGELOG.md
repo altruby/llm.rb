@@ -61,7 +61,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 ### ORM
 
 * **orm: add `unwrap!` to the ActiveRecord and Sequel wrappers** <br>
-  The `#unwrap!` returns the runtime a record wraps: an
+  The `#unwrap!` method returns the runtime a record wraps: an
   [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
   or an
   [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html).
