@@ -36,21 +36,24 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   to assign the compactor, and its options:
   * [LLM::Agent.compactor](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor-class_method)
   * [LLM::Agent.compactor_options](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor_options-class_method)
-  * [LLM::Agent.set](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#set-class_method)
+  * [LLM::Agent.set](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#set-class_method) (can set both)
 
 * **agent: `LLM.interrupt` returns the agent it interrupted** <br>
   The
   [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
-  method returns the agent that was found and
-  interrupted rather than `true`. This change allows
-  the caller to reference the agent that was interrupted
-  without a second lookup. Still returns `false` for a miss.
+  method returns the agent that was interrupted. <br>
+  Before it would return `true` instead, and that's
+  not as useful as the agent that was interrupted.
+  Still returns `false` for a miss. The agent that
+  is returned can access the model instance associated
+  with it via the `record` method.
 
 ### JSON
 
 * **json: remove the Yajl adapter** <br>
   The Yajl adapter has been removed due to a
-  lack of Ruby4 support and not much upstream
+  lack of Ruby4 support. <br>
+  There is also not much upstream
   activity (last release was in 2022).
   Both
   [`LLM::JSONAdapter::JSON (default)`](https://r.uby.dev/api-docs/llm.rb/LLM/JSONAdapter/JSON.html)
