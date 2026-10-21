@@ -38,6 +38,17 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   * [LLM::Agent.compactor_options](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor_options-class_method)
   * [LLM::Agent.set](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#set-class_method) (can set both)
 
+* **agent: add `LLM::Agent#compactor` and `LLM::Agent#compactor_options`** <br>
+  [`LLM::Agent#compactor`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor-instance_method)
+  returns the compactor class the agent's context runs
+  ([`LLM::Compactor::Null`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor/Null.html)
+  when none was given), and
+  [`LLM::Agent#compactor_options`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor_options-instance_method)
+  returns the options it was given (`{}` by default), so
+  an agent no longer reads `params[:compactor]` to find
+  its strategy. Both delegate to the context, which gains
+  [`LLM::Context#compactor_options`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#compactor_options-instance_method).
+
 * **agent: `LLM.interrupt` returns the agent it interrupted** <br>
   The
   [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)

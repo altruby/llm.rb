@@ -39,6 +39,8 @@ class MyAgent < LLM::Agent
 end
 
 agent = MyAgent.new(llm)
+```
+
 The default compactor is
 [`LLM::Compactor::Null`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor/Null.html),
 which does nothing. A compactor can also be used standalone:
@@ -55,6 +57,8 @@ agent = LLM::Agent.new(
   compactor: LLM::Compactor::Truncate,
   compactor_options: {keep: 64}
 )
+agent.compactor         # => LLM::Compactor::Truncate
+agent.compactor_options # => {keep: 64}
 
 compactor = LLM::Compactor::Truncate.new(agent)
 compactor.call(keep: 200)
