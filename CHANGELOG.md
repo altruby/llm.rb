@@ -97,7 +97,11 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   by the
   [`LLM::Tool::Exec`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Exec.html)
   tool and it can be used by your
-  own tools as well.
+  own tools as well. Tools that
+  depended on the old behavior
+  will require an update (although
+  I'd be surprised if any Utils
+  method was used directly).
 
 ### Registry
 
