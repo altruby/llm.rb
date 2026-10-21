@@ -34,7 +34,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   class can assign a compactor and
   its options. <br> Three methods exist
   to assign the compactor, and its options:
-  * [LLM::Agent.compactor](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor-class_method),
+  * [LLM::Agent.compactor](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor-class_method)
   * [LLM::Agent.compactor_options](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor_options-class_method)
   * [LLM::Agent.set](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#set-class_method)
 
