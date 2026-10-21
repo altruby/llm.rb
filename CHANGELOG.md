@@ -87,7 +87,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 * **tools: wait throws** <br>
   The
   [`LLM::Tool::Utils#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils.html#wait-instance_method)
-  now uses the `Kernel.throw`
+  method now uses the `Kernel.throw`
   method instead of `Kernel.raise`
   when a command times out. The
   "wait" method is used internally
