@@ -1551,8 +1551,10 @@ Rails deployment at a large-ish company.
 <table align="center" width="60%">
   <tr>
     <td valign="middle">
-      This software is released under the terms of the MIT license. <br>
-      See <a href="./LICENSE">LICENSE</a> for details.
+      <p align="left">
+        This software is released under the terms of the MIT license. <br>
+        See <a href="./LICENSE">LICENSE</a> for details.
+      </p>
     </td>
     <td align="right" valign="middle" width="128">
       <a href="https://www.youtube.com/watch?v=jOczPE0SxCQ">
