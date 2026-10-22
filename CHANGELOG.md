@@ -16,6 +16,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | Ruby 3.4 or later | Ruby 4.0 or later |
 | `LLM.json = :yajl` | `LLM.json = :oj` |
 | `LLM::Tool::Utils#wait` raises on a timeout | it throws `:kill` on a timeout |
+| `transport: :curb` | `transport: :net_http` or `transport: :net_http_persistent` |
 
 ### Ruby
 
@@ -139,6 +140,19 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   adds cache pricing to GLM-4.5V and GLM-4.6V,
   and OpenRouter corrects prices and limits
   across its listings.
+
+### Transport
+
+* **transport: remove the curb transport** <br>
+  The
+  [`LLM::Transport`](https://r.uby.dev/api-docs/llm.rb/LLM/Transport.html)
+  class ships `:net_http` and `:net_http_persistent` only now.
+  The curb transport has been removed for a few reasons
+  but primarily because we couldn't offer the same interrupt
+  semantics as net-http and net-http-persistent. When we
+  add a transport in the future it will have to have
+  consistent interrupt semantics otherwise the runtime
+  provides a fragmented experience.
 
 ## v17.0.1
 
