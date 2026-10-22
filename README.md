@@ -1549,3 +1549,9 @@ Rails deployment at a large-ish company.
 
 This software is released under the terms of the MIT license. <br>
 See [LICENSE](./LICENSE) for details.
+
+<p>
+  <a href="https://www.youtube.com/watch?v=jOczPE0SxCQ">
+    <img src="jam.jpg" width="128" alt="Jam">
+  </a>
+</p>
