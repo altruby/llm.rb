@@ -1547,11 +1547,16 @@ Rails deployment at a large-ish company.
 
 ## License
 
-This software is released under the terms of the MIT license. <br>
-See [LICENSE](./LICENSE) for details.
-
-<p>
-  <a href="https://www.youtube.com/watch?v=jOczPE0SxCQ">
-    <img src="jam.jpg" width="128" alt="Jam">
-  </a>
-</p>
+<table width="100%">
+  <tr>
+    <td valign="middle">
+      This software is released under the terms of the MIT license. <br>
+      See <a href="./LICENSE">LICENSE</a> for details.
+    </td>
+    <td align="right" valign="middle" width="128">
+      <a href="https://www.youtube.com/watch?v=jOczPE0SxCQ">
+        <img src="jam.jpg" width="128" alt="Jam">
+      </a>
+    </td>
+  </tr>
+</table>
