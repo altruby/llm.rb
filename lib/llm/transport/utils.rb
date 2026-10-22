@@ -28,6 +28,8 @@ class LLM::Transport
     # @param [Boolean] ssl
     # @param [Boolean] persistent
     # @param [LLM::Transport, Class, Symbol, nil] transport
+    # @raise [LLM::Error]
+    #  When given an unknown transport
     # @return [LLM::Transport]
     def resolve_transport(host:, port:, timeout:, ssl:, persistent:, transport:, connect_timeout: 5)
       if transport.nil?
@@ -35,14 +37,26 @@ class LLM::Transport
       elsif Class === transport && transport <= LLM::Transport
         transport.new(host:, port:, timeout:, connect_timeout:, ssl:)
       elsif Symbol === transport
-        transport = LLM::Transport.public_send(transport)
-        transport.new(host:, port:, timeout:, connect_timeout:, ssl:)
+        transport_class(transport).new(host:, port:, timeout:, connect_timeout:, ssl:)
       else
         transport
       end
     end
 
     private
+
+    ##
+    # Resolves a transport name to the class
+    # that implements it.
+    # @param [Symbol] name
+    # @raise [LLM::Error]
+    #  When given an unknown transport
+    # @return [Class]
+    def transport_class(name)
+      LLM::Transport.public_send(name)
+    rescue NoMethodError
+      raise LLM::Error, ":#{name} is not a recognized transport"
+    end
 
     ##
     # Builds the default Net::HTTP transport for an endpoint.
