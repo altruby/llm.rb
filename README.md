@@ -1550,6 +1550,13 @@ Rails deployment at a large-ish company.
 This software is released under the terms of the MIT license. <br>
 See [LICENSE](./LICENSE) for details.
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<br>
+>>>>>>> aa374042 (fixup! fixup! fixup! fixup! fixup! fixup! docs: add jam)
+=======
+>>>>>>> 0e16c569 (fixup! fixup! fixup! fixup! fixup! fixup! fixup! docs: add jam)
 <p>
   <a href="https://www.youtube.com/watch?v=jOczPE0SxCQ">
     <img src="jam.jpg" width="128" alt="Jam">
