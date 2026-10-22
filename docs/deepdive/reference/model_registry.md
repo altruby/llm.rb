@@ -64,6 +64,14 @@ model raises `LLM::NoSuchModelError`, and a missing registry raises
 gracefully, so an unknown model's context window reads as `nil` rather
 than crashing your code.
 
+Two classes name a model, and they are not the same thing.
+[`LLM::Model`](https://r.uby.dev/api-docs/llm.rb/LLM/Model.html) is a
+normalized view of a model record a provider returns from its models
+API, which is what a response reports it was answered by. The
+[`LLM::Registry::Model`](https://r.uby.dev/api-docs/llm.rb/LLM/Registry/Model.html)
+this chapter is about is the catalog entry: its pricing, limits, and
+capabilities, read from `data/`.
+
 ### Reading models
 
 #### Overview

@@ -33,7 +33,10 @@ Tools that spawn subprocesses can include
 to get shared
 [`wait(command:, timeout:)`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils.html#wait-instance_method)
 and `now` help. The built-in `Exec`, `Git`, `Rg`, `Mkdir`, and `Ruby`
-tools use it to kill a command that exceeds its `timeout`.
+tools use it to kill a command that exceeds its `timeout`. `wait`
+throws `:kill` when it does, so a tool that calls it catches the throw
+and answers with what the command wrote rather than rescuing an
+exception.
 
 If
 [`LLM::Tool#call`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#call-instance_method)
@@ -405,8 +408,17 @@ loop, a service of your own, or extra credentials.
 #### Notes
 
 OpenAI, Google, and Anthropic also expose a `web_search(query:)`
-method that performs a search in one call and returns the results. A
-server tool accepts whatever options the provider documents, for
+method that performs a search in one call.
+[`LLM::Provider#web_search`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#web_search-instance_method)
+returns a response whose `search_results` are the sources the model was
+given: an array of objects, each with a `title` and a `url`.
+
+```ruby
+res = llm.web_search(query: "summarize today's news")
+res.search_results.each { |item| puts "#{item.title}: #{item.url}" }
+```
+
+A server tool accepts whatever options the provider documents, for
 example `llm.server_tool(:web_search, max_uses: 5)` on Anthropic.
 
 ### Built-in tools

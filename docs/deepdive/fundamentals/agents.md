@@ -64,7 +64,8 @@ A subclass declares its defaults with
 Each key is a
 class-level accessor: `name`, `description`, `model`, `tools`,
 `skills`, `instructions`, `stream`, `tracer`, `concurrency`,
-`schema`, `confirm`, `path`, `tool_budget`, `retry_budget`.
+`schema`, `confirm`, `path`, `tool_budget`, `retry_budget`,
+`intercept`, `compactor`, and `compactor_options`.
 Keyword arguments in the constructor override these defaults.
 
 ```ruby
@@ -74,7 +75,7 @@ class Agent < LLM::Agent
       tools: [Exec]
 end
 
-llm = LLM.openai(key: ENV["KEY"])
+llm = LLM.deepseek(key: ENV["KEY"])
 agent = Agent.new(llm)
 agent.talk "Run 'date'"
 ```

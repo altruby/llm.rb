@@ -115,8 +115,10 @@ unknown or the conversation is too short.
 [`LLM::Usage`](https://r.uby.dev/api-docs/llm.rb/LLM/Usage.html)
 holds the token counts a provider reports for a request: input,
 output, reasoning, cache read, cache write, and the audio and image
-tokens where a model supports them. Cost is computed from it, and so
-is the console's context meter.
+tokens where a model supports them, with
+[`LLM::Usage#total_tokens`](https://r.uby.dev/api-docs/llm.rb/LLM/Usage.html#total_tokens-instance_method)
+summing them. Cost is computed from it, and so is the console's context
+meter.
 
 #### How it works
 

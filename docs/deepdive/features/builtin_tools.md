@@ -210,6 +210,14 @@ subcommands `log`, `diff`, `commit`, `checkout`, `branch`, and `show`.
 Each command tool also returns a `duration` field, a string such as
 `"0.4 seconds"`, that reports how long the command ran.
 
+A command that exceeds its `timeout:` is killed, and the call returns
+what the command wrote before it was killed rather than raising, with a
+`note:` that says so and warns that both streams are probably
+incomplete. Nothing is lost when a slow command fails part way through.
+Underneath, `LLM::Tool::Utils#wait` throws `:kill` on a timeout instead
+of raising, so a tool of your own that includes the shared helpers has
+to catch the throw rather than rescue an exception.
+
 ### Bounded output
 
 #### Overview
