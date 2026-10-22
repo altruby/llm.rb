@@ -1547,6 +1547,7 @@ Rails deployment at a large-ish company.
 
 ## License
 
+<center>
 <table align="center" width="60%">
   <tr>
     <td valign="middle">
@@ -1560,3 +1561,4 @@ Rails deployment at a large-ish company.
     </td>
   </tr>
 </table>
+</center>
