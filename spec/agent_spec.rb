@@ -710,6 +710,22 @@ RSpec.describe LLM::Agent do
     end
   end
 
+  describe "#compactor and #compactor_options" do
+    it "defaults to LLM::Compactor::Null with no options" do
+      agent = described_class.new(provider)
+      expect(agent.compactor).to eq(LLM::Compactor::Null)
+      expect(agent.compactor_options).to eq({})
+    end
+
+    it "returns the compactor and options it was given" do
+      agent = described_class.new(provider, compactor: LLM::Compactor::Truncate, compactor_options: {keep: 64})
+      expect(agent.compactor).to eq(LLM::Compactor::Truncate)
+      expect(agent.compactor_options).to eq({keep: 64})
+      agent.compactor_options[:keep] = 1
+      expect(agent.compactor_options).to eq({keep: 64})
+    end
+  end
+
   describe "tool loop concurrency" do
     let(:agent) { described_class.new(provider, mode: :responses, tools: [tool], concurrency:) }
     let(:ctx) { agent.instance_variable_get(:@ctx) }

@@ -736,6 +736,20 @@ module LLM
     end
 
     ##
+    # @see LLM::Context#compactor
+    # @return [Class<LLM::Compactor>]
+    def compactor
+      @ctx.compactor
+    end
+
+    ##
+    # @see LLM::Context#compactor_options
+    # @return [Hash]
+    def compactor_options
+      @ctx.compactor_options
+    end
+
+    ##
     # Start an agent console.
     #
     # @note
