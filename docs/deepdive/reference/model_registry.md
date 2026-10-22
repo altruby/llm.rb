@@ -275,5 +275,5 @@ objects from
 
 A missing model raises `LLM::NoSuchModelError`. The fallback matching
 strips date suffixes (`-YYYY-MM-DD`) and collapses numbered OpenAI ids
-(`gpt-N-XXXX` → `gpt-N`) so a slightly out-of-date model id still
+(`gpt-N-XXXX` to `gpt-N`) so a slightly out-of-date model id still
 resolves.

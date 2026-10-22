@@ -67,6 +67,9 @@ and
 convenience methods. Each takes a provider and forwards its options to
 the matching tracer, so `LLM::Tracer.pretty_logger(llm, io: $stdout)`
 forwards `io:` to the pretty logger.
+[`LLM::Tracer.pretty`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html#pretty-class_method)
+is the same method under a shorter name, and it is the one the README
+uses.
 
 ### Provider
 

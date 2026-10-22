@@ -4,10 +4,10 @@
 
 #### Overview
 
-llm.rb talks to 14+ providers through one API. OpenAI-compatible
-providers (DeepSeek, DeepInfra, xAI, Z.ai, Moonshot, Alibaba,
-Mistral, OpenRouter, and llama.cpp) share the same OpenAI code path,
-while Anthropic, Google, Ollama, and Bedrock speak their own APIs
+llm.rb talks to 14+ providers through one API. OpenAI and the
+OpenAI-compatible providers (DeepSeek, DeepInfra, xAI, Z.ai, Moonshot,
+Alibaba, Mistral, OpenRouter, and llama.cpp) share the same OpenAI code
+path, while Anthropic, Google, Ollama, and Bedrock speak their own APIs
 behind the same interface. Switching models therefore rarely means
 switching code. Each provider is constructed with a class-level
 factory method on `LLM`, and the result is passed to an
