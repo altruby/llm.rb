@@ -1547,7 +1547,7 @@ Rails deployment at a large-ish company.
 
 ## License
 
-<table width="100%">
+<table align="center" width="60%">
   <tr>
     <td valign="middle">
       This software is released under the terms of the MIT license. <br>
