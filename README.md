@@ -1557,7 +1557,7 @@ Rails deployment at a large-ish company.
       </p>
     </td>
     <td align="right" valign="middle" width="128">
-      <a href="https://www.youtube.com/watch?v=9d8SzG4FPyM">
+      <a href="https://www.youtube.com/watch?v=DmV49ogMDEI">
         <img src="jam.jpg" width="128" alt="Jam">
       </a>
     </td>
