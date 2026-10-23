@@ -47,7 +47,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 * **provider: name the environment variable a missing key needs** <br>
   A factory method that resolves its key from the environment, such as
   [`LLM.openai`](https://r.uby.dev/api-docs/llm.rb/LLM.html#openai-class_method),
-  raises an `ArgumentError` that names the variable to set when none of
+  raises an `LLM::Error` that names the variable to set when none of
   the registry's names is present, eg
   `did you forget to set $OPENAI_API_KEY?`. It said only
   `you must provide an API key` before. A provider with more than one
