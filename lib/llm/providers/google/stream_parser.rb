@@ -40,8 +40,8 @@ class LLM::Google
         if k == "candidates"
           merge_candidates!(value)
         elsif k == "usageMetadata" &&
-            @body["usageMetadata"].is_a?(Hash) &&
-            value.is_a?(Hash)
+            Hash === @body["usageMetadata"] &&
+            Hash === value
           @body["usageMetadata"] = @body["usageMetadata"].merge(value)
         else
           @body[k] = value
@@ -83,6 +83,8 @@ class LLM::Google
           merge_text!(parts, delta)
         elsif delta["functionCall"]
           merge_function_call!(parts, delta, cindex)
+        elsif delta["thoughtSignature"] and delta.size == 1
+          merge_signature!(parts, delta)
         elsif delta["inlineData"]
           parts << delta
         elsif delta["functionResponse"]
@@ -95,12 +97,32 @@ class LLM::Google
       end
     end
 
+    ##
+    # @note
+    #  Gemini can send a signature in a chunk of its own, after
+    #  the part it belongs to. It is folded into that part so a
+    #  streamed reply carries the same shape as a whole one, and
+    #  a function call keeps the signature it needs on replay.
+    #
+    #  A delta that carries a signature beside other content is
+    #  appended whole instead, which keeps the signature on the
+    #  content it was sent with.
+    def merge_signature!(parts, delta)
+      last_existing_part = parts.last
+      if Hash === last_existing_part
+        last_existing_part["thoughtSignature"] = delta["thoughtSignature"]
+      else
+        parts << delta
+      end
+    end
+
     def merge_text!(parts, delta)
       last_existing_part = parts.last
       text = delta["text"]
-      if last_existing_part.is_a?(Hash) && last_existing_part["text"]
+      if Hash === last_existing_part && last_existing_part["text"]
         last_existing_part["text"] ||= +""
         last_existing_part["text"] << text
+        merge_extra_keys!(last_existing_part, delta, "text")
         emit_content(text)
       else
         parts << delta
@@ -108,16 +130,30 @@ class LLM::Google
       end
     end
 
+    ##
+    # Carries the keys a delta was sent with alongside the key
+    # that decided where it goes, so nothing is dropped when a
+    # delta is merged into the part before it.
+    #
+    # @param [Hash] target
+    # @param [Hash] delta
+    # @param [String] key
+    #  The key the delta was merged by
+    # @return [Hash]
+    def merge_extra_keys!(target, delta, key)
+      delta.each do |name, value|
+        next if name == key
+        target[name] = value
+      end
+    end
+
     def merge_function_call!(parts, delta, cindex)
       last_existing_part = parts.last
-      last_call = last_existing_part.is_a?(Hash) ? last_existing_part["functionCall"] : nil
+      last_call = Hash === last_existing_part ? last_existing_part["functionCall"] : nil
       delta_call = delta["functionCall"]
-      if last_call.is_a?(Hash) && delta_call.is_a?(Hash)
+      if Hash === last_call && Hash === delta_call
         last_existing_part["functionCall"] = last_call.merge(delta_call)
-        delta.each do |key, value|
-          next if key == "functionCall"
-          last_existing_part[key] = value
-        end
+        merge_extra_keys!(last_existing_part, delta, "functionCall")
       else
         parts << delta
       end
