@@ -51,29 +51,18 @@ class LLM::Function
     ensure
       window&.finished!
       LLM.debug "[ractor #{@cookie}] stopping interrupt watcher"
-      watcher&.kill
       ##
-      # On Windows, joining a killed thread blocked
-      # in Ractor.receive can stall the job indefinitely.
-      # Publish the result before joining it.
+      # The watcher is killed but not joined. On Windows, a thread
+      # blocked in Ractor.receive can fail to finish being killed, and
+      # joining it stalls the job after the result has been published.
+      # The ractor's end reclaims the watcher either way, so there is
+      # nothing to wait for.
+      watcher&.kill
       @resultp.send(resultm) if resultm
-      watch_stop(watcher)
       LLM.debug "[ractor #{@cookie}] job ensure complete"
     end
 
     private
-
-    ##
-    # Join the interrupt watcher after publishing the result, so a
-    # stalled join cannot block the caller waiting for the tool.
-    # The watcher may be blocked in Ractor.receive, so do not rely on a
-    # :stop message being delivered to shut it down.
-    # @param [Thread, nil] watcher
-    # @return [void]
-    def watch_stop(watcher)
-      watcher&.kill&.join
-      nil
-    end
 
     ##
     # Watches for an interrupt on a thread of the ractor's own, so the main
