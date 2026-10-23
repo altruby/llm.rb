@@ -46,7 +46,7 @@ RSpec.describe LLM::Function::Ractor::Task do
   end
 
   describe "a wait that arrives after the result is in" do
-    it "is answered by the ractor the result was delivered to" do
+    it "is answered by the port the result was delivered to" do
       task.spawn
       sleep 0.05
       expect(within { task.wait }.to_h).to eq(
@@ -68,7 +68,7 @@ RSpec.describe LLM::Function::Ractor::Task do
 
       def call
         @entered = true
-        sleep 5
+        sleep 2
         {ok: true}
       rescue LLM::Interrupt
         {entered: @entered, told: @told, rescued: true}
@@ -85,7 +85,7 @@ RSpec.describe LLM::Function::Ractor::Task do
       name "holding"
 
       def call
-        sleep 5
+        sleep 2
         {ok: true}
       end
     end

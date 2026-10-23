@@ -2,9 +2,12 @@
 
 class LLM::Function
   ##
-  # The {LLM::Function::Ractor::Task} class wraps a ractor-backed function
-  # call and delegates mailbox coordination to
-  # {LLM::Function::Ractor::Mailbox}.
+  # Wraps a ractor-backed function call.
+  #
+  # One ractor runs the tool and hands its result to a
+  # {Ractor::Port} the task reads. A thread inside the
+  # ractor services interrupts, and the port is the only
+  # way a result leaves.
   class Ractor::Task < LLM::Function::Task
     ##
     # @api private
@@ -12,8 +15,16 @@ class LLM::Function
     private_constant :Ractor
 
     ##
-    # @return [LLM::Function::Ractor::Mailbox]
-    attr_reader :mailbox
+    # Forwarded into the result port when the ractor ends,
+    # so {#wait} reads one port rather than two.
+    # @return [Symbol]
+    EXITED = :__ractor_exited__
+    private_constant :EXITED
+
+    ##
+    # @return [Ractor::Port]
+    #  The port the result is delivered to
+    attr_reader :port
 
     ##
     # @return [LLM::Tracer, nil]
@@ -56,60 +67,62 @@ class LLM::Function
         arguments: @arguments, model: @model
       )
       return if intercepted?
-      result = Ractor.new { Ractor.receive }
-      @mailbox = LLM::Function::Ractor::Mailbox.new(build_task(result), result)
+      @port = Ractor::Port.new
+      @exits = Ractor::Port.new
+      @ractor = build_task(@port)
+      @ractor.monitor(@exits)
+      watch_exit
       if @cancelled
         @cancelled = false
-        @mailbox.interrupt!
+        interrupt!
       end
       self
     end
 
     ##
-    # A task that has been waited on is not alive, and it answers that
-    # from the result it holds rather than by asking a ractor that has
-    # gone with the answering of the wait.
     # @return [Boolean]
     def alive?
       return false if @result
-      @mailbox&.alive? || false
+      @ractor ? !@exited : false
     end
 
     ##
     # Tells the tool to stop.
     #
-    # **A cancel that arrives before `spawn` is remembered, not lost.** The
-    # mailbox is built in `spawn`, and there is no safe navigation to a
-    # message that has not been sent: a cancel that answered `nil` here was a
-    # cancel that said nothing, and the call ran as if nobody had asked it to
-    # stop. It is delivered by `spawn` instead, which is the first moment
-    # there is anything to deliver it to.
+    # A cancel that arrives before `spawn` is remembered and
+    # delivered by it.
     # @return [nil]
     def interrupt!
-      if @mailbox
-        @mailbox.interrupt!
+      if @ractor
+        @ractor.send(:interrupt)
       else
         @cancelled = true
       end
+      nil
+    rescue ::Ractor::ClosedError
       nil
     end
     alias_method :cancel!, :interrupt!
 
     ##
-    # The first wait is answered by the ractor the result was delivered
-    # to, which has it whether or not the task's own ractor is still
-    # there. Every wait after that is answered from memory, the way
-    # {LLM::Function::Thread::Task#wait} answers from the thread's value.
+    # Reads the result port, which holds the ractor's
+    # result or the ending the exit watcher forwarded.
+    # Later waits answer from memory.
     # @return [LLM::Function::Return]
     def wait
       return @intercepted if intercepted?
       @result ||= begin
-        spawn unless @mailbox
-        id, name, value, @finished_at = mailbox.wait
-        if Hash === value and value[:interrupt] and value[:cookie] == @cookie
-          LLM::Interrupt.new
+        spawn unless @port
+        _, ready = Ractor.select(@port)
+        if ready == EXITED
+          Return.new(id, name, {error: true, type: "ractor ended without result"})
         else
-          Return.new(id, name, value)
+          _, id, name, value, @finished_at = ready
+          if Hash === value and value[:interrupt] and value[:cookie] == @cookie
+            LLM::Interrupt.new
+          else
+            Return.new(id, name, value)
+          end
         end
       end
     end
@@ -123,12 +136,42 @@ class LLM::Function
 
     private
 
-    def build_task(result)
+    ##
+    # @param [Ractor::Port] port
+    # @return [Ractor]
+    def build_task(port)
       @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      vars  = [result, @runner_class, @id, @name, @arguments, @cookie]
+      vars = [port, @runner_class, @id, @name, @arguments, @cookie]
       Ractor.new(*vars) do |*vars|
-        LLM::Function::Ractor::Job.new(Ractor.current, *vars).call
+        LLM::Function::Ractor::Job.new(*vars).call
       end
+    end
+
+    ##
+    # The monitor port's only reader: `Ractor#monitor`
+    # sends `:exited` once, so a second reader is a
+    # message one of them never hears. The ending goes
+    # on to the result port, where {#wait} reads it.
+    # @return [Thread]
+    def watch_exit
+      ::Thread.new do
+        ractor_rescue { @exits.receive }
+        @exited = true
+        ractor_rescue { @port.send(EXITED) }
+      end
+    end
+
+    ##
+    # Runs a block that talks to a port, and answers nil
+    # when the ractor it belongs to has gone - which is
+    # what receiving from a closed port and sending to a
+    # dead ractor both raise.
+    # @yield
+    # @return [Object, nil]
+    def ractor_rescue(&block)
+      block.call
+    rescue ::Ractor::Error
+      nil
     end
   end
 end
