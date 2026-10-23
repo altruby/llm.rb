@@ -1486,6 +1486,7 @@ That's the only signal I have to go by.
 But I know support is a little more limited compared
 to other platforms. The `fork` strategy is not
 available because Windows does not implement it
+
 And the `curses` gem that the console requires has
 to be compiled from source, and this can be a
 challenge on Windows without a compiler toolchain.
@@ -1493,9 +1494,8 @@ By default the console does not work but it might
 work if you are able to install the `curses` gem.
 
 The `ractor` concurrency strategy **does work**
-on Windows but only since v18.
-
-So it mostly works as long as you avoid the
+on Windows but only since v18. So llm.rb mostly
+works on Windows as long as you avoid the
 parts that don't work. Pull requests that
 improve Windows support are very welcome.
 </details>
