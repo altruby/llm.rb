@@ -54,9 +54,9 @@ class LLM::Function
         arguments: @arguments, model: @model
       )
       return if intercepted?
-      @port = Ractor::Port.new
+      @resultp = Ractor::Port.new
       @exits = Ractor::Port.new
-      @ractor = build_task(@port)
+      @ractor = build_task(@resultp)
       @ractor.monitor(@exits)
       watch_exit
       if @cancelled
@@ -101,7 +101,7 @@ class LLM::Function
       return @intercepted if intercepted?
       @result ||= begin
         spawn unless @ractor
-        ready = @port.receive
+        ready = @resultp.receive
         if ready == :__ractor_exited__
           Return.new(@id, @name, {error: true, type: "ractor ended without result"})
         else
@@ -142,7 +142,7 @@ class LLM::Function
     # @return [Thread]
     def watch_exit
       exits = @exits
-      port = @port
+      port = @resultp
       ractor = @ractor
       ::Thread.new do
         begin

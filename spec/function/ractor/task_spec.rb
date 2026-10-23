@@ -17,7 +17,12 @@ RSpec.describe LLM::Function::Ractor::Task do
         next if t == Thread.current
         "thread #{t.object_id} (#{t.status}):\n#{t.backtrace&.first(10)&.join("\n") || "(unavailable)"}"
       end
-      raise "timed out after #{seconds} seconds; thread stacks:\n#{stacks.join("\n\n")}"
+      ractor = task.instance_variable_get(:@ractor)
+      raise "timed out after #{seconds} seconds; ractor: #{ractor&.inspect}; " \
+        "exited: #{task.instance_variable_get(:@exited).inspect}; " \
+        "result port: #{task.instance_variable_get(:@resultp)&.inspect}; " \
+        "exit port: #{task.instance_variable_get(:@exits)&.inspect}; " \
+        "thread stacks:\n#{stacks.join("\n\n")}"
     end
     thread.value
   end
