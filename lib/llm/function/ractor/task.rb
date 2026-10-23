@@ -121,7 +121,7 @@ class LLM::Function
     # @return [Ractor]
     def build_task
       @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      vars = [@runner_class, @id, @name, @arguments, @cookie, debug]
+      vars = [@runner_class, @id, @name, @arguments, @cookie]
       Ractor.new(*vars) do |runner_class, id, name, arguments, cookie, trace|
         warn "[ractor #{cookie}] entered body" if trace
         result = LLM::Function::Ractor::Job.new(runner_class, id, name, arguments, cookie).call
