@@ -55,19 +55,15 @@ class LLM::Function
     private
 
     ##
-    # Stop the interrupt watcher when the call ends. Do not wait for
-    # Ractor.receive to wake up: on some platforms that thread can remain
-    # blocked even after a :stop is sent, preventing Ractor#value from
-    # returning despite the tool having finished.
+    # Stop the interrupt watcher before returning from the ractor body.
+    # Killing a thread is asynchronous: without joining it, Ractor#value
+    # can still be waiting for the watcher to exit after Job#call returns.
+    # The watcher may be blocked in Ractor.receive, so do not rely on a
+    # :stop message being delivered to shut it down.
     # @param [Thread, nil] watcher
     # @return [void]
     def watch_stop(watcher)
-      if watcher
-        ::Ractor.current.send(:stop)
-        watcher.kill
-      end
-      nil
-    rescue ::Ractor::Error
+      watcher&.kill&.join
       nil
     end
 
