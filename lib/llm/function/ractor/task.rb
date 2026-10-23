@@ -55,9 +55,7 @@ class LLM::Function
       )
       return if intercepted?
       @ractor = build_task
-      @exits = Ractor::Port.new
-      @ractor.monitor(@exits)
-      watch_exit
+      @completion = watch_exit
       if @cancelled
         @cancelled = false
         interrupt!
@@ -69,7 +67,7 @@ class LLM::Function
     # @return [Boolean]
     def alive?
       return false if @result
-      @ractor ? !@exited : false
+      @completion ? @completion.alive? : false
     end
 
     ##
@@ -99,7 +97,7 @@ class LLM::Function
       return @intercepted if intercepted?
       @result ||= begin
         spawn unless @ractor
-        _, id, name, value, @finished_at = @ractor.value
+        _, id, name, value, @finished_at = @completion.value
         if Hash === value and value[:interrupt] and value[:cookie] == @cookie
           LLM::Interrupt.new
         else
@@ -130,20 +128,15 @@ class LLM::Function
     end
 
     ##
-    # Observes termination independently of {#wait}, so
-    # {#alive?} works even when nobody waits for the result.
-    # Use the monitor port rather than joining the same ractor
-    # concurrently with {#wait}'s `value` call.
+    # One thread owns Ractor#value. Waiting callers join it via
+    # Thread#value, and alive? observes the same thread. This
+    # avoids concurrent waits on a ractor from multiple threads.
     # @return [Thread]
     def watch_exit
+      ractor = @ractor
       ::Thread.new do
-        begin
-          @exits.receive
-        rescue ::Ractor::RemoteError
-          # A failed ractor is no longer alive either.
-        ensure
-          @exited = true
-        end
+        ::Thread.current.report_on_exception = false
+        ractor.value
       end
     end
   end

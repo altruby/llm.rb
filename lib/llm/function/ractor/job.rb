@@ -48,16 +48,16 @@ class LLM::Function
     private
 
     ##
-    # Tells the watcher the call is over, the way an interrupt is told:
-    # through the ractor's own inbox. A watcher inside a hook, or inside
-    # `Window#interrupt!`, is not parked in `Ractor.receive` to take it, so
-    # the join is bounded and one that misses it is killed.
+    # Stop the interrupt watcher when the call ends. Do not wait for
+    # Ractor.receive to wake up: on some platforms that thread can remain
+    # blocked even after a :stop is sent, preventing Ractor#value from
+    # returning despite the tool having finished.
     # @param [Thread, nil] watcher
     # @return [void]
     def watch_stop(watcher)
       if watcher
         ::Ractor.current.send(:stop)
-        watcher.join(1) or watcher.kill
+        watcher.kill
       end
       nil
     rescue ::Ractor::Error

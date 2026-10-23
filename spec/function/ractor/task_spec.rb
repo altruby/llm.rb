@@ -13,7 +13,10 @@ RSpec.describe LLM::Function::Ractor::Task do
       block.call
     end
     unless thread.join(seconds)
-      raise "timed out after #{seconds} seconds; worker stack:\n#{thread.backtrace&.join("\n") || "(unavailable)"}"
+      stacks = Thread.list.map do |t|
+        "thread #{t.object_id} (#{t.status}):\n#{t.backtrace&.join("\n") || "(unavailable)"}"
+      end
+      raise "timed out after #{seconds} seconds; thread stacks:\n#{stacks.join("\n\n")}"
     end
     thread.value
   end
