@@ -83,6 +83,7 @@ stream = StringIO.new
 
 ##
 # requires v18+
+# use `:thread` on <=v17
 concurrency = :ractor
 
 agent  = LLM::Agent.new(llm, tools:, tracer:, stream:, concurrency:)
