@@ -13,9 +13,13 @@ module LLM::Bedrock::RequestAdapter
   #
   # @api private
   class Completion
+    include LLM::RequestAdapter::Role
+
     ##
+    # @param [LLM::Provider] llm
     # @param [LLM::Message, Hash] message
-    def initialize(message)
+    def initialize(llm, message)
+      @llm = llm
       @message = message
     end
 
@@ -25,7 +29,7 @@ module LLM::Bedrock::RequestAdapter
     def adapt
       catch(:abort) do
         if Hash === message
-          {role: message[:role], content: adapt_content(message[:content])}
+          {role: adapt_message_role(message), content: adapt_content(message[:content])}
         else
           adapt_message
         end
@@ -38,9 +42,9 @@ module LLM::Bedrock::RequestAdapter
       if message.tool_call?
         blocks = [*adapt_tool_calls]
         blocks.unshift(*adapt_content(content)) unless String === content && content.empty?
-        {role: "assistant", content: blocks}
+        {role: adapt_message_role(message), content: blocks}
       else
-        {role: message.role, content: adapt_content(content)}
+        {role: adapt_message_role(message), content: adapt_content(content)}
       end
     end
 

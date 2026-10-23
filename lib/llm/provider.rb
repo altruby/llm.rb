@@ -242,14 +242,6 @@ class LLM::Provider
 
   ##
   # @return [String]
-  #  Returns the role of the assistant in the conversation.
-  #  Usually "assistant" or "model"
-  def assistant_role
-    raise NotImplementedError
-  end
-
-  ##
-  # @return [String]
   #  Returns the default model for chat completions
   def default_model
     raise NotImplementedError
@@ -359,6 +351,13 @@ class LLM::Provider
   # @return [LLM::Response]
   def web_search(query:)
     raise NotImplementedError
+  end
+
+  ##
+  # @return [Symbol]
+  #  Returns the role of the assistant in the conversation.
+  def assistant_role
+    :assistant
   end
 
   ##

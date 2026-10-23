@@ -12,7 +12,7 @@ class LLM::Ollama
     # @return [Array<Hash>]
     def adapt(messages, mode: nil)
       messages.filter_map do |message|
-        Completion.new(message).adapt
+        Completion.new(self, message).adapt
       end
     end
 

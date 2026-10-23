@@ -4,10 +4,14 @@ module LLM::DeepSeek::RequestAdapter
   ##
   # @private
   class Completion
+    include LLM::RequestAdapter::Role
+
     ##
+    # @param [LLM::Provider] llm
     # @param [LLM::Message, Hash] message
     #  The message to format
-    def initialize(message)
+    def initialize(llm, message)
+      @llm = llm
       @message = message
     end
 
@@ -17,7 +21,7 @@ module LLM::DeepSeek::RequestAdapter
     def adapt
       catch(:abort) do
         if Hash === message
-          {role: message[:role], content: adapt_content(message[:content])}
+          {role: adapt_message_role(message), content: adapt_content(message[:content])}
         elsif message.tool_call?
           wrap(content: nil, tool_calls: message.extra[:original_tool_calls])
         else
@@ -39,10 +43,17 @@ module LLM::DeepSeek::RequestAdapter
       when LLM::Message
         adapt_content(content.content)
       when LLM::Function::Return
-        throw(:abort, {role: "tool", tool_call_id: content.id, content: LLM.json.dump(content.value)})
+        throw(:abort, adapt_return(content))
       else
         prompt_error!(content)
       end
+    end
+
+    ##
+    # @param [LLM::Function::Return] result
+    # @return [Hash]
+    def adapt_return(result)
+      {role: adapt_role(:tool), tool_call_id: result.id, content: LLM.json.dump(result.value)}
     end
 
     ##
@@ -108,7 +119,7 @@ module LLM::DeepSeek::RequestAdapter
       if content.empty?
         nil
       elsif returns.any?
-        returns.map { {role: "tool", tool_call_id: _1.id, content: LLM.json.dump(_1.value)} }
+        returns.map { adapt_return(_1) }
       else
         wrap(content: content.flat_map { adapt_content(_1) })
       end
@@ -126,7 +137,7 @@ module LLM::DeepSeek::RequestAdapter
 
     def wrap(content:, tool_calls: nil)
       {
-        role: message.role,
+        role: adapt_message_role(message),
         content:,
         tool_calls: tool_calls&.map { LLM::Object === _1 ? _1.to_h : _1 },
         reasoning_content: message.reasoning_content

@@ -4,17 +4,21 @@ module LLM::OpenAI::RequestAdapter
   ##
   # @private
   class Respond
+    include LLM::RequestAdapter::Role
+
     ##
+    # @param [LLM::Provider] llm
     # @param [LLM::Message] message
     #  The message to format
-    def initialize(message)
+    def initialize(llm, message)
+      @llm = llm
       @message = message
     end
 
     def adapt
       catch(:abort) do
         if Hash === message
-          {role: message[:role], content: adapt_content(message[:content])}
+          {role: adapt_message_role(message), content: adapt_content(message[:content])}
         elsif message.tool_call?
           adapt_tool_calls(message.extra[:original_tool_calls])
         else
@@ -51,7 +55,7 @@ module LLM::OpenAI::RequestAdapter
       when Array
         adapt_array
       else
-        {role: message.role, content: adapt_content(content, role: message.role)}
+        {role: adapt_message_role(message), content: adapt_content(content, role: message.role)}
       end
     end
 
@@ -61,7 +65,7 @@ module LLM::OpenAI::RequestAdapter
       elsif returns.any?
         adapt_returns(returns)
       else
-        {role: message.role, content: content.flat_map { adapt_content(_1, role: message.role) }}
+        {role: adapt_message_role(message), content: content.flat_map { adapt_content(_1, role: message.role) }}
       end
     end
 
@@ -121,7 +125,7 @@ module LLM::OpenAI::RequestAdapter
     def returns = content.grep(LLM::Function::Return)
 
     def text_content_type(role)
-      role.to_s == "assistant" ? :output_text : :input_text
+      adapt_role(role) == "assistant" ? :output_text : :input_text
     end
   end
 end
