@@ -113,11 +113,12 @@ class LLM::Function
       return @intercepted if intercepted?
       @result ||= begin
         spawn unless @resultp
-        _, ready = Ractor.select(@resultp)
-        if ready == EXITED
-          Return.new(@id, @name, {error: true, type: "ractor ended without result"})
+        ready = Ractor.select(@resultp, @exitp)
+        port, value = ready
+        if port == @exitp
+          return Return.new(@id, @name, {error: true, type: "ractor ended without result"})
         else
-          _, id, name, value, @finished_at = ready
+          _, id, name, value, @finished_at = value
           if Hash === value and value[:interrupt] and value[:cookie] == @cookie
             LLM::Interrupt.new
           else
