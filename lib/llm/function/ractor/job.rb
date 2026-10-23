@@ -3,7 +3,7 @@
 class LLM::Function
   ##
   # Runs a tool call inside the one ractor a task spawns,
-  # and delivers its result to the port the task holds.
+  # returning its result to the task via Ractor#value.
   class Ractor::Job
     ##
     # @api private
@@ -11,16 +11,13 @@ class LLM::Function
     private_constant :Ractor
 
     ##
-    # @param [Ractor::Port] port
-    #  The port the task reads the result from
     # @param [Class] runner_class
     # @param [String, nil] id
     # @param [String] name
     # @param [Hash, Array, nil] arguments
     # @param [String] cookie
     # @return [LLM::Function::Ractor::Job]
-    def initialize(port, runner_class, id, name, arguments, cookie)
-      @port = port
+    def initialize(runner_class, id, name, arguments, cookie)
       @runner_class = runner_class
       @id = id
       @name = name
@@ -39,11 +36,11 @@ class LLM::Function
       window.running!
       result = runner.call(**kwargs)
       window.finished!
-      @port.send([:done, @id, @name, result, finished_at.()])
+      [:done, @id, @name, result, finished_at.()]
     rescue LLM::Interrupt
-      @port.send([:done, @id, @name, {interrupt: true, cookie: @cookie}, finished_at.()])
+      [:done, @id, @name, {interrupt: true, cookie: @cookie}, finished_at.()]
     rescue => ex
-      @port.send([:done, @id, @name, {error: true, type: ex.class.name, message: ex.message}, finished_at.()])
+      [:done, @id, @name, {error: true, type: ex.class.name, message: ex.message}, finished_at.()]
     ensure
       watch_stop(watcher)
     end

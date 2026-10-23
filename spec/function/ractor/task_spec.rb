@@ -45,13 +45,24 @@ RSpec.describe LLM::Function::Ractor::Task do
     end
   end
 
-  describe "a wait that arrives after the result is in" do
-    it "is answered by the port the result was delivered to" do
+  describe "a wait that arrives after the ractor exits" do
+    it "still receives the result when the exit watcher has joined" do
       task.spawn
-      sleep 0.05
+      within { sleep 0.001 while task.alive? }
       expect(within { task.wait }.to_h).to eq(
         id: "call_1", name: "quick", value: {ok: true}
       )
+    end
+  end
+
+  describe "a ractor that exits before returning a result" do
+    it "returns an error instead of waiting forever" do
+      allow(task).to receive(:build_task).and_return(Ractor.new { raise "failed before result" })
+      expect(within { task.wait }.to_h).to eq(
+        id: "call_1", name: "quick",
+        value: {error: true, type: "ractor ended without result"}
+      )
+      expect(within { sleep 0.001 while task.alive? }).to be_nil
     end
   end
 
