@@ -155,14 +155,15 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 ### Function
 
 * **function: run a `:ractor` tool call in a single ractor** <br>
-  One tool call spawns one ractor now. Its result leaves through a
-  `Ractor::Port` the task reads, so the ractor that supervised the tool
-  ractor and shuttled its result is gone, and a task answers
-  [`LLM::Function::Ractor::Task#port`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Ractor/Task.html#port-instance_method)
-  where it answered `#mailbox`. `LLM::Function::Ractor::Mailbox` is
-  removed with it. A ractor that ends without delivering a result is
-  answered in band, as `{error: true, type: "ractor ended without
-  result"}`, where a wait could block on a result that was never coming.
+  One tool call spawns one ractor now, and its result is the value the
+  ractor returns, where a supervisor ractor used to shuttle it to a
+  mailbox. `LLM::Function::Ractor::Mailbox` is removed with the
+  supervisor, and
+  [`LLM::Function::Ractor::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Ractor/Task.html#wait-instance_method)
+  answers once the ractor returns. A ractor that dies before it returns
+  a result is answered in band, as `{error: true, type: "ractor ended
+  without result"}`, where a wait could block on a result that was
+  never coming.
 
 ### JSON
 
