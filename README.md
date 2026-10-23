@@ -81,7 +81,11 @@ tracer = LLM::Tracer.pretty(llm)
 tools  = [GetTime]
 stream = StringIO.new
 
-agent  = LLM::Agent.new(llm, tools:, tracer:, stream:)
+##
+# requires v18+
+concurrency = :ractor
+
+agent  = LLM::Agent.new(llm, tools:, tracer:, stream:, concurrency:)
 agent.talk "hello world"
 agent.talk "what time is it?"
 puts stream.string
