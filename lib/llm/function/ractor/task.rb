@@ -121,11 +121,11 @@ class LLM::Function
     # @return [Ractor]
     def build_task
       @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      debug = ENV["LLM_RACTOR_DEBUG"] == "1"
+      debug =
       vars = [@runner_class, @id, @name, @arguments, @cookie, debug]
       Ractor.new(*vars) do |runner_class, id, name, arguments, cookie, trace|
         warn "[ractor #{cookie}] entered body" if trace
-        result = LLM::Function::Ractor::Job.new(runner_class, id, name, arguments, cookie, trace).call
+        result = LLM::Function::Ractor::Job.new(runner_class, id, name, arguments, cookie).call
         warn "[ractor #{cookie}] body returned" if trace
         result
       end
@@ -138,13 +138,12 @@ class LLM::Function
     # @return [Thread]
     def watch_exit
       ractor = @ractor
-      trace = ENV["LLM_RACTOR_DEBUG"] == "1"
       cookie = @cookie
       ::Thread.new do
         ::Thread.current.report_on_exception = false
-        warn "[ractor #{cookie}] waiting for value" if trace
+        LLM.debug "[ractor #{cookie}] waiting for value"
         value = ractor.value
-        warn "[ractor #{cookie}] value received" if trace
+        LLM.debug "[ractor #{cookie}] value received"
         value
       end
     end

@@ -71,6 +71,34 @@ module LLM
   @registry = {}
 
   ##
+  # Logs a debug message to `$stderr`
+  # @note
+  #  This method is a noop when the
+  #  {LLM.debug_mode:} method returns
+  #  false and when the $LLMRB_DEBUG
+  #  variable is not set.
+  # @param [String] logmsg
+  # @return [void]
+  def self.debug(logmsg)
+    return unless @debug_mode || ENV["LLMRB_DEBUG"] == "1"
+    $stderr.puts "[llm.rb] [v#{LLM::VERSION}] #{logmsg}"
+  end
+
+  ##
+  # Toggles debug mode
+  # @return [void]
+  def self.debug_mode!
+    @debug_mode = !@debug_mode
+  end
+
+  ##
+  # Are we in debug mode?
+  # @return [Boolean]
+  def self.debug_mode?
+    !!@debug_mode
+  end
+
+  ##
   # Requires an optional runtime dependency
   # @param [String] name
   #  The name of a gem

@@ -96,7 +96,7 @@ jobs:
       run: bundle exec ruby -rpg -e "puts :ok"
     - name: Run tests (windows)
       env:
-        LLM_RACTOR_DEBUG: "1"
+        LLMRB_DEBUG: "1"
         DASHSCOPE_API_HOST: token-plan.ap-southeast-1.maas.aliyuncs.com
         JSON_PARSER: ${{ matrix.json-parser }}
       run: bundle exec rake spec
