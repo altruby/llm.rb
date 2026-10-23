@@ -21,7 +21,7 @@ RSpec.describe LLM::Function::Ractor::Task do
       raise "timed out after #{seconds} seconds; ractor: #{ractor&.inspect}; " \
         "exited: #{task.instance_variable_get(:@exited).inspect}; " \
         "result port: #{task.instance_variable_get(:@resultp)&.inspect}; " \
-        "exit port: #{task.instance_variable_get(:@exits)&.inspect}; " \
+        "exit port: #{task.instance_variable_get(:@exitp)&.inspect}; " \
         "thread stacks:\n#{stacks.join("\n\n")}"
     end
     thread.value

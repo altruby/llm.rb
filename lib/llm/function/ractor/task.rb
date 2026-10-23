@@ -24,7 +24,7 @@ class LLM::Function
     ##
     # @return [Ractor::Port]
     #  The port the result is delivered to
-    attr_reader :port
+    attr_reader :resultp
 
     ##
     # @return [LLM::Tracer, nil]
@@ -50,7 +50,7 @@ class LLM::Function
     # @return [LLM::Function::Ractor::Task]
     def initialize(fn, options = {})
       super
-      @runner_class = options.fetch(:runner_class)
+      @runnqer_class = options.fetch(:runner_class)
       @id = options.fetch(:id)
       @name = options.fetch(:name)
       @arguments = options.fetch(:arguments)
@@ -67,10 +67,10 @@ class LLM::Function
         arguments: @arguments, model: @model
       )
       return if intercepted?
-      @port = Ractor::Port.new
-      @exits = Ractor::Port.new
-      @ractor = build_task(@port)
-      @ractor.monitor(@exits)
+      @resultp = Ractor::Port.new
+      @exitp = Ractor::Port.new
+      @ractor = build_task(@resultp)
+      @ractor.monitor(@exitp)
       watch_exit
       if @cancelled
         @cancelled = false
@@ -112,8 +112,8 @@ class LLM::Function
     def wait
       return @intercepted if intercepted?
       @result ||= begin
-        spawn unless @port
-        _, ready = Ractor.select(@port)
+        spawn unless @resultp
+        _, ready = Ractor.select(@resultp)
         if ready == EXITED
           Return.new(@id, @name, {error: true, type: "ractor ended without result"})
         else
@@ -155,9 +155,9 @@ class LLM::Function
     # @return [Thread]
     def watch_exit
       ::Thread.new do
-        ractor_rescue { @exits.receive }
+        ractor_rescue { @exitp.receive }
         @exited = true
-        ractor_rescue { @port.send(EXITED) }
+        ractor_rescue { @resultp.send(EXITED) }
       end
     end
 
