@@ -20,6 +20,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `LLM::Message#role` answers the provider's spelling, eg `model` | it answers the abstract role, eg `assistant` |
 | a saved payload carries `schema_version: 1` and `original_tool_calls` | it carries `schema_version: 2`, and `original_tool_calls` is gone |
 | `#deserialize` reads a payload from any version | it refuses a payload from a newer runtime, and one that carries no version |
+| `LLM::Function::Ractor::Mailbox`, and `LLM::Function::Ractor::Task#mailbox` | both are removed, and the task answers `#alive?`, `#wait`, and `#interrupt!` |
 
 ### Core
 
