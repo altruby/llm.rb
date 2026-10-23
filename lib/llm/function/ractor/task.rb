@@ -92,8 +92,8 @@ class LLM::Function
     alias_method :cancel!, :interrupt!
 
     ##
-    # Waits on the result port. The exit watcher also sends
-    # an error marker to this port if the ractor exits without a result,
+    # Waits on the result port using Ractor.select. The exit watcher also
+    # sends an error marker if the ractor exits without a result,
     # so a failed ractor cannot leave the caller blocked forever.
     # Later waits answer from memory.
     # @return [LLM::Function::Return]
@@ -101,7 +101,7 @@ class LLM::Function
       return @intercepted if intercepted?
       @result ||= begin
         spawn unless @ractor
-        ready = @resultp.receive
+        _, ready = Ractor.select(@resultp)
         if ready == :__ractor_exited__
           Return.new(@id, @name, {error: true, type: "ractor ended without result"})
         else
@@ -146,7 +146,7 @@ class LLM::Function
       ractor = @ractor
       ::Thread.new do
         begin
-          exits.receive
+          Ractor.select(exits)
           # Joining the ractor establishes that its send to the result
           # port has completed before we publish the fallback marker.
           ractor.value
