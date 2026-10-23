@@ -121,7 +121,6 @@ class LLM::Function
     # @return [Ractor]
     def build_task
       @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      debug =
       vars = [@runner_class, @id, @name, @arguments, @cookie, debug]
       Ractor.new(*vars) do |runner_class, id, name, arguments, cookie, trace|
         warn "[ractor #{cookie}] entered body" if trace
