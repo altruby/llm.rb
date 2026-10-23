@@ -17,17 +17,19 @@ class LLM::Function
     # @param [Hash, Array, nil] arguments
     # @param [String] cookie
     # @return [LLM::Function::Ractor::Job]
-    def initialize(runner_class, id, name, arguments, cookie)
+    def initialize(runner_class, id, name, arguments, cookie, trace = false)
       @runner_class = runner_class
       @id = id
       @name = name
       @arguments = arguments
       @cookie = cookie
+      @trace = trace
     end
 
     ##
     # @return [void]
     def call
+      warn "[ractor #{@cookie}] job started" if @trace
       finished_at = -> { Process.clock_gettime(Process::CLOCK_MONOTONIC) }
       window = LLM::Function::Window.new(thread: ::Thread.current)
       runner = @runner_class.new
@@ -35,14 +37,19 @@ class LLM::Function
       kwargs = Hash === @arguments ? @arguments.transform_keys(&:to_sym) : @arguments
       window.running!
       result = runner.call(**kwargs)
+      warn "[ractor #{@cookie}] tool returned" if @trace
       window.finished!
       [:done, @id, @name, result, finished_at.()]
     rescue LLM::Interrupt
+      warn "[ractor #{@cookie}] tool interrupted" if @trace
       [:done, @id, @name, {interrupt: true, cookie: @cookie}, finished_at.()]
     rescue => ex
+      warn "[ractor #{@cookie}] tool error #{ex.class}" if @trace
       [:done, @id, @name, {error: true, type: ex.class.name, message: ex.message}, finished_at.()]
     ensure
+      warn "[ractor #{@cookie}] stopping interrupt watcher" if @trace
       watch_stop(watcher)
+      warn "[ractor #{@cookie}] job ensure complete" if @trace
     end
 
     private
