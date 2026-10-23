@@ -108,12 +108,17 @@ class LLM::Function
     # Reads the result port, which holds the ractor's
     # result or the ending the exit watcher forwarded.
     # Later waits answer from memory.
+    #
+    # `receive` blocks on the port rather than selecting
+    # over it: a select on one port can miss a message
+    # that arrives as it blocks, and a wait called from a
+    # thread would then never wake.
     # @return [LLM::Function::Return]
     def wait
       return @intercepted if intercepted?
       @result ||= begin
         spawn unless @port
-        _, ready = Ractor.select(@port)
+        ready = @port.receive
         if ready == EXITED
           Return.new(id, name, {error: true, type: "ractor ended without result"})
         else
