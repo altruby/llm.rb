@@ -55,6 +55,8 @@ class LLM::Function
       )
       return if intercepted?
       @ractor = build_task
+      @exits = Ractor::Port.new
+      @ractor.monitor(@exits)
       watch_exit
       if @cancelled
         @cancelled = false
@@ -130,12 +132,13 @@ class LLM::Function
     ##
     # Observes termination independently of {#wait}, so
     # {#alive?} works even when nobody waits for the result.
-    # `join` does not consume the ractor's return value.
+    # Use the monitor port rather than joining the same ractor
+    # concurrently with {#wait}'s `value` call.
     # @return [Thread]
     def watch_exit
       ::Thread.new do
         begin
-          @ractor.join
+          @exits.receive
         rescue ::Ractor::RemoteError
           # A failed ractor is no longer alive either.
         ensure
