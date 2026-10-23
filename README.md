@@ -1495,7 +1495,7 @@ work if you are able to install the `curses` gem.
 
 The `ractor` concurrency strategy **does work**
 on Windows but only since v18. So overall everything
-mostly works oas long as you avoid the parts that don't
+mostly works as long as you avoid the parts that don't
 work. Pull requests that improve Windows support are
 very welcome.
 </details>
