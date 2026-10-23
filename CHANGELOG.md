@@ -63,6 +63,19 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   answers `:assistant` by default, where it raised
   `NotImplementedError` before.
 
+### Object
+
+* **object: add `LLM::Object#freeze` and `LLM::Object#frozen?`** <br>
+  [`LLM::Object#freeze`](https://r.uby.dev/api-docs/llm.rb/LLM/Object.html#freeze-instance_method)
+  freezes the object and everything nested in it, down to the strings
+  in its arrays, and makes the result Ractor-shareable, so a parsed
+  response can be handed to a `:ractor` tool call. It answers itself,
+  and freezing it twice does nothing.
+  [`LLM::Object#frozen?`](https://r.uby.dev/api-docs/llm.rb/LLM/Object.html#frozen?-instance_method)
+  answers whether it was frozen, and `#[]=`, `#merge!`, and `#delete`
+  raise `FrozenError` once it was. Both methods answered `nil` before,
+  through `method_missing`, so an `LLM::Object` had no way to be frozen.
+
 ### Ruby
 
 * **drop Ruby 3.4 support** <br>
@@ -139,6 +152,18 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   is returned can access the model instance associated
   with it via the `record` method.
 
+### Function
+
+* **function: run a `:ractor` tool call in a single ractor** <br>
+  One tool call spawns one ractor now. Its result leaves through a
+  `Ractor::Port` the task reads, so the ractor that supervised the tool
+  ractor and shuttled its result is gone, and a task answers
+  [`LLM::Function::Ractor::Task#port`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Ractor/Task.html#port-instance_method)
+  where it answered `#mailbox`. `LLM::Function::Ractor::Mailbox` is
+  removed with it. A ractor that ends without delivering a result is
+  answered in band, as `{error: true, type: "ractor ended without
+  result"}`, where a wait could block on a result that was never coming.
+
 ### JSON
 
 * **json: remove the Yajl adapter** <br>
@@ -193,6 +218,16 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   will require an update (although
   I'd be surprised if any Utils
   method was used directly).
+
+* **tools: a builtin tool answers under the `:ractor` strategy** <br>
+  A tool that ships with llm.rb reads a sentinel constant when an
+  argument is omitted, and the constant was not Ractor-shareable, so
+  the read raised `Ractor::IsolationError` inside the tool and the
+  model was handed an in-band error in place of a result. The sentinel
+  each class holds is frozen now, so
+  [`LLM::Tool::ReadFile`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/ReadFile.html)
+  and `LLM::Tool::Exec` answer with the value they produced, and the
+  console works with `-c ractor`.
 
 ### Transport
 
