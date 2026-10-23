@@ -4,9 +4,9 @@ class LLM::Function
   ##
   # Wraps a ractor-backed function call.
   #
-  # One ractor runs the tool and returns its result through
-  # {Ractor#value}. A thread inside the ractor services
-  # interrupts.
+  # One ractor runs the tool and sends its result to a port
+  # after its interrupt watcher has stopped. A thread inside
+  # the ractor services interrupts.
   class Ractor::Task < LLM::Function::Task
     ##
     # @api private
@@ -54,7 +54,10 @@ class LLM::Function
         arguments: @arguments, model: @model
       )
       return if intercepted?
-      @ractor = build_task
+      @port = Ractor::Port.new
+      @exits = Ractor::Port.new
+      @ractor = build_task(@port)
+      @ractor.monitor(@exits)
       @completion = watch_exit
       if @cancelled
         @cancelled = false
@@ -67,7 +70,7 @@ class LLM::Function
     # @return [Boolean]
     def alive?
       return false if @result
-      @completion ? @completion.alive? : false
+      @ractor ? !@exited : false
     end
 
     ##
@@ -89,22 +92,26 @@ class LLM::Function
     alias_method :cancel!, :interrupt!
 
     ##
-    # Waits for the ractor's return value. Unlike receiving
-    # on a port, this also finishes if the ractor dies before
-    # producing a result. Later waits answer from memory.
+    # Waits on the result port. The completion thread also sends
+    # an error to this port if the ractor exits without a result,
+    # so a failed ractor cannot leave the caller blocked forever.
+    # Later waits answer from memory.
     # @return [LLM::Function::Return]
     def wait
       return @intercepted if intercepted?
       @result ||= begin
         spawn unless @ractor
-        _, id, name, value, @finished_at = @completion.value
-        if Hash === value and value[:interrupt] and value[:cookie] == @cookie
-          LLM::Interrupt.new
+        ready = @port.receive
+        if ready == :__ractor_exited__
+          Return.new(@id, @name, {error: true, type: "ractor ended without result"})
         else
-          Return.new(id, name, value)
+          _, id, name, value, @finished_at = ready
+          if Hash === value and value[:interrupt] and value[:cookie] == @cookie
+            LLM::Interrupt.new
+          else
+            Return.new(id, name, value)
+          end
         end
-      rescue ::Ractor::RemoteError
-        Return.new(@id, @name, {error: true, type: "ractor ended without result"})
       end
     end
     alias_method :value, :wait
@@ -118,32 +125,33 @@ class LLM::Function
     private
 
     ##
+    # @param [Ractor::Port] port
     # @return [Ractor]
-    def build_task
+    def build_task(port)
       @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      vars = [@runner_class, @id, @name, @arguments, @cookie]
-      Ractor.new(*vars) do |runner_class, id, name, arguments, cookie, trace|
-        warn "[ractor #{cookie}] entered body" if trace
-        result = LLM::Function::Ractor::Job.new(runner_class, id, name, arguments, cookie).call
-        warn "[ractor #{cookie}] body returned" if trace
-        result
+      vars = [port, @runner_class, @id, @name, @arguments, @cookie]
+      Ractor.new(*vars) do |*vars|
+        LLM::Function::Ractor::Job.new(*vars).call
       end
     end
 
     ##
-    # One thread owns Ractor#value. Waiting callers join it via
-    # Thread#value, and alive? observes the same thread. This
-    # avoids concurrent waits on a ractor from multiple threads.
+    # Watches for ractor termination without waiting for its
+    # return value. If the job never sends a result, wake #wait
+    # with an error marker. A successful result is sent first.
     # @return [Thread]
     def watch_exit
-      ractor = @ractor
-      cookie = @cookie
+      exits = @exits
+      port = @port
       ::Thread.new do
-        ::Thread.current.report_on_exception = false
-        LLM.debug "[ractor #{cookie}] waiting for value"
-        value = ractor.value
-        LLM.debug "[ractor #{cookie}] value received"
-        value
+        begin
+          exits.receive
+        rescue ::Ractor::Error
+          # A closed monitor port still means the task has ended.
+        ensure
+          @exited = true
+          port.send(:__ractor_exited__)
+        end
       end
     end
   end
