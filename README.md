@@ -1494,10 +1494,10 @@ By default the console does not work but it might
 work if you are able to install the `curses` gem.
 
 The `ractor` concurrency strategy **does work**
-on Windows but only since v18. So llm.rb mostly
-works on Windows as long as you avoid the
-parts that don't work. Pull requests that
-improve Windows support are very welcome.
+on Windows but only since v18. So overall everything
+mostly works oas long as you avoid the parts that don't
+work. Pull requests that improve Windows support are
+very welcome.
 </details>
 
 <details>
