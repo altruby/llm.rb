@@ -58,7 +58,7 @@ class LLM::Function
       @exits = Ractor::Port.new
       @ractor = build_task(@port)
       @ractor.monitor(@exits)
-      @completion = watch_exit
+      watch_exit
       if @cancelled
         @cancelled = false
         interrupt!
@@ -92,8 +92,8 @@ class LLM::Function
     alias_method :cancel!, :interrupt!
 
     ##
-    # Waits on the result port. The completion thread also sends
-    # an error to this port if the ractor exits without a result,
+    # Waits on the result port. The exit watcher also sends
+    # an error marker to this port if the ractor exits without a result,
     # so a failed ractor cannot leave the caller blocked forever.
     # Later waits answer from memory.
     # @return [LLM::Function::Return]
@@ -130,8 +130,8 @@ class LLM::Function
     def build_task(port)
       @started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       vars = [port, @runner_class, @id, @name, @arguments, @cookie]
-      Ractor.new(*vars) do |*vars|
-        LLM::Function::Ractor::Job.new(*vars).call
+      Ractor.new(*vars) do |resultp, *job_args|
+        LLM::Function::Ractor::Job.new(resultp, *job_args).call
       end
     end
 
@@ -143,11 +143,15 @@ class LLM::Function
     def watch_exit
       exits = @exits
       port = @port
+      ractor = @ractor
       ::Thread.new do
         begin
           exits.receive
+          # Joining the ractor establishes that its send to the result
+          # port has completed before we publish the fallback marker.
+          ractor.value
         rescue ::Ractor::Error
-          # A closed monitor port still means the task has ended.
+          # A ractor that failed without a result still wakes #wait.
         ensure
           @exited = true
           port.send(:__ractor_exited__)

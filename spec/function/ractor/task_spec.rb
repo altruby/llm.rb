@@ -78,6 +78,20 @@ RSpec.describe LLM::Function::Ractor::Task do
     end
   end
 
+  describe "a result sent before the ractor exits" do
+    it "returns the result without waiting for ractor termination" do
+      allow(task).to receive(:build_task) do |port|
+        Ractor.new(port) do |resultp|
+          resultp.send([:done, "call_1", "quick", {ok: true}, 1.0])
+          Ractor.receive
+        end
+      end
+      expect(within(0.5) { task.wait }.value).to eq(ok: true)
+    ensure
+      task.instance_variable_get(:@ractor)&.send(:stop)
+    end
+  end
+
   describe "a ractor that exits before returning a result" do
     it "returns an error instead of waiting forever" do
       allow(task).to receive(:build_task).and_return(Ractor.new { raise "failed before result" })
