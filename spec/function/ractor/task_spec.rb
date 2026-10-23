@@ -12,7 +12,10 @@ RSpec.describe LLM::Function::Ractor::Task do
       Thread.current.report_on_exception = false
       block.call
     end
-    thread.join(seconds) ? thread.value : raise("timed out after #{seconds} seconds")
+    unless thread.join(seconds)
+      raise "timed out after #{seconds} seconds; worker stack:\n#{thread.backtrace&.join("\n") || "(unavailable)"}"
+    end
+    thread.value
   end
 
   let(:task) do
@@ -46,12 +49,28 @@ RSpec.describe LLM::Function::Ractor::Task do
   end
 
   describe "a wait that arrives after the ractor exits" do
-    it "still receives the result when the exit watcher has joined" do
+    it "still receives the result after exit monitoring has completed" do
       task.spawn
       within { sleep 0.001 while task.alive? }
       expect(within { task.wait }.to_h).to eq(
         id: "call_1", name: "quick", value: {ok: true}
       )
+    end
+  end
+
+  describe "concurrent exit monitoring and result retrieval" do
+    it "returns results while the exit watcher is active" do
+      20.times do
+        fn = Class.new(LLM::Tool) do
+          name "quick"
+          def call = {ok: true}
+        end.function.dup
+        fn.id = "call_1"
+        fn.arguments = {}
+        current = fn.task(:ractor)
+        current.spawn
+        expect(within { current.wait }.value).to eq(ok: true)
+      end
     end
   end
 
