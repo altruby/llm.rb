@@ -17,6 +17,50 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `LLM.json = :yajl` | `LLM.json = :oj` |
 | `LLM::Tool::Utils#wait` raises on a timeout | it throws `:kill` on a timeout |
 | `transport: :curb` | `transport: :net_http` or `transport: :net_http_persistent` |
+| `LLM::Message#role` answers the provider's spelling, eg `model` | it answers the abstract role, eg `assistant` |
+| a saved payload carries `schema_version: 1` and `original_tool_calls` | it carries `schema_version: 2`, and `original_tool_calls` is gone |
+| `#deserialize` reads a payload from any version | it refuses a payload from a newer runtime, and one that carries no version |
+
+### Core
+
+* **core: store tool calls in the abstract form** <br>
+  A tool call is stored as `{id, name, arguments}`, the form the
+  runtime itself reasons about, and each request adapter builds the
+  blocks its provider expects when a request is assembled. A call was
+  stored in the provider's wire format and sent back in it before, and
+  that works until a conversation moves between providers, or between
+  the completions and Responses protocols. A conversation saved under
+  one provider restores under another now. The data only one provider
+  understands rides on the call: Gemini's `thoughtSignature` stays
+  with the call it belongs to and is ignored by every other provider,
+  so a Google restore replays it and a restore elsewhere does not.
+  <br><br>
+  `original_tool_calls` is gone from the payload. The wire form it
+  held is what an adapter rebuilds, so it is no longer read or
+  written.
+
+* **core: version a saved payload, and refuse what it cannot read** <br>
+  [`LLM::Context.schema_version`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#schema_version-class_method)
+  answers `2`, the version
+  [`LLM::Context#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_h-instance_method)
+  stamps on a payload, and
+  [`LLM::Context.validate_schema!`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#validate_schema!-class_method)
+  is what a restore calls. A payload from a newer runtime is refused,
+  because this runtime would drop fields it does not know about, and so
+  is a payload that carries no version at all. A version 1 payload
+  still restores, and the Google adapter recovers the signature a
+  version 1 payload encoded in the call's id.
+
+* **core: normalize the role of a message** <br>
+  A message is saved with an abstract role now: `assistant` for a
+  model reply, `tool` for a tool return, whatever the provider called
+  it. The content is consulted as well as the role, because an
+  Anthropic or Bedrock tool return arrives under `user`. The
+  provider's spelling is produced again when a request is assembled,
+  so Google is still sent `model`, and
+  [`LLM::Provider#assistant_role`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#assistant_role-instance_method)
+  answers `:assistant` by default, where it raised
+  `NotImplementedError` before.
 
 ### Ruby
 
@@ -166,6 +210,19 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   transport that does not ship with llm.rb can still be a
   subclass of `LLM::Transport`, or an instance of one, and
   either can be passed in place of a name.
+
+### Fix
+
+* **google: keep a streamed thought signature with its part** <br>
+  Gemini can send a `thoughtSignature` in a chunk of its own, after the
+  part it belongs to, and the
+  [`LLM::Google`](https://r.uby.dev/api-docs/llm.rb/LLM/Google.html)
+  stream parser appended it as a part of its own. The response adapter
+  reads only the parts that hold a `functionCall`, so a streamed call
+  lost the signature Gemini requires when the call was replayed. A
+  signature-only chunk is folded into the part before it now, which is
+  where a whole response carries it, and a signature sent beside other
+  content stays on the part it was sent with.
 
 ### Registry
 
