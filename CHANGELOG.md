@@ -28,6 +28,33 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   in Ruby 4.0.0, and `Ractor#value` replaces it in
   llm.rb, though the two are not equivalent.
 
+### Provider
+
+* **provider: add `LLM::Hanzo`** <br>
+  [`LLM::Hanzo`](https://r.uby.dev/api-docs/llm.rb/LLM/Hanzo.html)
+  is a new, US-based provider that talks to [hanzo.ai](https://hanzo.ai)
+  through its OpenAI-compatible chat completions API. Create an instance
+  with
+  [`LLM.hanzo`](https://r.uby.dev/api-docs/llm.rb/LLM.html#hanzo-class_method),
+  which accepts the same `key:`, `host:`, and `base_path:` options as the
+  OpenAI provider and reads `$HANZO_API_KEY` by default. It supports chat
+  completions, streaming, tool calls, and structured output, and its
+  default model is `enso-auto`, which Hanzo routes to `enso-free`
+  without a paid plan. Files, images, audio, moderations, responses, and
+  vector stores raise `NotImplementedError`, and model metadata ships in
+  `data/hanzo.json` for the registry.
+
+* **provider: name the environment variable a missing key needs** <br>
+  A factory method that resolves its key from the environment, such as
+  [`LLM.openai`](https://r.uby.dev/api-docs/llm.rb/LLM.html#openai-class_method),
+  raises an `ArgumentError` that names the variable to set when none of
+  the registry's names is present, eg
+  `did you forget to set $OPENAI_API_KEY?`. It said only
+  `you must provide an API key` before. A provider with more than one
+  name names the first, so `LLM.google` asks for `$GOOGLE_API_KEY`.
+  [`LLM.bedrock`](https://r.uby.dev/api-docs/llm.rb/LLM.html#bedrock-class_method)
+  checks its own three credentials and is unchanged.
+
 ### Agent
 
 * **agent: add class-level compactor configuration** <br>
@@ -133,7 +160,12 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   semantics as net-http and net-http-persistent. When we
   add a transport in the future it will have to have
   consistent interrupt semantics otherwise the runtime
-  provides a fragmented experience.
+  provides a fragmented experience. A transport name that
+  does not resolve raises an `LLM::Error` that names it, where
+  a failed `public_send` raised a `NoMethodError` before. A
+  transport that does not ship with llm.rb can still be a
+  subclass of `LLM::Transport`, or an instance of one, and
+  either can be passed in place of a name.
 
 ### Registry
 
