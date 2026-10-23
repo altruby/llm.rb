@@ -32,6 +32,19 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   in Ruby 4.0.0, and `Ractor#value` replaces it in
   llm.rb, though the two are not equivalent.
 
+### Fix
+
+* **google: keep a streamed thought signature with its part** <br>
+  Gemini can send a `thoughtSignature` in a chunk of its own, after the
+  part it belongs to, and the
+  [`LLM::Google`](https://r.uby.dev/api-docs/llm.rb/LLM/Google.html)
+  stream parser appended it as a part of its own. The response adapter
+  reads only the parts that hold a `functionCall`, so a streamed call
+  lost the signature Gemini requires when the call was replayed. A
+  signature-only chunk is folded into the part before it now, which is
+  where a whole response carries it, and a signature sent beside other
+  content stays on the part it was sent with.
+  
 ### Core
 
 * **core: store tool calls in the abstract form** <br>
@@ -259,19 +272,6 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   transport that does not ship with llm.rb can still be a
   subclass of `LLM::Transport`, or an instance of one, and
   either can be passed in place of a name.
-
-### Fix
-
-* **google: keep a streamed thought signature with its part** <br>
-  Gemini can send a `thoughtSignature` in a chunk of its own, after the
-  part it belongs to, and the
-  [`LLM::Google`](https://r.uby.dev/api-docs/llm.rb/LLM/Google.html)
-  stream parser appended it as a part of its own. The response adapter
-  reads only the parts that hold a `functionCall`, so a streamed call
-  lost the signature Gemini requires when the call was replayed. A
-  signature-only chunk is folded into the part before it now, which is
-  where a whole response carries it, and a signature sent beside other
-  content stays on the part it was sent with.
 
 ### Registry
 
