@@ -22,6 +22,16 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `#deserialize` reads a payload from any version | it refuses a payload from a newer runtime, and one that carries no version |
 | `LLM::Function::Ractor::Mailbox`, and `LLM::Function::Ractor::Task#mailbox` | both are removed, and the task answers `#alive?`, `#wait`, and `#interrupt!` |
 
+### Ruby
+
+* **drop Ruby 3.4 support** <br>
+  The gem now requires Ruby 4.0 or later, where the v17
+  series requires Ruby 3.4 or later. The v18 series
+  focuses on Ractor, and it drops the incompatibilities
+  between the 3.x and 4.x series: `Ractor#take` is gone
+  in Ruby 4.0.0, and `Ractor#value` replaces it in
+  llm.rb, though the two are not equivalent.
+
 ### Core
 
 * **core: store tool calls in the abstract form** <br>
@@ -63,6 +73,18 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   answers `:assistant` by default, where it raised
   `NotImplementedError` before.
 
+* **core: add `LLM.debug`, and a debug mode to toggle it** <br>
+  [`LLM.debug`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug-class_method)
+  writes a message to `$stderr`, prefixed with the runtime's name and
+  version, when
+  [`LLM.debug_mode?`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_mode?-class_method)
+  is true or `$LLMRB_DEBUG` is `1`. A call does nothing otherwise, so
+  they can stay in the code, and
+  [`LLM.debug_mode!`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_mode!-class_method)
+  toggles the mode and answers its new state. The `:ractor` strategy
+  reports each job's lifecycle through it, so a tool call that stalls
+  can be traced without editing the strategy.
+
 ### Object
 
 * **object: add `LLM::Object#freeze` and `LLM::Object#frozen?`** <br>
@@ -75,16 +97,6 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   answers whether it was frozen, and `#[]=`, `#merge!`, and `#delete`
   raise `FrozenError` once it was. Both methods answered `nil` before,
   through `method_missing`, so an `LLM::Object` had no way to be frozen.
-
-### Ruby
-
-* **drop Ruby 3.4 support** <br>
-  The gem now requires Ruby 4.0 or later, where the v17
-  series requires Ruby 3.4 or later. The v18 series
-  focuses on Ractor, and it drops the incompatibilities
-  between the 3.x and 4.x series: `Ractor#take` is gone
-  in Ruby 4.0.0, and `Ractor#value` replaces it in
-  llm.rb, though the two are not equivalent.
 
 ### Provider
 
