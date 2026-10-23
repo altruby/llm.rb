@@ -5,6 +5,7 @@ module LLM::Mistral::RequestAdapter
   # @private
   class Completion
     include LLM::RequestAdapter::Role
+    include LLM::RequestAdapter::Tool
 
     ##
     # @param [LLM::Provider] llm
@@ -23,7 +24,7 @@ module LLM::Mistral::RequestAdapter
         if Hash === message
           {role: adapt_message_role(message), content: adapt_content(message[:content])}
         elsif message.tool_call?
-          {role: adapt_message_role(message), content: nil, tool_calls: message.extra[:original_tool_calls]}
+          {role: adapt_message_role(message), content: nil, tool_calls: adapt_tool_calls}
         else
           adapt_message
         end

@@ -11,12 +11,20 @@ class LLM::Context
     # are projections for queryability. They are deliberately ignored
     # here: the runtime derives both from the messages and the
     # registry, so a payload can never seed them.
+    #
+    # The payload has to have been written by this version, which
+    # {LLM::Context.validate_schema!} asserts: the payload is not
+    # backwards compatible, so a payload from any other version -
+    # older, newer, or carrying no version at all - is refused
+    # rather than read on a best-effort basis.
     # @param [String, nil] path
     #  The path to a JSON file
     # @param [String, nil] string
     #  A raw JSON string
     # @param [Hash, nil] data
     #  A parsed context payload
+    # @raise [LLM::Error]
+    #  When the payload was written by another version
     # @raise [SystemCallError]
     #  Might raise a number of SystemCallError subclasses
     # @return [LLM::Context]
@@ -30,6 +38,7 @@ class LLM::Context
       else
         LLM.json.load(string)
       end
+      LLM::Context.validate_schema!(version: ctx["schema_version"])
       @id = ctx["id"] || @id
       @created_at = nil
       @messages.concat [*ctx["messages"]].map { deserialize_message(_1) }
@@ -56,7 +65,6 @@ class LLM::Context
     def deserialize_message(payload)
       tool_calls = deserialize_tool_calls(payload["tools"])
       returns = deserialize_returns(payload["content"]) if returns.nil?
-      original_tool_calls = payload["original_tool_calls"]
       usage = payload["usage"]
       reasoning_content = payload["reasoning_content"]
       compaction = payload["compaction"]
@@ -64,7 +72,6 @@ class LLM::Context
       id = payload["id"]
       extra = {
         tool_calls:,
-        original_tool_calls:,
         tools: @params[:tools],
         usage:,
         reasoning_content:,

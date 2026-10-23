@@ -36,8 +36,41 @@ module LLM
   class Context
     require_relative "context/serializer"
     require_relative "context/deserializer"
+
     include Serializer
     include Deserializer
+
+    ##
+    # Returns the newest payload version this runtime can
+    # restore, and the version it writes.
+    #
+    # A payload written by a newer runtime is refused, because
+    # a field this runtime does not know about would be
+    # dropped silently.
+    # @return [Integer]
+    def self.schema_version
+      2
+    end
+
+    ##
+    # Asserts that a payload can be restored by this runtime.
+    #
+    # A payload is readable when it carries a version no newer
+    # than this runtime writes, so a payload from version 1 is
+    # still readable. A payload written by a newer runtime is
+    # refused, and one that carries no version at all is
+    # refused too.
+    # @param [Integer, nil] version
+    #  The version a payload carries
+    # @raise [LLM::Error]
+    #  When the payload cannot be restored
+    # @return [void]
+    def self.validate_schema!(version:)
+      return if version and version <= schema_version
+      raise LLM::Error, "the payload was written by another version of " \
+                        "llm.rb (schema_version #{version.inspect}, this " \
+                        "runtime reads up to #{schema_version})"
+    end
 
     ##
     # Returns the set of runtime parameters that
@@ -536,10 +569,15 @@ module LLM
     # queryability, so that saved state can be inspected at rest
     # without loading it. They are never read back; the runtime
     # always derives them from the messages and the registry.
+    #
+    # Version 2 saves tool calls in the abstract form only. A
+    # version 1 payload carried the provider's wire form beside
+    # it, and that field is dropped on the way in - an adapter
+    # rebuilds its own blocks from the abstract form anyway.
     # @return [Hash]
     def to_h
       {
-        schema_version: 1,
+        schema_version: LLM::Context.schema_version,
         id: @id,
         model:,
         compacted:,

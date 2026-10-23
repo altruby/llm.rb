@@ -40,7 +40,7 @@ RSpec.describe LLM::Context do
 
     context "when restoring a payload without an id" do
       let(:legacy) { LLM::Context.new(provider) }
-      let(:payload) { LLM.json.dump({schema_version: 1, messages: []}) }
+      let(:payload) { LLM.json.dump({schema_version: LLM::Context.schema_version, messages: []}) }
       let(:captured_id) { legacy.id }
 
       before do
@@ -79,6 +79,10 @@ RSpec.describe LLM::Context do
     let(:context) { LLM::Context.new(provider, model:) }
     let(:fresh) { LLM::Context.new(provider, model:) }
 
+    it "records the schema version" do
+      expect(context.to_h[:schema_version]).to eq(LLM::Context.schema_version)
+    end
+
     context "when the context has state" do
       before do
         allow(context).to receive(:context_used).and_return(512)
@@ -97,7 +101,7 @@ RSpec.describe LLM::Context do
     context "when a payload carries stale projections" do
       let(:payload) do
         LLM.json.dump({
-          schema_version: 1,
+          schema_version: LLM::Context.schema_version,
           context_used: 999_999,
           context_window: 1,
           messages: []
@@ -111,6 +115,69 @@ RSpec.describe LLM::Context do
 
       it "ignores the stored context window" do
         expect(restored.context_window).to eq(fresh.context_window)
+      end
+    end
+  end
+
+  describe ".validate_schema!" do
+    let(:version) { LLM::Context.schema_version }
+
+    it "accepts the version this runtime writes" do
+      expect { LLM::Context.validate_schema!(version:) }.not_to raise_error
+    end
+
+    context "when the version is newer" do
+      let(:version) { LLM::Context.schema_version + 1 }
+
+      it "refuses it" do
+        expect { LLM::Context.validate_schema!(version:) }
+          .to raise_error(LLM::Error, /another version of llm\.rb/)
+      end
+    end
+
+    context "when the version is older" do
+      let(:version) { LLM::Context.schema_version - 1 }
+
+      it "accepts it" do
+        expect { LLM::Context.validate_schema!(version:) }.not_to raise_error
+      end
+    end
+
+    context "when there is no version" do
+      let(:version) { nil }
+
+      it "refuses it" do
+        expect { LLM::Context.validate_schema!(version:) }
+          .to raise_error(LLM::Error, /schema_version nil/)
+      end
+    end
+  end
+
+  describe "#deserialize" do
+    let(:provider) { LLM.deepseek(key: "test") }
+    let(:model) { "deepseek-v4-flash" }
+    let(:restored) { LLM::Context.new(provider, model:).deserialize(string: payload) }
+    let(:payload) { LLM.json.dump(document) }
+    let(:messages) { [{"role" => "user", "content" => "hello"}] }
+    let(:document) { {schema_version: LLM::Context.schema_version, messages:} }
+
+    it "restores a payload written by this version" do
+      expect(restored.messages.first.content).to eq("hello")
+    end
+
+    context "when the payload was written by version 1" do
+      let(:document) { {schema_version: 1, messages:} }
+
+      it "restores it" do
+        expect(restored.messages.first.content).to eq("hello")
+      end
+    end
+
+    context "when the payload was written by a newer version" do
+      let(:document) { {schema_version: LLM::Context.schema_version + 1, messages:} }
+
+      it "refuses it" do
+        expect { restored }.to raise_error(LLM::Error, /another version of llm\.rb/)
       end
     end
   end
@@ -418,9 +485,6 @@ RSpec.describe LLM::Context do
           LLM::Message.new("assistant", nil, {
             tool_calls: [
               {id: "call_1", name: "system", arguments: {command: "date"}}
-            ],
-            original_tool_calls: [
-              {"id" => "call_1", "type" => "function", "function" => {"name" => "system", "arguments" => "{\"command\":\"date\"}"}}
             ]
           })
         end
@@ -432,11 +496,6 @@ RSpec.describe LLM::Context do
         let(:tool_calls) do
           restored_message.extra[:tool_calls].map do |tool|
             tool.to_h.merge("arguments" => tool.arguments.to_h)
-          end
-        end
-        let(:original_tool_calls) do
-          restored_message.extra[:original_tool_calls].map do |tool|
-            tool.to_h.merge("function" => tool.function.to_h)
           end
         end
 
@@ -456,10 +515,8 @@ RSpec.describe LLM::Context do
           ])
         end
 
-        it "round-trips original tool calls" do
-          expect(original_tool_calls).to eq([
-            {"id" => "call_1", "type" => "function", "function" => {"name" => "system", "arguments" => "{\"command\":\"date\"}"}}
-          ])
+        it "stores no wire-format tool calls" do
+          expect(serialized_message).not_to have_key("original_tool_calls")
         end
       end
     end
@@ -740,7 +797,7 @@ RSpec.describe LLM::Context do
     end
 
     it "restores persisted compaction state" do
-      ctx.restore(data: {"compacted" => true, "messages" => []})
+      ctx.restore(data: {"schema_version" => LLM::Context.schema_version, "compacted" => true, "messages" => []})
       expect(ctx.compacted?).to eq(true)
     end
   end
@@ -945,7 +1002,7 @@ RSpec.describe LLM::Context do
       end
 
       it "interrupts the queued tool" do
-        task = tool.function.tap { _1.arguments = {value: "hello"} }.task(:thread)
+        task = tool.function.tap { it.arguments = {value: "hello"} }.task(:thread)
         task.spawn
         stream.queue << task
         sleep 0.05 # let the thread enter the tool's call method
@@ -1002,7 +1059,6 @@ RSpec.describe LLM::Context do
           "assistant",
           nil,
           tool_calls: [LLM::Object.from(id: fn.id, name: fn.name, arguments: LLM.json.dump(fn.arguments))],
-          original_tool_calls: [{id: fn.id, type: "function", function: {name: fn.name, arguments: LLM.json.dump(fn.arguments)}}],
           tools: [tool]
         )
       end
