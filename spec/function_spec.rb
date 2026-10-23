@@ -763,6 +763,12 @@ RSpec.describe LLM::Function do
       Thread.current.report_on_exception = false
       block.call
     end
-    thread.join(seconds) ? thread.value : raise("timed out after #{seconds} seconds")
+    unless thread.join(seconds)
+      stacks = Thread.list.map do |t|
+        "thread #{t.object_id} (#{t.status}):\n#{t.backtrace&.join("\n") || "(unavailable)"}"
+      end
+      raise "timed out after #{seconds} seconds; thread stacks:\n#{stacks.join("\n\n")}"
+    end
+    thread.value
   end
 end
