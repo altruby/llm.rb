@@ -5,8 +5,8 @@ class LLM::Function
   # Wraps a ractor-backed function call.
   #
   # One ractor runs the tool and sends its result to a port
-  # after its interrupt watcher has stopped. A thread inside
-  # the ractor services interrupts.
+  # after the tool finishes. A thread inside the ractor services
+  # interrupts.
   class Ractor::Task < LLM::Function::Task
     ##
     # @api private

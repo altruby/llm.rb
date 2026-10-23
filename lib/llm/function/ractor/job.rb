@@ -3,8 +3,8 @@
 class LLM::Function
   ##
   # Runs a tool call inside the one ractor a task spawns;
-  # sends its result to the task's port after stopping the
-  # interrupt watcher.
+  # sends its result to the task's port after the tool finishes,
+  # before waiting for the interrupt watcher to stop.
   class Ractor::Job
     ##
     # @api private
@@ -49,17 +49,23 @@ class LLM::Function
       LLM.debug "[ractor #{@cookie}] tool error #{ex.class}"
       resultm = [:done, @id, @name, {error: true, type: ex.class.name, message: ex.message}, finished_at.()]
     ensure
+      window&.finished!
       LLM.debug "[ractor #{@cookie}] stopping interrupt watcher"
+      watcher&.kill
+      ##
+      # On Windows, joining a killed thread blocked
+      # in Ractor.receive can stall the job indefinitely.
+      # Publish the result before joining it.
+      @resultp.send(resultm) if resultm
       watch_stop(watcher)
       LLM.debug "[ractor #{@cookie}] job ensure complete"
-      @resultp.send(resultm) if resultm
     end
 
     private
 
     ##
-    # Stop the interrupt watcher before sending the result. Killing a
-    # thread is asynchronous: join it before publishing completion.
+    # Join the interrupt watcher after publishing the result, so a
+    # stalled join cannot block the caller waiting for the tool.
     # The watcher may be blocked in Ractor.receive, so do not rely on a
     # :stop message being delivered to shut it down.
     # @param [Thread, nil] watcher
