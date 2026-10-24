@@ -251,12 +251,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   semantics as net-http and net-http-persistent. When we
   add a transport in the future it will have to have
   consistent interrupt semantics otherwise the runtime
-  provides a fragmented experience. A transport name that
-  does not resolve raises an `LLM::Error` that names it, where
-  a failed `public_send` raised a `NoMethodError` before. A
-  transport that does not ship with llm.rb can still be a
-  subclass of `LLM::Transport`, or an instance of one, and
-  either can be passed in place of a name.
+  provides a fragmented experience.
 
 ### Registry
 
