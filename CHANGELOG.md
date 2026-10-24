@@ -109,7 +109,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   method was used directly).
 
 * **tools: fix tools broken under `:ractor` strategy** <br>
-  A tool that ships with llm.rb reads
+  Tools that ships with llm.rb reads
   a sentinel constant when an argument
   is omitted (`LLM::Tool::UNDEFINED`)
   and the constant was not Ractor-shareable
