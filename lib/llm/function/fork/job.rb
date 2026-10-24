@@ -68,7 +68,7 @@ class LLM::Function
       {
         id: @function.id,
         name: @function.name,
-        value: {error: true, type: ex.class.name, message: ex.message}
+        value: {error: true, type: ex.class.name, message: ex.message, backtrace: ex.backtrace}
       }
     end
 

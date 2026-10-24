@@ -535,6 +535,13 @@ class LLM::Function
   rescue LLM::Interrupt
     raise
   rescue => ex
-    Return.new(id, name, {error: true, type: ex.class.name, message: ex.message})
+    Return.new(
+      id,
+      name,
+      {error: true,
+       type: ex.class.name,
+       message: ex.message,
+       backtrace: ex.backtrace}
+    )
   end
 end
