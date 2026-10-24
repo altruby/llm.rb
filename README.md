@@ -25,10 +25,17 @@ tracks what has changed between releases.
 ## Install
 
 The v17 series requires Ruby 3.4 or later. <br>
-The v18 series (unreleased) requires Ruby 4.0 or later.
 
 ```bash
 gem install llm.rb
+```
+
+The v18 series is available as a prerelease. <br>
+It requires Ruby 4.0 or later and Ruby 4.1.0.dev
+/ 4.1.0.preview1 is recommended.
+
+```bash
+gem install llm.rb --pre
 ```
 
 ## Quick start
