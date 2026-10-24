@@ -206,10 +206,10 @@ RSpec.describe LLM::Function do
 
         it "returns tool errors without hanging" do
           result = Timeout.timeout(1) { error_tool.task(:fork).wait.to_h }
-          expect(result).to eq(
+          expect(result).to match(
             id: "call_4",
             name: "system",
-            value: {error: true, type: "ArgumentError", message: "missing keyword: :command"}
+            value: {backtrace: instance_of(Array), error: true, type: "ArgumentError", message: "missing keyword: :command"}
           )
         end
       end
