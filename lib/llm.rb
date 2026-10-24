@@ -64,7 +64,11 @@ module LLM
 
   ##
   # Thread-safe monitors for different contexts
-  @monitors = {require: Monitor.new, inherited: Monitor.new, registry: Monitor.new, mcp: Monitor.new}
+  @monitors = {debug: Monitor.new,
+               require: Monitor.new,
+               inherited: Monitor.new,
+               registry: Monitor.new,
+               mcp: Monitor.new}
 
   ##
   # Model registry
@@ -77,11 +81,39 @@ module LLM
   #  {LLM.debug_mode:} method returns
   #  false and when the $LLMRB_DEBUG
   #  variable is not set.
-  # @param [String] logmsg
+  # @param [String] msg
   # @return [void]
-  def self.debug(logmsg)
+  def self.debug(msg)
     return unless @debug_mode || ENV["LLMRB_DEBUG_MODE"] == "1"
-    $stderr.puts "[llm.rb] [v#{LLM::VERSION}] #{logmsg}"
+    log = -> { debug_io.puts "[llm.rb] [v#{LLM::VERSION}] #{msg}" }
+    ##
+    # FIXME:
+    # `@monitors` (Monitor) and Mutex are not Ractor-shareable.
+    # We can't use a lock on a Ractor other than main until this
+    # is fixed.
+    if Ractor.main?
+      lock(:debug, &log)
+    else
+      log.call
+    end
+  end
+
+  ##
+  # @note
+  #  Defaults to $stderr.
+  # @param [IO] io
+  #  An IO or file that {.debug} writes to.
+  # @return [void]
+  def self.debug_io=(io)
+    @io = io
+  end
+
+  ##
+  # The IO used by the {.debug} method.
+  # Defaults to $stderr.
+  # @return [IO]
+  def self.debug_io
+    @io || $stderr
   end
 
   ##
