@@ -50,7 +50,7 @@ class LLM::Function
       resultm = [:done, @id, @name, {error: true, type: ex.class.name, message: ex.message}, finished_at.()]
     ensure
       window&.finished!
-      LLM.debug "[ractor #{@cookie}] stopping interrupt watcher".
+      LLM.debug "[ractor #{@cookie}] stopping interrupt watcher"
       watcher&.kill&.join
       @resultp.send(resultm) if resultm
       LLM.debug "[ractor #{@cookie}] job ensure complete"
