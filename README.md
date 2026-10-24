@@ -92,6 +92,47 @@ agent.talk "what time is it?"
 puts stream.string
 ```
 
+##### interrupt.rb
+
+The
+[`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+method has access to a process-wide
+registry that contains every active instance of
+[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html),
+and that includes Sequel and ActiveRecord agents, too. An
+agent enters the registry when it starts a turn, and it
+exits the registry afterwards. The method returns the
+agent it interrupted, and otherwise it returns false.
+
+There is often a window between when an agent is queued
+and when it runs, so a poll approach lets you eventually
+interrupt the agent, or give up trying:
+
+```ruby
+require "llm"
+require "llm/tools"
+
+llm   = LLM.deepseek
+agent = LLM::Agent.new(llm)
+
+Thread.new do
+  LLM.interrupt(
+    id: agent.id,
+    attempts: 50,
+    interval: 0.1
+  )
+end
+
+begin
+  stream = $stdout
+  tools  = [LLM::Tool::ReadFile]
+  agent.talk("summarize README.md", stream:, tools:)
+rescue LLM::Interrupt
+  puts "!! interrupted !!"
+end
+```
+</details>
+
 #### Essentials
 
 <details>
