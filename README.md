@@ -134,6 +134,29 @@ end
 ```
 </details>
 
+##### mcp.rb
+
+The MCP example uses the HTTP transport to connect to
+GitHub's MCP server. The example uses a Personal Access
+Token (get yours [here](https://github.com/settings/apps))
+although it could also use a token that was obtained
+through OAuth and belongs to a user other than you:
+
+```ruby
+require "llm"
+
+llm = LLM.deepseek
+mcp = LLM::MCP.http(
+  url: "https://api.githubcopilot.com/mcp/",
+  headers: {"Authorization" => "Bearer #{ENV['GITHUB_PAT']}"},
+  transport: :net_http_persistent
+)
+
+agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
+agent.talk "Find me an interesting Ruby project on GitHub"
+```
+
+
 #### Essentials
 
 <details>
