@@ -92,8 +92,6 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
-    - name: Verify pg loads
-      run: bundle exec ruby -rpg -e "puts :ok"
     - name: Run tests (windows)
       env:
         LLMRB_DEBUG: "1"
