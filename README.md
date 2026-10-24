@@ -993,6 +993,7 @@ interrupt the agent, or give up trying:
 
 ```ruby
 require "llm"
+require "llm/tools"
 
 llm   = LLM.deepseek
 agent = LLM::Agent.new(llm)
@@ -1006,7 +1007,9 @@ Thread.new do
 end
 
 begin
-  agent.talk "summarize README.md", stream: $stdout
+  stream = $stdout
+  tools  = [LLM::Tool::ReadFile]
+  agent.talk("summarize README.md", stream:, tools:)
 rescue LLM::Interrupt
   puts "!! interrupted !!"
 end
