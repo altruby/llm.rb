@@ -50,7 +50,7 @@ class LLM::Function
     # @return [LLM::Function::Ractor::Task]
     def initialize(fn, options = {})
       super
-      @runnqer_class = options.fetch(:runner_class)
+      @runner_class = options.fetch(:runner_class)
       @id = options.fetch(:id)
       @name = options.fetch(:name)
       @arguments = options.fetch(:arguments)
