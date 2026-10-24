@@ -9,6 +9,11 @@ module LLM
   # {LLM::Tracer::Logger LLM::Tracer::Logger} for example
   # tracer implementations.
   class Tracer
+    ##
+    # @api private
+    FINISH_METADATA_PROC_KEY = :"llm.tracer.finish_metadata_proc"
+    private_constant :FINISH_METADATA_PROC_KEY
+
     require_relative "tracer/registry"
     require_relative "tracer/rescue"
 
@@ -386,8 +391,6 @@ module LLM
       self
     end
 
-    FINISH_METADATA_PROC_KEY = :"llm.tracer.finish_metadata_proc"
-
     ##
     # Returns and clears extra inputs for the next span. Called by the telemetry
     # tracer when starting a span. Subclasses can override to return stored
@@ -441,24 +444,6 @@ module LLM
 
     def thread
       Thread.current
-    end
-
-    ##
-    # @return [String]
-    def provider_name
-      @llm.class.name.split("::").last.downcase
-    end
-
-    ##
-    # @return [String]
-    def provider_host
-      @llm.instance_variable_get(:@host)
-    end
-
-    ##
-    # @return [String]
-    def provider_port
-      @llm.instance_variable_get(:@port)
     end
   end
 end

@@ -102,7 +102,7 @@ class LLM::Transport
 
     private
 
-    attr_reader :host, :port, :timeout, :connect_timeout, :ssl, :base_uri
+    attr_reader :timeout, :connect_timeout, :ssl, :base_uri
 
     def client
       self.class.lock do

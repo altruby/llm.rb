@@ -109,6 +109,18 @@ class LLM::Provider
   end
 
   ##
+  # @return [String]
+  def host
+    @host
+  end
+
+  ##
+  # @return [Integer]
+  def port
+    @port
+  end
+
+  ##
   # Returns the provider's model registry.
   # @return [LLM::Registry]
   def registry
@@ -503,7 +515,7 @@ class LLM::Provider
     "#{@base_path}#{suffix}"
   end
 
-  attr_reader :base_uri, :host, :port, :timeout, :read_timeout, :connect_timeout, :ssl, :transport
+  attr_reader :base_uri, :timeout, :read_timeout, :connect_timeout, :ssl, :transport
 
   ##
   # The headers to include with a request

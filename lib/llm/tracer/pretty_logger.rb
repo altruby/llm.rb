@@ -27,7 +27,7 @@ module LLM
     def on_request_start(operation:, model: nil, **)
       @start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       name = operation == "chat" ? "chat" : operation
-      @io.puts "#{timestamp} #{provider_name} #{name} (#{model || "default"})"
+      @io.puts "#{timestamp} #{llm.name} #{name} (#{model || "default"})"
     end
 
     ##
@@ -37,7 +37,7 @@ module LLM
       elapsed = @start ? (Process.clock_gettime(Process::CLOCK_MONOTONIC) - @start).round(2) : nil
       tokens = format_tokens(res)
       name = operation == "chat" ? "chat" : operation
-      parts = ["#{timestamp} #{provider_name} #{name} done"]
+      parts = ["#{timestamp} #{llm.name} #{name} done"]
       parts << tokens if tokens
       parts << "#{elapsed}s" if elapsed
       @io.puts parts.join(", ")
@@ -47,7 +47,7 @@ module LLM
     # @param (see LLM::Tracer#on_request_error)
     # @return [void]
     def on_request_error(ex:, **)
-      @io.puts "#{timestamp} #{provider_name} error #{ex.class}: #{ex.message}"
+      @io.puts "#{timestamp} #{llm.name} error #{ex.class}: #{ex.message}"
     end
 
     ##
@@ -84,7 +84,7 @@ module LLM
     # @param (see LLM::Tracer#on_interrupt)
     # @return [void]
     def on_interrupt(scope:, **)
-      @io.puts "#{timestamp} #{provider_name} interrupt received (scope=#{scope})"
+      @io.puts "#{timestamp} #{llm.name} interrupt received (scope=#{scope})"
     end
 
     ##

@@ -49,7 +49,7 @@ module LLM
       @logger.error(
         tracer: "llm.rb (logger)",
         event: "request.error",
-        provider: provider_name,
+        provider: llm.name,
         error_class: ex.class.to_s,
         error_message: ex.message
       )
@@ -66,7 +66,7 @@ module LLM
       @logger.info(
         tracer: "llm.rb (logger)",
         event: "tool.start",
-        provider: provider_name,
+        provider: llm.name,
         operation: "execute_tool",
         tool_id: id,
         tool_name: name,
@@ -83,7 +83,7 @@ module LLM
       @logger.info(
         tracer: "llm.rb (logger)",
         event: "tool.finish",
-        provider: provider_name,
+        provider: llm.name,
         operation: "execute_tool",
         tool_id: result.id,
         tool_name: result.name,
@@ -98,7 +98,7 @@ module LLM
       @logger.error(
         tracer: "llm.rb (logger)",
         event: "tool.error",
-        provider: provider_name,
+        provider: llm.name,
         operation: "execute_tool",
         error_class: ex.value[:type],
         error_message: ex.value[:message]
@@ -112,7 +112,7 @@ module LLM
       @logger.info(
         tracer: "llm.rb (logger)",
         event: "tool.interrupt",
-        provider: provider_name,
+        provider: llm.name,
         operation: "execute_tool",
         tool_id: span.id,
         tool_name: span.name,
@@ -128,7 +128,7 @@ module LLM
       @logger.info(
         tracer: "llm.rb (logger)",
         event: "#{scope}.interrupt",
-        provider: provider_name,
+        provider: llm.name,
         scope:,
         request_id:
       )
@@ -188,7 +188,7 @@ module LLM
       @logger.info(
         tracer: "llm.rb (logger)",
         event: "request.start",
-        provider: provider_name,
+        provider: llm.name,
         operation:,
         model:
       )
@@ -198,7 +198,7 @@ module LLM
       @logger.info(
         tracer: "llm.rb (logger)",
         event: "request.start",
-        provider: provider_name,
+        provider: llm.name,
         operation:
       )
     end
@@ -210,7 +210,7 @@ module LLM
       @logger.info(
         tracer: "llm.rb (logger)",
         event: "request.finish",
-        provider: provider_name,
+        provider: llm.name,
         operation:,
         model:,
         response_id: res.id,
@@ -224,7 +224,7 @@ module LLM
       @logger.info(
         tracer: "llm.rb (logger)",
         event: "request.finish",
-        provider: provider_name,
+        provider: llm.name,
         operation:,
         **finish_attributes(operation, res)
       )

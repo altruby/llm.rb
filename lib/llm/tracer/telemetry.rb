@@ -126,9 +126,9 @@ module LLM
         "gen_ai.tool.call.id" => id,
         "gen_ai.tool.name" => name&.to_s,
         "gen_ai.tool.call.arguments" => LLM.json.dump(arguments),
-        "gen_ai.provider.name" => provider_name,
-        "server.address" => provider_host,
-        "server.port" => provider_port
+        "gen_ai.provider.name" => llm.name,
+        "server.address" => llm.host,
+        "server.port" => llm.port
       }.merge!(trace_attributes(span_kind: "tool")).compact
       span_name = ["execute_tool", name].compact.join(" ")
       span = create_span(span_name.empty? ? "gen_ai.tool" : span_name, attributes:)
@@ -333,9 +333,9 @@ module LLM
       attributes = {
         "gen_ai.operation.name" => operation,
         "gen_ai.request.model" => model,
-        "gen_ai.provider.name" => provider_name,
-        "server.address" => provider_host,
-        "server.port" => provider_port,
+        "gen_ai.provider.name" => llm.name,
+        "server.address" => llm.host,
+        "server.port" => llm.port,
         "input.value" => serialize_request_value(input_value)
       }.merge!(trace_attributes(span_kind: "llm")).compact
       span_name = [operation, model].compact.join(" ")
@@ -348,9 +348,9 @@ module LLM
     def start_retrieval(operation:)
       attributes = {
         "gen_ai.operation.name" => operation,
-        "gen_ai.provider.name" => provider_name,
-        "server.address" => provider_host,
-        "server.port" => provider_port
+        "gen_ai.provider.name" => llm.name,
+        "server.address" => llm.host,
+        "server.port" => llm.port
       }.merge!(trace_attributes(span_kind: "retriever")).compact
       span = create_span(operation, attributes:)
       span.add_event("gen_ai.request.start")
