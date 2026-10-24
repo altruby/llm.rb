@@ -32,113 +32,102 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   in Ruby 4.0.0, and `Ractor#value` replaces it in
   llm.rb, though the two are not equivalent.
 
-### Fix
+### LLM
+
+* **core: add `LLM.debug`** <br>
+  [`LLM.debug`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug-class_method)
+  writes a message to `$stderr` that is prefixed
+  with the runtime's name and version. This method
+  is a noop when
+  [`LLM.debug_mode?`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_mode?-class_method)
+  returns false and debug mode can be toggled through
+  the
+  [`LLM.debug_mode!`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_mode!-class_method)
+  method or by setting
+  `LLRMB_DEBUG_MODE=1`
+  in your shell.
+
+### LLM::Google
 
 * **google: keep a streamed thought signature with its part** <br>
-  Gemini can send a `thoughtSignature` in a chunk of its own, after the
-  part it belongs to, and the
-  [`LLM::Google`](https://r.uby.dev/api-docs/llm.rb/LLM/Google.html)
-  stream parser appended it as a part of its own. The response adapter
-  reads only the parts that hold a `functionCall`, so a streamed call
-  lost the signature Gemini requires when the call was replayed. A
-  signature-only chunk is folded into the part before it now, which is
-  where a whole response carries it, and a signature sent beside other
-  content stays on the part it was sent with.
-  
-### Core
+  Gemini can send a `thoughtSignature` in a chunk of its
+  own, after the part it belongs to, and the stream parser
+  appended it as a part of its own. The response adapter
+  reads only parts that hold a `functionCall`, so a streamed
+  call lost the signature Gemini requires when it was
+  replayed. A signature-only chunk is folded into the part
+  before it now, and a signature sent beside other content
+  stays where it was sent.
 
-* **core: store tool calls in the abstract form** <br>
-  A tool call is stored as `{id, name, arguments}`, the form the
-  runtime itself reasons about, and each request adapter builds the
-  blocks its provider expects when a request is assembled. A call was
-  stored in the provider's wire format and sent back in it before, and
-  that works until a conversation moves between providers, or between
-  the completions and Responses protocols. A conversation saved under
-  one provider restores under another now. The data only one provider
-  understands rides on the call: Gemini's `thoughtSignature` stays
-  with the call it belongs to and is ignored by every other provider,
-  so a Google restore replays it and a restore elsewhere does not.
-  <br><br>
-  `original_tool_calls` is gone from the payload. The wire form it
-  held is what an adapter rebuilds, so it is no longer read or
-  written.
+### LLM::Context
 
-* **core: version a saved payload, and refuse what it cannot read** <br>
+* **context: store tool calls in the abstract form** <br>
+  A tool call is stored as `{id, name, arguments}`, and each
+  request adapter builds the blocks its provider expects
+  when a request is assembled. A conversation saved under
+  one provider restores under another now, including across
+  the completions and Responses protocols.
+
+* **context: bump schema_version to 2** <br>
+  The
   [`LLM::Context.schema_version`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#schema_version-class_method)
-  answers `2`, the version
-  [`LLM::Context#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#to_h-instance_method)
-  stamps on a payload, and
-  [`LLM::Context.validate_schema!`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#validate_schema!-class_method)
-  is what a restore calls. A payload from a newer runtime is refused,
-  because this runtime would drop fields it does not know about, and so
-  is a payload that carries no version at all. A version 1 payload
-  still restores, and the Google adapter recovers the signature a
-  version 1 payload encoded in the call's id.
+  returns 2 (previously 1) but it is backwards
+  compatible with earlier schemas as well. The schema
+  was changed to facilitate the feature mentioned
+  just above this changelog entry. The `original_tool_calls`
+  field has been dropped from the schema.
 
-* **core: normalize the role of a message** <br>
-  A message is saved with an abstract role now: `assistant` for a
-  model reply, `tool` for a tool return, whatever the provider called
-  it. The content is consulted as well as the role, because an
-  Anthropic or Bedrock tool return arrives under `user`. The
-  provider's spelling is produced again when a request is assembled,
-  so Google is still sent `model`, and
-  [`LLM::Provider#assistant_role`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#assistant_role-instance_method)
-  answers `:assistant` by default, where it raised
-  `NotImplementedError` before.
+### LLM::Message
 
-* **core: add `LLM.debug`, and a debug mode to toggle it** <br>
-  [`LLM.debug`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug-class_method)
-  writes a message to `$stderr`, prefixed with the runtime's name and
-  version, when
-  [`LLM.debug_mode?`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_mode?-class_method)
-  is true or `$LLMRB_DEBUG` is `1`. A call does nothing otherwise, so
-  they can stay in the code, and
-  [`LLM.debug_mode!`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_mode!-class_method)
-  toggles the mode and answers its new state. The `:ractor` strategy
-  reports each job's lifecycle through it, so a tool call that stalls
-  can be traced without editing the strategy.
+* **message: `LLM::Message#role` returns a normalized role** <br>
+  A message is saved with an abstract role (`assistant` for
+  a model reply, `tool` for a tool return) regardless of the
+  provider, and each provider or model may have its own terms
+  that are different to ours. For example, Google uses the term
+  `model` instead of `assistant`. The runtime resolves these
+  differences internally.
 
-### Object
+### LLM::Object
 
 * **object: add `LLM::Object#freeze` and `LLM::Object#frozen?`** <br>
   [`LLM::Object#freeze`](https://r.uby.dev/api-docs/llm.rb/LLM/Object.html#freeze-instance_method)
   freezes the object and everything nested in it, down to the strings
   in its arrays, and makes the result Ractor-shareable, so a parsed
-  response can be handed to a `:ractor` tool call. It answers itself,
+  response can be handed to a `:ractor` tool call. It returns self,
   and freezing it twice does nothing.
-  [`LLM::Object#frozen?`](https://r.uby.dev/api-docs/llm.rb/LLM/Object.html#frozen?-instance_method)
-  answers whether it was frozen, and `#[]=`, `#merge!`, and `#delete`
-  raise `FrozenError` once it was. Both methods answered `nil` before,
-  through `method_missing`, so an `LLM::Object` had no way to be frozen.
 
-### Provider
+### LLM::Provider
 
 * **provider: add `LLM::Hanzo`** <br>
   [`LLM::Hanzo`](https://r.uby.dev/api-docs/llm.rb/LLM/Hanzo.html)
   is a new, US-based provider that talks to [hanzo.ai](https://hanzo.ai)
-  through its OpenAI-compatible chat completions API. Create an instance
-  with
-  [`LLM.hanzo`](https://r.uby.dev/api-docs/llm.rb/LLM.html#hanzo-class_method),
-  which accepts the same `key:`, `host:`, and `base_path:` options as the
-  OpenAI provider and reads `$HANZO_API_KEY` by default. It supports chat
-  completions, streaming, tool calls, and structured output, and its
-  default model is `enso-auto`, which Hanzo routes to `enso-free`
-  without a paid plan. Files, images, audio, moderations, responses, and
-  vector stores raise `NotImplementedError`, and model metadata ships in
-  `data/hanzo.json` for the registry.
+  through its OpenAI-compatible chat completions API.
+  It is not yet part of the official
+  [models.dev](https://models.dev)
+  registry but we have added our own registry entries that
+  cover its flagship models. At the time of writing Hanzo
+  is still in beta.
 
-* **provider: name the environment variable a missing key needs** <br>
-  A factory method that resolves its key from the environment, such as
-  [`LLM.openai`](https://r.uby.dev/api-docs/llm.rb/LLM.html#openai-class_method),
-  raises an `LLM::Error` that names the variable to set when none of
-  the registry's names is present, eg
-  `did you forget to set $OPENAI_API_KEY?`. It said only
-  `you must provide an API key` before. A provider with more than one
-  name names the first, so `LLM.google` asks for `$GOOGLE_API_KEY`.
-  [`LLM.bedrock`](https://r.uby.dev/api-docs/llm.rb/LLM.html#bedrock-class_method)
-  checks its own three credentials and is unchanged.
+* **provider: improve error message that covers lack of API key** <br>
+  The methods that return an instance of LLM::Provider
+  (eg [`LLM.openai`](https://r.uby.dev/api-docs/llm.rb/LLM.html#openai-class_method))
+  now include a helpful error message that indicates
+  what key should be set. For OpenAI, the error message
+  includes a string that looks like this:
 
-### Agent
+  > did you forget to set `$OPENAI_API_KEY?`
+
+### LLM::Agent
+
+* **agent: `LLM.interrupt` returns the agent it interrupted** <br>
+  The
+  [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
+  method returns the agent that was interrupted. <br>
+  Before it would return `true` instead, and that's
+  not as useful as the agent that was interrupted.
+  Still returns `false` for a miss. The agent that
+  is returned can access the model instance associated
+  with it via the `record` method.
 
 * **agent: add class-level compactor configuration** <br>
   The [LLM::Agent](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
@@ -167,29 +156,17 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   * [`LLM::Context#compactor_options`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#compactor_options-instance_method)
   <br> returns the compactor options (`{}` by default)
 
-* **agent: `LLM.interrupt` returns the agent it interrupted** <br>
-  The
-  [`LLM.interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM.html#interrupt-class_method)
-  method returns the agent that was interrupted. <br>
-  Before it would return `true` instead, and that's
-  not as useful as the agent that was interrupted.
-  Still returns `false` for a miss. The agent that
-  is returned can access the model instance associated
-  with it via the `record` method.
-
-### Function
+### LLM::Function
 
 * **function: run a `:ractor` tool call in a single ractor** <br>
-  One tool call spawns one ractor now, where a supervisor ractor used to
-  shuttle a result from the worker to a mailbox, and
-  `LLM::Function::Ractor::Mailbox` is removed with it. The ractor hands
-  its result to a `Ractor::Port`, and
-  [`LLM::Function::Ractor::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Ractor/Task.html#wait-instance_method)
-  reads it from there rather than reading the ractor's value, which could
-  deadlock with the thread that owned it. A ractor that ends without
-  sending a result is answered in band, as `{error: true, type: "ractor
-  ended without result"}`, where a wait could block on a result that was
-  never coming.
+  Our previous Ractor implementation spawned
+  two ractors that have now been replaced by a
+  **single ractor** that maintains multiple
+  [`Ractor::Port`](https://docs.ruby-lang.org/en/master/Ractor/Port.html)
+  objects instead. Ractor ports are available
+  in Ruby4 and onward. This implementation
+  is much cleaner and helps bring Ractor support
+  up to par with other concurrency strategies.
 
 * **function: support the `:ractor` strategy on Windows** <br>
   The `:ractor` concurrency strategy works on
