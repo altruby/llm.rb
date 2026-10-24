@@ -86,7 +86,7 @@ stream = StringIO.new
 # use `:thread` on <=v17
 concurrency = :ractor
 
-agent  = LLM::Agent.new(llm, tools:, tracer:, stream:, concurrency:)
+agent = LLM::Agent.new(llm, tools:, tracer:, stream:, concurrency:)
 agent.talk "hello world"
 agent.talk "what time is it?"
 puts stream.string
