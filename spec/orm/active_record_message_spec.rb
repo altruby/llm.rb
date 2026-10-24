@@ -14,6 +14,10 @@ RSpec.describe "LLM::ActiveRecord::Message" do
     skip "#{$!.class}: #{$!.message}"
   end
 
+  let(:described_class) do
+    LLM::ActiveRecord::Message
+  end
+
   let(:model) do
     LLM::Test::Harness.build_active_record_model(
       :spec_active_record_message_views, adapter: :postgres, jsonb: true
