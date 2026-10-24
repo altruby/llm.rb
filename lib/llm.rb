@@ -82,29 +82,31 @@ module LLM
   #  false and when the $LLMRB_DEBUG
   #  variable is not set.
   # @param [String] msg
+  # @param [IO] io
+  #  An optional IO
   # @return [void]
-  def self.debug(msg)
+  def self.debug(msg, io = debug_io)
     return unless @debug_mode || ENV["LLMRB_DEBUG_MODE"] == "1"
     log = -> do
-      debug_io.puts sprintf("runtime             llm.rb "    \
-                            "\n"                             \
-                            "runtime.version     %s"         \
-                            "\n"                             \
-                            "runtime.message     #{msg}"     \
-                            "\n"                             \
-                            "runtime.info"                   \
-                            "\n"                             \
-                            "  time.now            %s"       \
-                            "\n"                             \
-                            "  ractor.main         %s"       \
-                            "\n"                             \
-                            "  ractor.count        %s"       \
-                            "\n"                             \
-                            "\n",
-                            LLM::VERSION.to_s,
-                            Time.now.utc.to_s,
-                            Ractor.main? ? "yes" : "no",
-                            Ractor.count.to_s)
+      io.puts sprintf("runtime             llm.rb "    \
+                      "\n"                             \
+                      "runtime.version     %s"         \
+                      "\n"                             \
+                      "runtime.message     #{msg}"     \
+                      "\n"                             \
+                      "runtime.info"                   \
+                      "\n"                             \
+                      "  time.now            %s"       \
+                      "\n"                             \
+                      "  ractor.main         %s"       \
+                      "\n"                             \
+                      "  ractor.count        %s"       \
+                      "\n"                             \
+                      "\n",
+                      LLM::VERSION.to_s,
+                      Time.now.utc.to_s,
+                      Ractor.main? ? "yes" : "no",
+                      Ractor.count.to_s)
     end
     ##
     # FIXME:
