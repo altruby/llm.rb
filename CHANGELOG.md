@@ -77,6 +77,45 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   just above this changelog entry. The `original_tool_calls`
   field has been dropped from the schema.
 
+### LLM::Tool
+
+* **tools: a timed out command doesn't lose its streams** <br>
+  The
+  [`LLM::Tool::Exec`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Exec.html)
+  tool no longer discards what
+  was written to `$stdout` and
+  `$stderr` when the tool call
+  times out. We also include a
+  `note` field that tells the
+  model the tool call timed out,
+  and that its streams (`$stdout`
+  and `$stderr`) are probably
+  incomplete.
+
+* **tools: wait throws** <br>
+  The
+  [`LLM::Tool::Utils#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils.html#wait-instance_method)
+  method now uses the `Kernel.throw`
+  method instead of `Kernel.raise`
+  when a command times out. The
+  "wait" method is used internally
+  by the
+  [`LLM::Tool::Exec`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Exec.html)
+  tool and it can be used by your
+  own tools as well. Tools that
+  depended on the old behavior
+  will require an update (although
+  I'd be surprised if any Utils
+  method was used directly).
+
+* **tools: fix tools broken under `:ractor` strategy** <br>
+  A tool that ships with llm.rb reads
+  a sentinel constant when an argument
+  is omitted (`LLM::Tool::UNDEFINED`)
+  and the constant was not Ractor-shareable
+  so the tool would fail and report its failure
+  back to the model. This also fixes `llm.rb -c ractor`.
+
 ### LLM::Message
 
 * **message: `LLM::Message#role` returns a normalized role** <br>
@@ -200,47 +239,6 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   This means a caller no longer has to reach for `send(:ctx)` but
   can use this new method instead. The runtime is memoized and every
   call returns the same object.
-
-### Tools
-
-* **tools: a timed out command doesn't lose its streams** <br>
-  The
-  [`LLM::Tool::Exec`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Exec.html)
-  tool no longer discards what
-  was written to `$stdout` and
-  `$stderr` when the tool call
-  times out. We also include a
-  `note` field that tells the
-  model the tool call timed out,
-  and that its streams (`$stdout`
-  and `$stderr`) are probably
-  incomplete.
-
-* **tools: wait throws** <br>
-  The
-  [`LLM::Tool::Utils#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils.html#wait-instance_method)
-  method now uses the `Kernel.throw`
-  method instead of `Kernel.raise`
-  when a command times out. The
-  "wait" method is used internally
-  by the
-  [`LLM::Tool::Exec`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Exec.html)
-  tool and it can be used by your
-  own tools as well. Tools that
-  depended on the old behavior
-  will require an update (although
-  I'd be surprised if any Utils
-  method was used directly).
-
-* **tools: a builtin tool answers under the `:ractor` strategy** <br>
-  A tool that ships with llm.rb reads a sentinel constant when an
-  argument is omitted, and the constant was not Ractor-shareable, so
-  the read raised `Ractor::IsolationError` inside the tool and the
-  model was handed an in-band error in place of a result. The sentinel
-  each class holds is frozen now, so
-  [`LLM::Tool::ReadFile`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/ReadFile.html)
-  and `LLM::Tool::Exec` answer with the value they produced, and the
-  console works with `-c ractor`.
 
 ### Transport
 
