@@ -124,9 +124,10 @@ Thread.new do
 end
 
 begin
-  stream = $stdout
-  tools  = [LLM::Tool::ReadFile]
-  agent.talk("summarize README.md", stream:, tools:)
+  stream      =  $stdout
+  tools       = [LLM::Tool::ReadFile]
+  concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
+  agent.talk("summarize README.md", concurrency:, stream:, tools:)
 rescue LLM::Interrupt
   puts "!! interrupted !!"
 end
@@ -1048,12 +1049,14 @@ Thread.new do
 end
 
 begin
-  stream = $stdout
-  tools  = [LLM::Tool::ReadFile]
-  agent.talk("summarize README.md", stream:, tools:)
+  stream      =  $stdout
+  tools       = [LLM::Tool::ReadFile]
+  concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
+  agent.talk("summarize README.md", concurrency:, stream:, tools:)
 rescue LLM::Interrupt
   puts "!! interrupted !!"
 end
+
 ```
 </details>
 
