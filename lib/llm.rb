@@ -85,7 +85,16 @@ module LLM
   # @return [void]
   def self.debug(msg)
     return unless @debug_mode || ENV["LLMRB_DEBUG_MODE"] == "1"
-    log = -> { debug_io.puts "[llm.rb] [v#{LLM::VERSION}] #{msg}" }
+    log = -> do
+      debug_io.puts sprintf("llm.rb - v%s"   \
+                            "\n"             \
+                            "[%s]"           \
+                            "\n"             \
+                            "#{msg}"         \
+                            "\n\n",
+                            LLM::VERSION.to_s,
+                            Time.now.utc.to_s)
+    end
     ##
     # FIXME:
     # `@monitors` (Monitor) and Mutex are not Ractor-shareable.
