@@ -958,7 +958,7 @@ begin
   agent.talk "find every TODO in the repository", stream: $stdout
 rescue LLM::Interrupt
   puts
-  puts "!! cancelled !!"
+  puts "!! interrupted !!"
 end
 ```
 </details>
@@ -992,14 +992,23 @@ and when it runs, so a poll approach lets you eventually
 interrupt the agent, or give up trying:
 
 ```ruby
-class InterruptJob
-  def call(agent_id:)
-    LLM.interrupt(
-      id: agent_id,
-      attempts: 10,
-      interval: 0.1
-    )
-  end
+require "llm"
+
+llm   = LLM.deepseek
+agent = LLM::Agent.new(llm)
+
+Thread.new do
+  LLM.interrupt(
+    id: agent.id,
+    attempts: 50,
+    interval: 0.1
+  )
+end
+
+begin
+  agent.talk "summarize README.md", stream: $stdout
+rescue LLM::Interrupt
+  puts "!! interrupted !!"
 end
 ```
 </details>
