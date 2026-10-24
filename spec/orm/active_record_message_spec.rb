@@ -2,7 +2,7 @@
 
 require "setup"
 
-RSpec.describe LLM::ActiveRecord::Message do
+RSpec.describe "LLM::ActiveRecord::Message" do
   before do
     require "active_record"
     require "pg"
