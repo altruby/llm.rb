@@ -46,7 +46,7 @@ class LLM::Function
       LLM.debug "[ractor #{@cookie}] tool interrupted"
       resultm = [:done, @id, @name, {interrupt: true, cookie: @cookie}, finished_at.()]
     rescue => ex
-      LLM.debug "[ractor #{@cookie}] tool error #{ex.class}"
+      LLM.debug "[ractor #{@cookie}] tool error #{ex.class}: #{ex.message} at #{ex.backtrace&.first(3)&.join(" | ")}"
       resultm = [:done, @id, @name, {error: true, type: ex.class.name, message: ex.message}, finished_at.()]
     ensure
       window&.finished!
