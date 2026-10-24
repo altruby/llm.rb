@@ -80,7 +80,7 @@ module LLM
   # @param [String] logmsg
   # @return [void]
   def self.debug(logmsg)
-    return unless @debug_mode || ENV["LLMRB_DEBUG"] == "1"
+    return unless @debug_mode || ENV["LLMRB_DEBUG_MODE"] == "1"
     $stderr.puts "[llm.rb] [v#{LLM::VERSION}] #{logmsg}"
   end
 

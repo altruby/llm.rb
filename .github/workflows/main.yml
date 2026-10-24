@@ -94,7 +94,7 @@ jobs:
         bundler-cache: true
     - name: Run tests (windows)
       env:
-        LLMRB_DEBUG: "1"
+        LLMRB_DEBUG_MODE: "1"
         DASHSCOPE_API_HOST: token-plan.ap-southeast-1.maas.aliyuncs.com
         JSON_PARSER: ${{ matrix.json-parser }}
       run: bundle exec rake spec
