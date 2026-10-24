@@ -1049,8 +1049,8 @@ Thread.new do
 end
 
 begin
-  stream      =  $stdout
-  tools       = [LLM::Tool::ReadFile]
+  stream =  $stdout
+  tools  = [LLM::Tool::ReadFile]
   concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
   agent.talk("summarize README.md", concurrency:, stream:, tools:)
 rescue LLM::Interrupt
