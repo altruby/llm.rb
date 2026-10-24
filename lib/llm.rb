@@ -86,14 +86,25 @@ module LLM
   def self.debug(msg)
     return unless @debug_mode || ENV["LLMRB_DEBUG_MODE"] == "1"
     log = -> do
-      debug_io.puts sprintf("llm.rb - v%s"   \
-                            "\n"             \
-                            "[%s]"           \
-                            "\n"             \
-                            "#{msg}"         \
-                            "\n\n",
+      debug_io.puts sprintf("runtime             llm.rb "    \
+                            "\n"                             \
+                            "runtime.version     %s"         \
+                            "\n"                             \
+                            "runtime.message     #{msg}"     \
+                            "\n"                             \
+                            "runtime.info"                   \
+                            "\n"                             \
+                            "  time.now            %s"       \
+                            "\n"                             \
+                            "  ractor.main         %s"       \
+                            "\n"                             \
+                            "  ractor.count        %s"       \
+                            "\n"                             \
+                            "\n",
                             LLM::VERSION.to_s,
-                            Time.now.utc.to_s)
+                            Time.now.utc.to_s,
+                            Ractor.main? ? "yes" : "no",
+                            Ractor.count.to_s)
     end
     ##
     # FIXME:
