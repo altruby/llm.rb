@@ -124,8 +124,8 @@ Thread.new do
 end
 
 begin
-  stream =  $stdout
-  tools  = [LLM::Tool::ReadFile]
+  stream      =  $stdout
+  tools       = [LLM::Tool::ReadFile]
   concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
   agent.talk("summarize README.md", concurrency:, stream:, tools:)
 rescue LLM::Interrupt
@@ -697,7 +697,7 @@ agent.talk "What's our uptime?", stream: $stdout
 
 #### Database
 
-<details><summary>ActiveRecord </summary>
+<details><summary>ActiveRecord</summary>
 <br>
 
 Both
@@ -787,7 +787,7 @@ agent.console
 </details>
 
 <details>
-<summary>SQL optimizations </summary>
+<summary>SQL optimizations</summary>
 <br>
 
 In a database environment the runtime optimizes for
@@ -1049,8 +1049,8 @@ Thread.new do
 end
 
 begin
-  stream =  $stdout
-  tools  = [LLM::Tool::ReadFile]
+  stream      =  $stdout
+  tools       = [LLM::Tool::ReadFile]
   concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
   agent.talk("summarize README.md", concurrency:, stream:, tools:)
 rescue LLM::Interrupt
