@@ -82,7 +82,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        ruby-version: ['4.0', 'head']
+        ruby-version: ['head']
         json-parser: ['JSON']
 
     steps:
