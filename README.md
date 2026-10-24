@@ -35,7 +35,7 @@ gem install llm.rb
 ##### v18
 
 The v18 series is available as a prerelease. <br>
-It requires Ruby 4.0 or later. **Ruby 4.1.0.dev or 4.1.0.preview1 is recommended.**
+It requires Ruby 4.0.0 or later. Ruby 4.1.0+ is recommended.
 
 ```bash
 gem install llm.rb --pre
