@@ -1495,10 +1495,11 @@ By default the console does not work but it might
 work if you are able to install the `curses` gem.
 
 The `ractor` concurrency strategy **does work**
-on Windows but only since v18. So overall everything
-mostly works as long as you avoid the parts that don't
-work. Pull requests that improve Windows support are
-very welcome.
+on Windows but it requires llm.rb v18+ and Ruby
+v4.1.0+. Both are available as preleases. So overall
+everything mostly works as long as you avoid the parts
+that don't work. Pull requests that improve Windows
+support are very welcome.
 </details>
 
 <details>
