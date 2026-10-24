@@ -180,15 +180,25 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 ### Function
 
 * **function: run a `:ractor` tool call in a single ractor** <br>
-  One tool call spawns one ractor now, and its result is the value the
-  ractor returns, where a supervisor ractor used to shuttle it to a
-  mailbox. `LLM::Function::Ractor::Mailbox` is removed with the
-  supervisor, and
+  One tool call spawns one ractor now, where a supervisor ractor used to
+  shuttle a result from the worker to a mailbox, and
+  `LLM::Function::Ractor::Mailbox` is removed with it. The ractor hands
+  its result to a `Ractor::Port`, and
   [`LLM::Function::Ractor::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Ractor/Task.html#wait-instance_method)
-  answers once the ractor returns. A ractor that dies before it returns
-  a result is answered in band, as `{error: true, type: "ractor ended
-  without result"}`, where a wait could block on a result that was
+  reads it from there rather than reading the ractor's value, which could
+  deadlock with the thread that owned it. A ractor that ends without
+  sending a result is answered in band, as `{error: true, type: "ractor
+  ended without result"}`, where a wait could block on a result that was
   never coming.
+
+* **function: support the `:ractor` strategy on Windows** <br>
+  The `:ractor` concurrency strategy works on
+  Windows from llm.rb v18 on, where the hang it
+  used to hit kept it out of the Windows test
+  suite. It also needs Ruby 4.1.0 or later there,
+  and both are available as pre-releases. The
+  single ractor that hands its result to a
+  `Ractor::Port` is what makes it work.
 
 ### JSON
 
