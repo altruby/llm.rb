@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
 require "setup"
-require "active_record"
-require "pg"
-require "llm/active_record"
 
 RSpec.describe LLM::ActiveRecord::Message do
   before do
+    require "active_record"
+    require "pg"
+    require "llm/active_record"
     reason = LLM::Test::Harness.postgres_unavailable_reason
     skip reason if reason
     ActiveRecord::Base.establish_connection(LLM::Test::Harness.postgres_url)
+  rescue LoadError
+    skip "#{$!.class}: #{$!.message}"
   end
 
   let(:model) do
