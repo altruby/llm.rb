@@ -88,7 +88,7 @@ end
 
 llm     = LLM.deepseek
 options = {
-  tracer: LLM::Tracer.multi(llm, *[:PrettyLogger, :Telemetry].map { LLM::Tracer.const_get(it) }),
+  tracer: LLM::Tracer.multi(llm, *[:Logger, :Telemetry].map { LLM::Tracer.const_get(it) }),
   tools:  [GetTime],
   stream: StringIO.new,
   concurrency: LLM::VERSION.start_with?("18.") ? :ractor : :thread
