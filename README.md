@@ -86,8 +86,8 @@ class GetTime < LLM::Tool
   end
 end
 
-llm      = LLM.deepseek
-options  = {
+llm     = LLM.deepseek
+options = {
   tracer:      LLM::Tracer.pretty(llm),
   tools:       [GetTime],
   stream:      StringIO.new,
