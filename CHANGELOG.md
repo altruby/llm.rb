@@ -216,6 +216,41 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   single ractor that hands its result to a
   `Ractor::Port` is what makes it work.
 
+* **function: a tool error carries the exception's backtrace** <br>
+  The
+  [`LLM::Function::Return`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Return.html)
+  that reports a failed tool call holds the
+  exception's `backtrace` in its value now, next
+  to `error`, `type`, and `message`, so a caller
+  can see where the tool failed. The trace is
+  captured under every concurrency strategy, and
+  [`LLM::Transformer::DeleteBacktrace`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer/DeleteBacktrace.html)
+  removes it before the message is sent, so the
+  model does not see it. Before, a failure reported
+  its class and its message only.
+
+### LLM::Transformer
+
+* **transformer: add `LLM::Transformer.multi`** <br>
+  [`LLM::Transformer.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer.html#multi-class_method)
+  composes several transformers into a single
+  [`LLM::Transformer::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer/Multi.html),
+  so a message can be rewritten more than once
+  before it is sent. It takes a provider and any
+  mix of classes and instances, and the
+  [`#transformers`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer/Multi.html#transformers-instance_method)
+  it answers are the transformers it runs.
+
+* **transformer: drop a tool error's backtrace by default** <br>
+  [`LLM::Transformer::DeleteBacktrace`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer/DeleteBacktrace.html)
+  removes the `backtrace` from an error that a
+  tool reported, and every message is composed
+  with it now, whether a `transformer:` was
+  configured or not. It runs before the
+  transformer it is composed with, which is what
+  keeps a stack trace out of a request and out of
+  a saved conversation.
+
 ### JSON
 
 * **json: remove the Yajl adapter** <br>
