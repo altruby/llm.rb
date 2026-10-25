@@ -159,7 +159,7 @@ mcp = LLM::MCP.http(
 )
 
 ##
-# Are you feeling lucky, punk?
+# Roll the dice
 concurrency = %i[sequential async fork fiber thread ractor].sample
 
 ##
