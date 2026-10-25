@@ -135,7 +135,7 @@ Thread.new do
 end
 
 begin
-  stream =  $stdout
+  stream = $stdout
   tools  = [LLM::Tool::ReadFile]
   agent.talk("summarize README.md", stream:, tools:)
 rescue LLM::Interrupt
@@ -1083,7 +1083,7 @@ Thread.new do
 end
 
 begin
-  stream =  $stdout
+  stream = $stdout
   tools  = [LLM::Tool::ReadFile]
   agent.talk("summarize README.md", stream:, tools:)
 rescue LLM::Interrupt
