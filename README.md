@@ -809,7 +809,7 @@ agent.talk "what's new on r-uby-dev/llm ?", stream: $stdout
 # The conversation was persisted to database. A
 # fresh instance restores it and continues where
 # we left off
-agent = Octocat.find(agent.id).talk "what about roda?", stream: $stdout
+agent = Agent.find(agent.id).talk "what about roda?", stream: $stdout
 
 ##
 # Start an agent console.
