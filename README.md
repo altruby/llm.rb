@@ -97,7 +97,7 @@ options = {
 agent = LLM::Agent.new(llm, options)
 agent.talk "hello world"
 agent.talk "what time is it?"
-puts stream.string
+puts options[:stream].string
 ```
 
 ##### interrupt.rb
@@ -120,9 +120,9 @@ interrupt the agent, or give up trying:
 require "llm"
 require "llm/tools"
 
-llm      = LLM.deepseek
-strategy = LLM::VERSION.start_with?("18.") ? :ractor : :thread
-agent    = LLM::Agent.new(llm, concurrency: strategy)
+llm         = LLM.deepseek
+concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
+agent       = LLM::Agent.new(llm, concurrency:)
 
 Thread.new do
   LLM.interrupt(
