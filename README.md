@@ -86,15 +86,14 @@ class GetTime < LLM::Tool
   end
 end
 
-llm    = LLM.deepseek
-tracer = LLM::Tracer.pretty(llm)
-tools  = [GetTime]
-stream = StringIO.new
-
 ##
 # requires v18+
 # use `:thread` on <=v17
 concurrency = :ractor
+llm    = LLM.deepseek
+tracer = LLM::Tracer.pretty(llm)
+tools  = [GetTime]
+stream = StringIO.new
 
 agent = LLM::Agent.new(llm, tools:, tracer:, stream:, concurrency:)
 agent.talk "hello world"
