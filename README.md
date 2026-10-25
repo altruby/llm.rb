@@ -760,13 +760,13 @@ require "active_record"
 require "llm"
 require "llm/active_record"
 
-class Octocat < ActiveRecord::Base
+class Agent < ActiveRecord::Base
   acts_as_agent(format: :jsonb) do |agent|
-    agent.set name: "octocat",
-              description: "performs actions on GitHub",
-              instructions: proc { File.read("prompt.md") },
+    agent.set name: "chris",
+              description: "a GitHub expert",
+              instructions: proc { File.read("instructions.md") },
               tools: :toolset,
-              tracer: proc { SQLTracer.new(llm, agent: self) }
+              tracer: proc { LLM::Tracer.pretty(llm) }
   end
 
   ##
@@ -798,18 +798,18 @@ class Octocat < ActiveRecord::Base
   end
 end
 
-agent = Octocat.create!
+agent = Agent.create!
 
 ##
 # Every call to `talk` automatically persists
 # to the database.
-agent.talk "what's new on the llm.rb repository?"
+agent.talk "what's new on r-uby-dev/llm ?"
 
 ##
 # The conversation was persisted to database. A
 # fresh instance restores it and continues where
 # we left off
-agent = Octocat.find(agent.id).talk "and what about roda?"
+agent = Octocat.find(agent.id).talk "what about roda?"
 
 ##
 # Start an agent console.
