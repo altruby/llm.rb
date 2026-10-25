@@ -50,7 +50,8 @@ DESCRIPTION
 
   ##
   # Nothing outside Ruby's standard library
-  spec.add_runtime_dependency "~> 3.1"
+  spec.add_runtime_dependency "net-http", "~> 0.10"
+  spec.add_runtime_dependency "json", "~> 3.1"
 
   ##
   # Optional dependencies
