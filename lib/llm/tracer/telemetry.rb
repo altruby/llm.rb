@@ -126,7 +126,7 @@ module LLM
         "gen_ai.tool.call.id" => id,
         "gen_ai.tool.name" => name&.to_s,
         "gen_ai.tool.call.arguments" => LLM.json.dump(arguments),
-        "gen_ai.provider.name" => llm.name,
+        "gen_ai.provider.name" => llm.name.to_s,
         "server.address" => llm.host,
         "server.port" => llm.port
       }.merge!(trace_attributes(span_kind: "tool")).compact
@@ -333,7 +333,7 @@ module LLM
       attributes = {
         "gen_ai.operation.name" => operation,
         "gen_ai.request.model" => model,
-        "gen_ai.provider.name" => llm.name,
+        "gen_ai.provider.name" => llm.name.to_s,
         "server.address" => llm.host,
         "server.port" => llm.port,
         "input.value" => serialize_request_value(input_value)
@@ -348,7 +348,7 @@ module LLM
     def start_retrieval(operation:)
       attributes = {
         "gen_ai.operation.name" => operation,
-        "gen_ai.provider.name" => llm.name,
+        "gen_ai.provider.name" => llm.name.to_s,
         "server.address" => llm.host,
         "server.port" => llm.port
       }.merge!(trace_attributes(span_kind: "retriever")).compact
