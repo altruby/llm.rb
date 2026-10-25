@@ -122,8 +122,7 @@ interrupt the agent, or give up trying:
 require "llm"
 require "llm/tools"
 
-llm   = LLM.deepseek
-agent = LLM::Agent.new(llm)
+llm  = LLM.deepseek
 
 Thread.new do
   LLM.interrupt(
@@ -137,7 +136,8 @@ begin
   stream      =  $stdout
   tools       = [LLM::Tool::ReadFile]
   concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
-  agent.talk("summarize README.md", concurrency:, stream:, tools:)
+  agent       = LLM::Agent.new(llm, concurrency:)
+  agent.talk("summarize README.md", stream:, tools:)
 rescue LLM::Interrupt
   puts "!! interrupted !!"
 end
@@ -1070,8 +1070,7 @@ interrupt the agent, or give up trying:
 require "llm"
 require "llm/tools"
 
-llm   = LLM.deepseek
-agent = LLM::Agent.new(llm)
+llm  = LLM.deepseek
 
 Thread.new do
   LLM.interrupt(
@@ -1085,11 +1084,11 @@ begin
   stream      =  $stdout
   tools       = [LLM::Tool::ReadFile]
   concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
-  agent.talk("summarize README.md", concurrency:, stream:, tools:)
+  agent       = LLM::Agent.new(llm, concurrency:)
+  agent.talk("summarize README.md", stream:, tools:)
 rescue LLM::Interrupt
   puts "!! interrupted !!"
 end
-
 ```
 </details>
 
