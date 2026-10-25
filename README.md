@@ -709,20 +709,20 @@ require "llm"
 require "llm/tools"
 
 class Agent < LLM::Agent
-  set name: "sysadmin",
-      description: "performs system administration tasks",
-      instructions: proc { File.read("prompt.md") },
+  set name: "dennis",
+      description: "a unix expert",
+      instructions: proc { File.read("instructions.md") },
       concurrency: :fork,
-      tools: :mytools
+      tools: :toolset
 
   private
 
-  def mytools
+  def toolset
     [LLM::Tool::Exec]
   end
 end
 
-llm = LLM.deepseek
+llm   = LLM.deepseek
 agent = Agent.new(llm)
 agent.talk "What's our uptime?", stream: $stdout
 ```
