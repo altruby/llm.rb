@@ -86,13 +86,13 @@ class GetTime < LLM::Tool
   end
 end
 
-llm         = LLM.deepseek
-tracer      = LLM::Tracer.pretty(llm)
-tools       = [GetTime]
-stream      = StringIO.new
-concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
+llm      = LLM.deepseek
+tracer   = LLM::Tracer.pretty(llm)
+tools    = [GetTime]
+stream   = StringIO.new
+strategy = LLM::VERSION.start_with?("18.") ? :ractor : :thread
 
-agent = LLM::Agent.new(llm, tools:, tracer:, stream:, concurrency:)
+agent = LLM::Agent.new(llm, tools:, stream:, tracer:, concurrency: strategy)
 agent.talk "hello world"
 agent.talk "what time is it?"
 puts stream.string
@@ -118,9 +118,9 @@ interrupt the agent, or give up trying:
 require "llm"
 require "llm/tools"
 
-llm         = LLM.deepseek
-concurrency = LLM::VERSION.start_with?("18.") ? :ractor : :thread
-agent       = LLM::Agent.new(llm, concurrency:)
+llm      = LLM.deepseek
+strategy = LLM::VERSION.start_with?("18.") ? :ractor : :thread
+agent    = LLM::Agent.new(llm, concurrency: strategy)
 
 Thread.new do
   LLM.interrupt(
