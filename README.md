@@ -86,11 +86,11 @@ class GetTime < LLM::Tool
   end
 end
 
-llm = LLM.deepseek
+llm      = LLM.deepseek
 options  = {
-  tracer:      LLM::Tracer.pretty(llm)
-  tools:       [GetTime]
-  stream:      StringIO.new
+  tracer:      LLM::Tracer.pretty(llm),
+  tools:       [GetTime],
+  stream:      StringIO.new,
   concurrency: LLM::VERSION.start_with?("18.") ? :ractor : :thread
 }
 
