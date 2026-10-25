@@ -782,7 +782,7 @@ class Agent < ActiveRecord::Base
   def github
     @github ||= LLM::MCP.http(
       url: "https://api.githubcopilot.com/mcp/",
-      headers: {"Authorization" => "Bearer #{ENV['GITHUB_RUBYDEV_PAT']}"},
+      headers: {"Authorization" => "Bearer #{ENV['GITHUB_PAT']}"},
       transport: :net_http_persistent
     )
   end
