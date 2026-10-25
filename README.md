@@ -122,7 +122,7 @@ interrupt the agent, or give up trying:
 require "llm"
 require "llm/tools"
 
-llm  = LLM.deepseek
+llm = LLM.deepseek
 
 Thread.new do
   LLM.interrupt(
@@ -1070,7 +1070,7 @@ interrupt the agent, or give up trying:
 require "llm"
 require "llm/tools"
 
-llm  = LLM.deepseek
+llm = LLM.deepseek
 
 Thread.new do
   LLM.interrupt(
