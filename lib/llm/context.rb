@@ -666,7 +666,12 @@ module LLM
     # Rewrites a prompt and params through the configured transformer.
     # @api private
     def transform(prompt, params, key: :messages)
-      transformer = @transformer[:klass].new(self)
+      transformer = LLM::Transformer.multi(
+        llm,
+        *(LLM::Transformer::Multi === @transformer[:klass] ?
+                                      @transformer[:klass].transformers :
+                                      @transformer[:klass].new(self))
+      )
       stream = params[:stream]
       stream.on_transform(transformer)
       role = params[:role] || @llm.user_role
