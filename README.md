@@ -158,8 +158,11 @@ mcp = LLM::MCP.http(
   transport: :net_http_persistent
 )
 
-agent = LLM::Agent.new(llm, stream: $stdout, tools: mcp.tools)
-agent.talk "Find me an interesting Ruby project on GitHub"
+##
+# Are you feeling lucky, punk?
+concurrency = %i[sequential async fork fiber thread ractor].sample
+agent       = LLM::Agent.new(llm, concurrency:)
+agent.talk "Find me an interesting Ruby project on GitHub", stream: $stdout, tools: mcp.tools
 ```
 
 
