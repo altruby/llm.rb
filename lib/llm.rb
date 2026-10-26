@@ -193,6 +193,7 @@ module LLM
   def json
     @json ||= JSONAdapter::JSON
   end
+  json
 
   ##
   # Sets the JSON adapter used by the library
