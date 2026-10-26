@@ -8,6 +8,33 @@
   "name": "Hanzo",
   "doc": "https://docs.hanzo.ai",
   "models": {
+    "enso-auto": {
+      "id": "enso-auto",
+      "name": "Enso Auto",
+      "description": "Router from Hanzo's Enso family that sends each request to an Enso tier by the reasoning depth it asks for, with vision",
+      "family": "enso",
+      "attachment": true,
+      "reasoning": true,
+      "interleaved": {
+        "field": "reasoning_content"
+      },
+      "tool_call": true,
+      "temperature": true,
+      "release_date": "2026-10-22",
+      "last_updated": "2026-10-22",
+      "modalities": {
+        "input": [
+          "text",
+          "image"
+        ],
+        "output": [
+          "text"
+        ]
+      },
+      "limit": {
+        "context": 900000
+      }
+    },
     "enso-free": {
       "id": "enso-free",
       "name": "Enso Free",

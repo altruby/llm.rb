@@ -104,6 +104,17 @@ RSpec.describe LLM::Registry do
     include_examples "model exists", "meta.llama3-3-70b-instruct-v1:0"
   end
 
+  context "when given hanzo" do
+    let(:provider) { :hanzo }
+
+    include_examples "model exists", "enso-pro"
+
+    it "includes the default model" do
+      model = LLM.hanzo(key: "TOKEN").default_model
+      expect(registry.limit(model:).context).to be_a(Integer)
+    end
+  end
+
   describe "#keys" do
     let(:provider) { :openai }
 
