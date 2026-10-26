@@ -14,7 +14,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | Old | New |
 |-----|-----|
 | Ruby 3.4 or later | Ruby 4.0 or later |
-| `LLM.json = :yajl` | `LLM.json = :oj` |
+| `LLM.json = :yajl` | `LLM.json = :json` |
 | `LLM::Tool::Utils#wait` raises on a timeout | it throws `:kill` on a timeout |
 | `transport: :curb` | `transport: :net_http` or `transport: :net_http_persistent` |
 | `LLM::Message#role` answers the provider's spelling, eg `model` | it answers the abstract role, eg `assistant` |
