@@ -21,6 +21,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | a saved payload carries `schema_version: 1` and `original_tool_calls` | it carries `schema_version: 2`, and `original_tool_calls` is gone |
 | `#deserialize` reads a payload from any version | it refuses a payload from a newer runtime, and one that carries no version |
 | `LLM::Function::Ractor::Mailbox`, and `LLM::Function::Ractor::Task#mailbox` | both are removed, and the task answers `#alive?`, `#wait`, and `#interrupt!` |
+| `llm.rb` runs tool calls sequentially | it runs them on a Ractor, and `-c` picks the strategy |
 
 ### Ruby
 
@@ -115,6 +116,29 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   and the constant was not Ractor-shareable
   so the tool would fail and report its failure
   back to the model. This also fixes `llm.rb -c ractor`.
+
+* **tool: run MCP tools on a Ractor** <br>
+  A tool that
+  [`LLM::MCP#tools`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#tools-instance_method)
+  builds is Ractor-shareable now, so the `:ractor`
+  concurrency strategy can call it. The main Ractor
+  keeps the client the tool was built with. Another
+  Ractor builds a client of its own from
+  [`LLM::MCP#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#to_h-instance_method),
+  which answers the options the client was created
+  with. Two transports do not work this way:
+  `:net_http_persistent` wraps a `Monitor`, which is
+  not Ractor-shareable, and the stdio transport cannot
+  start its server from inside a Ractor on Windows.
+
+* **tool: `params` accepts a hash** <br>
+  [`LLM::Tool.params`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#params-class_method)
+  and
+  [`LLM::Function#params`](https://r.uby.dev/api-docs/llm.rb/LLM/Function.html#params-instance_method)
+  take a hash of JSON Schema now, in addition to the
+  block they already took, so a schema that arrives as
+  a hash, like the `inputSchema` of an MCP tool, no
+  longer has to be wrapped in a block.
 
 ### LLM::Message
 
@@ -306,6 +330,15 @@ before) can be seen in [changelog/old.md](changelog/old.md).
   adds cache pricing to GLM-4.5V and GLM-4.6V,
   and OpenRouter corrects prices and limits
   across its listings.
+
+### Console
+
+* **console: run tool calls on a Ractor by default** <br>
+  `llm.rb` defaults to the `:ractor` concurrency strategy
+  now, where it ran tool calls sequentially. A tool class
+  the console loads has to be Ractor-shareable, and `-c`
+  picks another strategy, so `-c sequential` restores the
+  old behavior.
 
 ## v17.0.1
 
