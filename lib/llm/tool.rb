@@ -61,25 +61,46 @@ class LLM::Tool
   # @return [Class<LLM::Tool>]
   #  Returns a subclass of LLM::Tool
   def self.mcp(mcp, tool)
-    Class.new(LLM::Tool) do
-      name tool["name"]
-      description tool["description"]
-      params { tool["inputSchema"] || {type: "object", properties: {}} }
-
-      define_singleton_method(:inspect) do
+    klass = Class.new(LLM::Tool)
+    klass.class_eval <<~STR, __FILE__, 1
+      def self.inspect
         "<#{LLM::Utils.object_id(self)} name=#{tool["name"]} (mcp)>"
       end
       singleton_class.alias_method :to_s, :inspect
 
-      define_singleton_method(:mcp?) do
+      def self.mcp?
         true
       end
+    STR
+    klass.instance_variable_set(:"@mcp", mcp)
+    ractorize(
+      Ractor.make_shareable(klass),
+      Ractor.make_shareable(mcp.to_h),
+      Ractor.make_shareable(tool)
+    )
+  end
 
-      define_method(:call) do |**args|
-        mcp.call_tool(tool["name"], args)
+  ##
+  # This method closes over a limited
+  # scope (three locals) that are all
+  # Ractor-shareable.
+  # @api private
+  def self.ractorize(klass, mcp, tool)
+    call = Ractor.shareable_proc do |**args|
+      if Ractor.main?
+        client = klass.instance_variable_get(:@mcp)
+        client.call_tool(tool["name"], args)
+      else
+        LLM::MCP.new(**mcp).call_tool(tool["name"], **args)
       end
     end
+    body = Ractor.shareable_proc { define_method(:call, &call) }
+    klass.name tool["name"]
+    klass.description tool["description"]
+    klass.params tool["inputSchema"] || {type: "object", properties: {}}
+    klass.tap { it.class_eval(&body) }
   end
+  private_class_method :ractorize
 
   ##
   # @param [LLM::A2A] a2a
@@ -220,11 +241,14 @@ class LLM::Tool
 
   ##
   # Returns (or sets) tool parameters
-  # @yieldparam [LLM::Schema] schema The schema object to define parameters
+  # @param [Hash, nil] p
+  #  Optional set of params to set
+  # @yieldparam [LLM::Schema] schema
+  #  The schema object to define parameters
   # @return [LLM::Schema]
-  def self.params(&)
+  def self.params(p = nil, &)
     lock do
-      function.tap { _1.params(&) }
+      function.tap { _1.params(p, &) }
     end
   end
 

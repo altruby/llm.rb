@@ -93,9 +93,11 @@ class LLM::MCP
     if stdio and http
       raise ArgumentError, "stdio and http are mutually exclusive"
     elsif stdio
+      @stdio   = stdio
       @command = Command.new(**stdio)
       @transport = Transport::Stdio.new(command:)
     elsif http
+      @http = http
       @transport = Transport::HTTP.new(**http, timeout:)
     else
       raise ArgumentError, "stdio or http is required"
@@ -182,6 +184,12 @@ class LLM::MCP
   def call_tool(name, arguments = {})
     res = with_session { call(transport, "tools/call", {name:, arguments:}) }
     adapt_tool_result(res)
+  end
+
+  ##
+  # @return [Hash]
+  def to_h
+    {timeout:, stdio: @stdio, http: @http}.compact
   end
 
   private
