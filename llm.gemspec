@@ -22,10 +22,9 @@ Gem::Specification.new do |spec|
   spec.summary = "An agentic runtime for Ruby"
   spec.description = <<~DESCRIPTION
 llm.rb is a runtime for building agentic AI applications
-on CRuby. It runs on Ruby's standard library and nothing
-else by default, it supports concurrent and parallel tool
-execution and has a single coherent API that spans 15+
-providers.
+on CRuby. It runs on Ruby's standard library by default,
+it supports concurrent and parallel tool execution and has
+a single coherent API that spans 15+ providers.
 DESCRIPTION
 
   spec.license = "MIT"
