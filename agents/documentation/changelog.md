@@ -54,7 +54,7 @@ project.
 
 | Old | New |
 |-----|-----|
-| Ruby 3.4 or later | Ruby 4.0 or later |"
+| Ruby 3.4 or later | Ruby 4.0 or later |
 ```
 
 ##### step 2c: links
