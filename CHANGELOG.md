@@ -24,6 +24,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `llm.rb` runs tool calls sequentially | it runs them on a Ractor, and `-c` picks the strategy |
 | `LLM::Skill`, the `skills:` option, and `on_skill_call` / `on_skill_return` | all are removed |
 | `LLM::Tracer#provider_name`, `#provider_host`, and `#provider_port` | the provider answers `#name`, `#host`, and `#port` |
+| `LLM::Transformer`, the `transformer:` and `transformer_options:` options, and `on_transform` / `on_transform_finish` | `LLM::MessageFilter`, `filter:` and `filter_options:`, and `on_filter` / `on_filter_finish` |
 
 ### Skills
 
