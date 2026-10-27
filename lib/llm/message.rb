@@ -95,6 +95,12 @@ module LLM
     alias_method :eql?, :==
 
     ##
+    # @return [Array<LLM::Function::Return, String>]
+    def contents
+      [*content].flatten
+    end
+
+    ##
     # Try to parse JSON content
     # @return [Hash]
     #  Returns the parsed content as a Hash
@@ -127,7 +133,7 @@ module LLM
     # Returns image URL content items from the message
     # @return [Array<LLM::Object>]
     def image_urls
-      content_items.select { LLM::Object === _1 && _1.kind == :image_url }
+      contents.select { LLM::Object === it and it.kind == :image_url }
     end
 
     ##
@@ -141,9 +147,8 @@ module LLM
     # Returns local and remote file content items from the message
     # @return [Array<LLM::Object>]
     def files
-      content_items.select do
-        LLM::Object === _1 && [:local_file, :remote_file].include?(_1.kind)
-      end
+      kinds = [:local_file, :remote_file]
+      contents.select { LLM::Object === it and kinds.include?(it.kind) }
     end
 
     ##
@@ -300,12 +305,6 @@ module LLM
       LLM.function(name) do |fn|
         fn.define { raise LLM::NoSuchToolError, "tool '#{name}' not found" }
       end
-    end
-
-    ##
-    # retrurn [Array]
-    def content_items
-      Array(content)
     end
   end
 end
