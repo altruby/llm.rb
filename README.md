@@ -1194,7 +1194,7 @@ agent.talk "Tell slack channel I'm AFK", stream: $stdout
 ```
 </details>
 <details>
-<summary>Transformers</summary>
+<summary>Filters</summary>
 <br>
 
 It is possible to rewrite outgoing messages before they reach the provider with
@@ -1540,7 +1540,7 @@ the quick start. Each chapter is a topic of its own:
   [Compaction](docs/deepdive/advanced/compaction.md),
   [Cancellation](docs/deepdive/advanced/cancellation.md),
   [Intercept](docs/deepdive/advanced/intercept.md),
-  [Transformer](docs/deepdive/advanced/message_filter.md),
+  [MessageFilter](docs/deepdive/advanced/message_filter.md),
   [Transports](docs/deepdive/advanced/transports.md)
 - **Media**:
   [Images](docs/deepdive/media/images.md),
