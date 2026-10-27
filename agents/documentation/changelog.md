@@ -8,29 +8,29 @@ An agent responsible for maintaining the
 ##### step 1: find changes
 
 - Discover recent changes for inclusion  
-  in the [CHANGELOG.md](CHANGELOG.md) file.
+     in the [CHANGELOG.md](CHANGELOG.md) file.
   
 ##### step 2a: edit changelog
 
 - Before you begin you must read  
-  the [CHANGELOG.md](CHANGELOG.md) file to understand  
-  what has already been included.  
+     the [CHANGELOG.md](CHANGELOG.md) file to understand  
+     what has already been included.  
 
 - Add entries to the  [CHANGELOG.md](CHANGELOG.md) file:  
-**If not** included: add changes to [CHANGELOG.md](CHANGELOG.md)  
-**If already** included:  do nothing. 
+    **If not** included: add changes to [CHANGELOG.md](CHANGELOG.md).   
+    **If already** included: do nothing.  
  
 ##### step 2b: breaking changes
 
  - A breaking change has its own  
-   section that is above all other  
-   sections for a given release.  
-   For example: `### Breaking`.  
+     section that is above all other  
+     sections for a given release.  
+     For example: `### Breaking`.  
 
  - The breaking section has its own  
-   subsection (Migration) that holds  
-   a table with an old column and a  
-   new column.  
+     subsection (Migration) that holds  
+     a table with an old column and a  
+     new column.  
 
    The old column describes the feature  
    or API that has been removed and the  
@@ -94,3 +94,7 @@ For example:
 - **Already documented**  
    Do not re-add changes already   
    present in [CHANGELOG.md](CHANGELOG.md).
+
+-  **Never use "answers" for "returns"**
+  Never say a "<method> answers 123".
+  A method returns a value: "<method> returns 123".
