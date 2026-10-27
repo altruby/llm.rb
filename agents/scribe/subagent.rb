@@ -6,7 +6,7 @@ class SubAgent < LLM::Tool
   parameter :file, Enum["CHANGELOG.md"], "the file to edit"
 
   def call(file:)
-    options  = {tracer: LLM::Tracer.pretty(llm),
+    options  = {tracer: LLM::Tracer.pretty(llm, io: $stderr),
                 instructions: File.read(prompts[file]),
                 tools: LLM::Tool.subclasses}
     subagent = LLM::Agent.new(llm, options)

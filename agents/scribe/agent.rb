@@ -12,7 +12,7 @@ class Agent < LLM::Agent
       description: "works with docs",
       tools: [SubAgent],
       path: File.join(__dir__, "..", "..", "contexts", "scribe.json"),
-      tracer: proc { LLM::Tracer.pretty(llm) }
+      tracer: proc { LLM::Tracer.pretty(llm, io: $stdout) }
 
   def changelog
     talk("Let's update the changelog")
