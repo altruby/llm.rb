@@ -159,6 +159,20 @@ reading `SKILL.md` from it.
   not Ractor-shareable, and the stdio transport cannot
   start its server from inside a Ractor on Windows.
 
+* **tool: run A2A tools on a Ractor** <br>
+  A tool that
+  [`LLM::Tool.a2a`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#a2a-class_method)
+  builds is Ractor-shareable now, so the `:ractor`
+  concurrency strategy can call it. The main Ractor
+  keeps the client the tool was built with, and
+  another Ractor builds a client of its own from
+  [`LLM::A2A#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/A2A.html#to_h-instance_method).
+  A `transport:` given as an instance cannot be
+  rebuilt that way, so pass a Symbol or Class
+  shortcut when the tool will run on a ractor.
+  `persistent: true` still works, because the pool
+  is built inside the Ractor.
+
 * **tool: `params` accepts a hash** <br>
   [`LLM::Tool.params`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool.html#params-class_method)
   and
@@ -167,6 +181,17 @@ reading `SKILL.md` from it.
   block they already took, so a schema that arrives as
   a hash, like the `inputSchema` of an MCP tool, no
   longer has to be wrapped in a block.
+
+### LLM::A2A
+
+* **a2a: add `LLM::A2A#to_h` and the `http:` keyword** <br>
+  [`LLM::A2A#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/A2A.html#to_h-instance_method)
+  answers the options a client was created with, and
+  [`LLM::A2A.new`](https://r.uby.dev/api-docs/llm.rb/LLM/A2A.html#initialize-instance_method)
+  takes them back as `http:`, which builds the transport
+  from them. That is how an A2A tool puts its client
+  back together inside a ractor. `transport:` is optional
+  now, and one of the two is still required.
 
 ### LLM::Message
 
@@ -186,6 +211,16 @@ reading `SKILL.md` from it.
   in its arrays, and makes the result Ractor-shareable, so a parsed
   response can be handed to a `:ractor` tool call. It returns self,
   and freezing it twice does nothing.
+
+### LLM::Schema
+
+* **schema: `LLM::Schema::Object#to_h` returns plain hashes** <br>
+  [`LLM::Schema::Object#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema/Object.html#to_h-instance_method)
+  unwraps the properties it holds now, so a property that is
+  another schema, an `LLM::Object`, a `Hash`, or an `Array` of any
+  of them comes back as a plain `Hash` all the way down. Before, a
+  property kept the object it was built from, and the result could
+  not be used where a plain JSON schema is expected.
 
 ### LLM::Provider
 
