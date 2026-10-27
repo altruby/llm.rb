@@ -179,7 +179,10 @@ agent.talk "Find me an interesting Ruby project on GitHub", tools: mcp.tools
 OpenAI, DeepSeek, Google, and a select few other
 providers provide a Files API that can be used to
 upload a file and then reference it by ID from a
-conversation:
+conversation. This approach can be more efficient
+than embedding an image as a base64-encoded image
+but not every provider has a files API and it is
+a separate step:
 
 ```ruby
 require "llm"
@@ -193,7 +196,10 @@ agent.talk ["what's this?", file], stream: $stdout
 The files API requires you to manage the files that
 are uploaded. Sometimes it can be easier and more
 simple to embed the file directly in the conversation.
-This capability varies by provider and model:
+The image is encoded into a Base64 string and carried
+around in memory until the agent and its messages are
+garbage collected.  This capability varies by provider 
+and model:
 
 ```ruby
 require "llm"
