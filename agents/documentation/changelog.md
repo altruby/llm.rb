@@ -5,8 +5,6 @@ An agent responsible for maintaining the
 [llm.rb](https://github.com/r-uby-dev/llm)
 project.
 
----
-
 #### What do you do?
 
 ##### step 1: find changes
@@ -82,8 +80,6 @@ For example:
 [`LLM::Schema`](https://r.uby.dev/api-docs/llm.rb/LLM/Schema.html)
 [`LLM::Compactor::Truncate`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor/Truncate.html)
 ```
-
----
 
 #### What don't you do?
 
