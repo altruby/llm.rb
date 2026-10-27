@@ -269,18 +269,18 @@ class Stream < LLM::Stream
   ##
   # @note
   #  This method is called _before_ a transformer runs
-  # @param [LLM::Transformer] transformer
+  # @param [LLM::MessageFilter] transformer
   #  A transformer
-  def on_transform(transformer)
+  def on_filter(transformer)
     nil
   end
 
   ##
   # @note
   #  This method is called _after_ a transformer runs
-  # @param [LLM::Transformer] transformer
+  # @param [LLM::MessageFilter] transformer
   #  A transformer
-  def on_transform_finish(transformer)
+  def on_filter_finish(transformer)
     nil
   end
 
@@ -1198,12 +1198,12 @@ agent.talk "Tell slack channel I'm AFK", stream: $stdout
 <br>
 
 It is possible to rewrite outgoing messages before they reach the provider with
-[`LLM::Transformer`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer.html). Create a subclass and implement `call(message:)` to scrub sensitive data,
+[`LLM::MessageFilter`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter.html). Create a subclass and implement `call(message:)` to scrub sensitive data,
 inject context, or normalize content. The transform runs automatically
 on every turn, so you never have to change your prompt code.
 
 ```ruby
-class RedactEmails < LLM::Transformer
+class RedactEmails < LLM::MessageFilter
   def call(message:)
     content = message.content.to_s.gsub(/[\w.+-]+@[\w-]+\.[\w.]+/, "[EMAIL]")
     LLM::Message.new(message.role, content, message.extra)
@@ -1540,7 +1540,7 @@ the quick start. Each chapter is a topic of its own:
   [Compaction](docs/deepdive/advanced/compaction.md),
   [Cancellation](docs/deepdive/advanced/cancellation.md),
   [Intercept](docs/deepdive/advanced/intercept.md),
-  [Transformer](docs/deepdive/advanced/transformer.md),
+  [Transformer](docs/deepdive/advanced/message_filter.md),
   [Transports](docs/deepdive/advanced/transports.md)
 - **Media**:
   [Images](docs/deepdive/media/images.md),
