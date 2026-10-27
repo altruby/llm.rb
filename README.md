@@ -191,6 +191,7 @@ llm   = LLM.deepseek
 agent = LLM::Agent.new(llm)
 file  = llm.files.create(file: "rubydev.png")
 agent.talk ["what's this?", file], stream: $stdout
+llm.files.delete(file:)
 ```
 
 The files API requires you to manage the files that
