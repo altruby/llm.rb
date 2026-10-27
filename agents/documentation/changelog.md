@@ -75,22 +75,22 @@ For example:
 
 ##### Exclusions
 
-- **Duplicate entries**
+- **Duplicate entries**  
   Do not add the same feature 
   or  change more than once per 
   release.
   
-- **Trivial changes**
+- **Trivial changes**  
   Skip fixes for typos, internal 
   refactoring, or other non-public
   facing updates.
 
-- **Non-public changes**
+- **Non-public changes**  
    Exclude changes that are not part 
    of the `lib/` or `docs/` directories, 
    such as those in `spec/` or other 
    non-public directories.
 
-- **Already documented**
+- **Already documented**  
    Do not re-add changes already 
    present in [CHANGELOG.md](CHANGELOG.md).
