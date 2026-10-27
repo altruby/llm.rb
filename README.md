@@ -180,7 +180,7 @@ OpenAI, DeepSeek, Google, and a select few other
 providers provide a Files API that can be used to
 upload a file and then reference it by ID from a
 conversation. This approach can be more efficient
-than embedding an image as a base64-encoded image
+than embedding an image as a base64-encoded string
 but not every provider has a files API and it is
 a separate step:
 
