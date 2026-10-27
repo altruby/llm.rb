@@ -1266,7 +1266,6 @@ require "llm"
 llm    = LLM.deepseek
 filter = LLM::MessageFilter.multi(llm, RedactEmail, RedactName, RedactLocation)
 agent  = LLM::Agent.new(llm, stream: $stdout, filter:)
-
 agent.talk "reach me at robert@r.uby.dev"
 ```
 

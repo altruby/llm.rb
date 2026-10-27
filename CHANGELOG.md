@@ -122,6 +122,11 @@ reading `SKILL.md` from it.
   just above this changelog entry. The `original_tool_calls`
   field has been dropped from the schema.
 
+* **context: add `LLM::Context#compactor_options`** <br>
+  [`LLM::Context#compactor_options`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#compactor_options-instance_method)
+  returns the options the context's compactor was configured
+  with, and `{}` by default.
+
 ### LLM::Tool
 
 * **tools: a timed out command doesn't lose its streams** <br>
@@ -200,14 +205,16 @@ reading `SKILL.md` from it.
 
 ### LLM::A2A
 
-* **a2a: add `LLM::A2A#to_h` and the `http:` keyword** <br>
+* **a2a: add `LLM::A2A#to_h`** <br>
   [`LLM::A2A#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/A2A.html#to_h-instance_method)
-  returns the options a client was created with, and
+  returns the options a client was created with, which is how
+  an A2A tool puts its client back together inside a ractor.
+
+* **a2a: `LLM::A2A.new` takes an `http:` keyword** <br>
   [`LLM::A2A.new`](https://r.uby.dev/api-docs/llm.rb/LLM/A2A.html#initialize-instance_method)
-  takes them back as `http:`, which builds the transport
-  from them. That is how an A2A tool puts its client
-  back together inside a ractor. `transport:` is optional
-  now, and one of the two is still required.
+  takes the options that `LLM::A2A#to_h` returns back as
+  `http:`, and it builds the transport from them. `transport:`
+  is optional now, and one of the two is still required.
 
 ### LLM::Message
 
@@ -218,6 +225,23 @@ reading `SKILL.md` from it.
   that are different to ours. For example, Google uses the term
   `model` instead of `assistant`. The runtime resolves these
   differences internally.
+
+* **message: add `LLM::Message#returns`** <br>
+  [`LLM::Message#returns`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#returns-instance_method)
+  returns, as an array, the tool returns a message holds, whether
+  the content holds one
+  [`LLM::Function::Return`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Return.html)
+  or a nested list of them, so a caller no longer has to unwrap
+  the content itself. A message that holds no tool return returns
+  an empty array, so a filter can iterate over the result instead
+  of reproducing the unwrapping:
+
+  ```ruby
+  message.returns.each { it.value[:email] = "[EMAIL]" }
+  ```
+
+  [`LLM::Message#tool_return?`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#tool_return?-instance_method)
+  is built on it now.
 
 ### LLM::Object
 
@@ -264,9 +288,8 @@ reading `SKILL.md` from it.
   returns the host a provider talks to, and
   [`LLM::Provider#port`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#port-instance_method)
   returns its port. Both were available before, but they are
-  documented now, and a tracer reports where a request went
-  through them rather than by reaching into the provider's
-  instance variables.
+  documented now, so a caller can read the address a provider
+  talks to without reaching into its instance variables.
 
 ### LLM::Agent
 
@@ -300,11 +323,6 @@ reading `SKILL.md` from it.
   ([`LLM::Compactor::Null`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor/Null.html)
   by default)
   * [`LLM::Agent#compactor_options`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html#compactor_options-instance_method)
-  <br> returns the compactor options (`{}` by default)
-
-  The [`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html)
-  class adds one new method:
-  * [`LLM::Context#compactor_options`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#compactor_options-instance_method)
   <br> returns the compactor options (`{}` by default)
 
 ### LLM::Function

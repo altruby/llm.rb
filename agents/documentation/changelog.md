@@ -85,6 +85,22 @@ Find every violation of this rule
 and fix it before you finish editing  
 the [CHANGELOG.md](CHANGELOG.md) file.  
 
+##### step 2e: feature creep
+
+Each changelog entry must be focused  
+on a single subject or theme. An entry  
+that covers multiple different subjects,  
+methods, classes and/or modules must be   
+broken up into their own entrie(s).    
+
+This must be fixed retroactively. Existing  
+changelog entries must be analyzed and  
+fixed when neccessary.  
+
+Find every violation of this rule  
+and fix it before you finish editing  
+the [CHANGELOG.md](CHANGELOG.md) file.  
+
 #### What don't you do?
 
 ##### Exclusions
