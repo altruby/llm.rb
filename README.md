@@ -268,19 +268,19 @@ class Stream < LLM::Stream
 
   ##
   # @note
-  #  This method is called _before_ a transformer runs
-  # @param [LLM::MessageFilter] transformer
-  #  A transformer
-  def on_filter(transformer)
+  #  This method is called _before_ a filter runs
+  # @param [LLM::MessageFilter] filter
+  #  A filter
+  def on_filter(filter)
     nil
   end
 
   ##
   # @note
-  #  This method is called _after_ a transformer runs
-  # @param [LLM::MessageFilter] transformer
-  #  A transformer
-  def on_filter_finish(transformer)
+  #  This method is called _after_ a filter runs
+  # @param [LLM::MessageFilter] filter
+  #  A filter
+  def on_filter_finish(filter)
     nil
   end
 
@@ -1211,7 +1211,7 @@ class RedactEmails < LLM::MessageFilter
 end
 
 llm = LLM.deepseek
-agent = LLM::Agent.new(llm, transformer: RedactEmails)
+agent = LLM::Agent.new(llm, filter: RedactEmails)
 agent.talk "Contact support@example.com for help"
 ```
 </details>
