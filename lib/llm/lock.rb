@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 module LLM
+  ##
+  # The {LLM::Lock} module provides named
+  # locks that are globally accessible and
+  # only usable from `Ractor.main`. The module
+  # will noop when given any other Ractor other
+  # than main.
   module Lock
     ##
     # @api private
