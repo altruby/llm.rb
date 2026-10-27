@@ -1258,7 +1258,7 @@ and this continues until we reach
 the end of the chain. The final
 message that the model receives
 could have been modified by multiple 
-filters:
+different filters:
 
 ```ruby
 require "llm"
