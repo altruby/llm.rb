@@ -210,6 +210,46 @@ agent = LLM::Agent.new(llm, stream: $stdout)
 agent.ask "what's this?", with: ["rubydev.png"]
 ```
 
+##### stream.rb
+
+The [`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html) class
+can be notified when the model requests a tool call, and then decide how to
+launch the tool call. The example launches mcp-based tool call(s) on their
+own [Ractor](https://docs.ruby-lang.org/en/4.0/Ractor.html)(s) and other tool
+call(s) on their own
+[Thread](https://docs.ruby-lang.org/en/4.0/Thread.html)(s).
+
+This might seem exotic at first but it is genuinely useful to be able to
+choose between a [Ractor](https://docs.ruby-lang.org/en/4.0/Ractor.html) and
+_something else_. Ractor won't work in all scenarios but that doesn't mean we
+can't use them in the scenarios where they work well:
+
+```ruby
+require "llm"
+
+llm = LLM.deepseek
+mcp = LLM::MCP.http(
+  url: "https://api.githubcopilot.com/mcp/",
+  headers: {"Authorization" => "Bearer #{ENV['GITHUB_RUBYDEV_PAT']}"}
+)
+
+class Stream < LLM::Stream
+  def on_tool_call(tool)
+    if tool.runner.mcp? 
+      puts "spawn #{tool.name} on ractor" 
+      queue << tool.task(:ractor)
+    else
+      puts "spawn #{tool.name} on thread"
+      queue << tool.task(:thread)
+    end
+  end
+end
+
+tools = [*LLM::Tool.subclasses, *mcp.tools]
+agent = LLM::Agent.new(llm, tools:, stream: Stream.new)
+agent.talk("what's happening on r-uby-dev/llm?")
+```
+
 #### Essentials
 
 <details>
