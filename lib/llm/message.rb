@@ -30,8 +30,8 @@ module LLM
     # @param [Hash] extra
     # @return [LLM::Message]
     def initialize(role, content, extra = {})
-      @role = normalize_role(role, content)
       @content = content
+      @role = normalize_role(role)
       @extra = LLM::Object.from(extra)
       @id = extra[:id] || SecureRandom.uuid_v7
     end
@@ -189,8 +189,17 @@ module LLM
     # @return [Boolean]
     #  Returns true when the message represents a function return
     def tool_return?
-      LLM::Function::Return === content ||
-        [*content].grep(LLM::Function::Return).any?
+      returns.size > 0
+    end
+
+    ##
+    # @return [Array<LLM::Function::Return>]
+    def returns
+      if LLM::Function::Return === content
+        [content]
+      else
+        [*content].flatten.grep(LLM::Function::Return)
+      end
     end
 
     ##
@@ -254,22 +263,13 @@ module LLM
     # an Anthropic or Bedrock tool return arrives under
     # `user`.
     # @param [Symbol, String] role
-    # @param [Object] content
     # @return [String]
-    def normalize_role(role, content)
+    def normalize_role(role)
       case role.to_s
       when "assistant", "model" then "assistant"
       when "tool" then "tool"
-      else holds_tool_return?(content) ? "tool" : role.to_s
+      else returns.any? ? "tool" : role.to_s
       end
-    end
-
-    ##
-    # @param [Object] content
-    # @return [Boolean]
-    #  Returns true when content holds a tool return
-    def holds_tool_return?(content)
-      LLM::Function::Return === content || [*content].any? { LLM::Function::Return === it }
     end
 
     ##
