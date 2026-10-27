@@ -49,7 +49,7 @@ An agent responsible for maintaining the
 | Ruby 3.4 or later | Ruby 4.0 or later |
 ```
 
-##### step 2c: links
+##### step 2c: include markdown links
 
 A reference to a class, module, or method must link  
 to the [https://r.uby.dev](https://r.uby.dev) website that hosts the API  
@@ -71,7 +71,7 @@ For example:
 [`LLM::Compactor::Truncate`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor/Truncate.html)
 ```
 
-##### step 3c: vocabulary test
+##### step 2d: fix vocabulary
 
 This is a programmer's project  
 and it must use the language of  
