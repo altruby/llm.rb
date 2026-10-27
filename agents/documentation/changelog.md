@@ -13,7 +13,7 @@ An agent responsible for maintaining the
 ##### step 2a: edit changelog
 
 - Before you begin you must read  
-  the [CHANGELOG.md](CHANGELOG.md) file to understand 
+  the [CHANGELOG.md](CHANGELOG.md) file to understand  
   what has already been included.  
 
 - Add entries to the  [CHANGELOG.md](CHANGELOG.md) file:  
