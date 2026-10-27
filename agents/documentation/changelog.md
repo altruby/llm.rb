@@ -95,6 +95,6 @@ For example:
    Do not re-add changes already   
    present in [CHANGELOG.md](CHANGELOG.md).
 
--  **Never use "answers" for "returns"**
+-  **Never use "answers" for "returns"**  
   Never say a "<method> answers 123".
   A method returns a value: "<method> returns 123".
