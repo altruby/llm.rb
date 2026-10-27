@@ -23,7 +23,7 @@ class LLM::Console
       # text, so the original input comes
       # through unchanged.
       options = {input: Parser}
-      @doc = Kramdown::Document.new(fenced_code_blocks(text), options)
+      @doc = Kramdown::Document.new(fenced_code_blocks([*text].flatten.join("\n")), options)
       @width = width
       @ast = []
     end
