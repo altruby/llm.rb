@@ -41,10 +41,8 @@ module LLM
     #  The path where to maintain runtime state
     # @param [Array<LLM::Tool>] tools
     #  Zero or more tools
-    # @param [Array<String>] skills
-    #  Zero or more skills
     # @return [LLM::Console]
-    def initialize(agent:, name: nil, tools: [], skills: [], path: nil)
+    def initialize(agent:, name: nil, tools: [], path: nil)
       @path = path
       @name = name || "agent"
       @sender = "You"
@@ -58,16 +56,7 @@ module LLM
       @thread = nil
       @queue = Queue.new
       @stream = Stream.new(self, @queue)
-      @skills = skills.map do |path|
-        ##
-        # I'm not sure it would make sense to expose
-        # the underlying context or not. In the meantime,
-        # this works and meets the expectations of the
-        # LLM::Skill class.
-        ctx = agent.instance_variable_get(:@ctx)
-        LLM::Skill.load(path).to_tool(ctx)
-      end
-      @tools = [agent.params[:tools], @skills, tools].flatten.compact
+      @tools = [agent.params[:tools], tools].flatten.compact
     end
 
     ##

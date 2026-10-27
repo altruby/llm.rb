@@ -53,7 +53,7 @@ module LLM
                 name description
                 path tool_budget
                 retry_budget model
-                skills schema
+                schema
                 tracer stream
                 compactor compactor_options
                 tools concurrency
@@ -121,7 +121,6 @@ module LLM
     # @option properties [Hash, Proc, nil] :compactor_options
     # @option properties [LLM::Schema, Symbol, Proc] :schema
     # @option properties [Array<LLM::Function>, Symbol, Proc] :tools
-    # @option properties [Array<String>, Symbol, Proc] :skills
     # @option properties [Symbol, Array<Symbol>] :concurrency
     # @option properties [String, Symbol, Array<String, Symbol>, Proc] :confirm
     # @raise [KeyError]
@@ -397,23 +396,6 @@ module LLM
     end
 
     ##
-    # Set or get the default skills
-    # @param [Array<String>, nil] skills
-    #  One or more skill directories
-    # @return [Array<String>, nil]
-    #  Returns the current skills when no argument is provided
-    def self.skills(*skills, &block)
-      return @skills if skills.empty? and !block
-      if block
-        @skills = block
-      elsif single_callable?(skills)
-        @skills = skills.first
-      else
-        @skills = skills.flatten
-      end
-    end
-
-    ##
     # Set or get the agent tools that require confirmation.
     #
     # @example
@@ -457,7 +439,6 @@ module LLM
     #  not only those listed here.
     # @option params [String] :model Defaults to the provider's default model
     # @option params [Array<LLM::Function>, nil] :tools Defaults to nil
-    # @option params [Array<String>, nil] :skills Defaults to nil
     # @option params [#to_json, nil] :schema Defaults to nil
     # @option params [Object, Proc, nil] :stream Optional stream override for this agent instance
     # @option params [LLM::Tracer, Proc, nil] :tracer Optional tracer override for this agent instance
@@ -766,19 +747,17 @@ module LLM
     #  from, and written to
     # @param [Array<LLM::Tool>] tools
     #  Extra tools to attach for the console session
-    # @param [Array<String>] skills
-    #  Extra skills to attach for the console session
     # @param [Boolean] tracer
     #  When true, the tracer is kept alive during the
     #  console session. Default is false.
     # @return [void]
-    def console(name: self.name, path: nil, tools: [], skills: [], tracer: false)
+    def console(name: self.name, path: nil, tools: [], tracer: false)
       if !tracer
         previous    = self.tracer
         self.tracer = nil
       end
       require_relative "console" unless defined?(::LLM::Console)
-      LLM::Console.new(agent: self, name:, path:, tools:, skills:).start
+      LLM::Console.new(agent: self, name:, path:, tools:).start
     ensure
       if !tracer
         self.tracer = previous
