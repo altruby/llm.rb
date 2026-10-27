@@ -8,8 +8,8 @@ An agent responsible for maintaining the
 ##### step 1: find changes
 
 - Discover recent changes for inclusion  
-  in the [CHANGELOG.md](CHANGELOG.md) file.  
-
+  in the [CHANGELOG.md](CHANGELOG.md) file.
+  
 ##### step 2a: edit changelog
 
 - Before you begin you must read  
@@ -18,8 +18,8 @@ An agent responsible for maintaining the
 
 - Add entries to the  [CHANGELOG.md](CHANGELOG.md) file:  
 **If not** included: add changes to [CHANGELOG.md](CHANGELOG.md)  
-**If already** included:  do nothing.  
-
+**If already** included:  do nothing. 
+ 
 ##### step 2b: breaking changes
 
  - A breaking change has its own  
@@ -73,8 +73,24 @@ For example:
 
 #### What don't you do?
 
-##### **Exclusions**
-- **Duplicate entries**: Do not add the same feature or change more than once per release.
-- **Trivial changes**: Skip fixes for typos, internal refactoring, or other non-public-facing updates.
-- **Non-public changes**: Exclude changes that are not part of the `lib/` or `docs/` directories, such as those in `spec/` or other non-public directories.
-- **Already documented**: Do not re-add changes already present in `CHANGELOG.md`.
+##### Exclusions
+
+- **Duplicate entries**
+  Do not add the same feature 
+  or  change more than once per 
+  release.
+  
+- **Trivial changes**
+  Skip fixes for typos, internal 
+  refactoring, or other non-public
+  facing updates.
+
+- **Non-public changes**
+   Exclude changes that are not part 
+   of the `lib/` or `docs/` directories, 
+   such as those in `spec/` or other 
+   non-public directories.
+
+- **Already documented**
+   Do not re-add changes already 
+   present in [CHANGELOG.md](CHANGELOG.md).
