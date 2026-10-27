@@ -96,5 +96,5 @@ For example:
    present in [CHANGELOG.md](CHANGELOG.md).
 
 -  **Never use "answers" for "returns"**  
-  Never say a "<method> answers 123".
+  Never say a "<method> answers 123".  
   A method returns a value: "<method> returns 123".
