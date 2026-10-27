@@ -99,37 +99,17 @@ end
 task :repl => :console
 
 namespace :agents do
-  desc "a documentation engineer"
-  namespace :scribe do
-    desc "Run console"
+  desc "the documentation agent"
+  namespace :documentation do
+    desc "run console"
     task :console do
-      sh "agents/scribe/agent.rb console"
+      sh "agents/documentation/agent.rb console"
     end
     task :repl => :console
 
-    desc "fix yardoc warnings"
-    task :yardoc do
-      sh "agents/scribe/agent.rb yardoc"
-    end
-
-    desc "style review"
-    task :style do
-      sh "agents/scribe/agent.rb style"
-    end
-
-    desc "Audit documentation for regressions and inaccuracies"
-    task :regressions do
-      sh "agents/scribe/agent.rb regressions"
-    end
-
-    desc "Find documentation gaps and improvements"
-    task :coverage do
-      sh "agents/scribe/agent.rb coverage"
-    end
-
-    desc "Maintain CHANGELOG.md"
+    desc "edit CHANGELOG.md"
     task :changelog do
-      sh "agents/scribe/agent.rb changelog"
+      sh "agents/documentation/agent.rb changelog"
     end
   end
 
