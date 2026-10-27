@@ -174,6 +174,34 @@ agent = LLM::Agent.new(llm, stream: $stdout, concurrency:)
 agent.talk "Find me an interesting Ruby project on GitHub", tools: mcp.tools
 ```
 
+##### files.rb
+
+OpenAI, DeepSeek, Google, and a select few other
+providers provide a Files API that can be used to
+upload a file and then reference it by ID from a
+conversation:
+
+```ruby
+require "llm"
+
+llm   = LLM.deepseek
+agent = LLM::Agent.new(llm)
+file  = llm.files.create(file: "rubydev.png")
+agent.talk ["what's this?", file], stream: $stdout
+```
+
+The files API requires you to manage the files that
+are uploaded. Sometimes it can be easier and more
+simple to embed the file directly in the conversation.
+This capability varies by provider and model:
+
+```ruby
+require "llm"
+
+llm   = LLM.deepseek
+agent = LLM::Agent.new(llm, stream: $stdout)
+agent.ask "what's this?", with: ["rubydev.png"]
+```
 
 #### Essentials
 
