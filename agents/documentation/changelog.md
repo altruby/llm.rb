@@ -71,6 +71,20 @@ For example:
 [`LLM::Compactor::Truncate`](https://r.uby.dev/api-docs/llm.rb/LLM/Compactor/Truncate.html)
 ```
 
+##### step 3c: vocabulary test
+
+This is a programmer's project  
+and it must use the language of  
+a programmer.  
+
+For example: all entries must use  
+the term "return" or "returns"  
+instead of "answer" or "answers".
+
+Find every violation of this rule  
+and fix it before you finish editing  
+the [CHANGELOG.md](CHANGELOG.md) file.  
+
 #### What don't you do?
 
 ##### Exclusions
