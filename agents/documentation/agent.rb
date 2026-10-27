@@ -8,7 +8,7 @@ require "fileutils"
 class Agent < LLM::Agent
   require_relative "subagent"
 
-  set name: "llm.rb agent",
+  set name: "docs",
       description: "works with docs",
       tools: [SubAgent],
       path: File.join(__dir__, "..", "..", "contexts", "scribe.json"),
