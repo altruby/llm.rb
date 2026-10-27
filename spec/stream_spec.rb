@@ -6,7 +6,7 @@ RSpec.describe LLM::Stream do
   let(:stream) { described_class.new }
   let(:ctx) { LLM::Context.new(LLM.openai(key: "test"), model: "gpt-5.4") }
   let(:compactor) { LLM::Compactor.new(ctx) }
-  let(:transformer) { LLM::Transformer::Null.new(ctx) }
+  let(:filter) { LLM::MessageFilter::Null.new(ctx) }
 
   let(:tool_class) do
     Class.new(LLM::Tool) do
@@ -61,15 +61,15 @@ RSpec.describe LLM::Stream do
     end
   end
 
-  describe "#on_transform" do
+  describe "#on_filter" do
     it "returns nil" do
-      expect(stream.on_transform(transformer)).to be_nil
+      expect(stream.on_filter(filter)).to be_nil
     end
   end
 
-  describe "#on_transform_finish" do
+  describe "#on_filter_finish" do
     it "returns nil" do
-      expect(stream.on_transform_finish(transformer)).to be_nil
+      expect(stream.on_filter_finish(filter)).to be_nil
     end
   end
 
