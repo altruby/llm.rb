@@ -8,7 +8,8 @@ class SubAgent < LLM::Tool
   required %i[file]
 
   def call(file:, instructions: nil)
-    options  = {tracer: LLM::Tracer.pretty(llm, io: $stderr),
+    options  = {concurrency: :ractor,
+                tracer: LLM::Tracer.pretty(llm, io: $stderr),
                 instructions: File.read(prompts[file]),
                 tools: LLM::Tool.subclasses}
     subagent = LLM::Agent.new(llm, options)
