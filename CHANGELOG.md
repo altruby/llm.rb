@@ -24,7 +24,9 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `llm.rb` runs tool calls sequentially | it runs them on a Ractor, and `-c` picks the strategy |
 | `LLM::Skill`, the `skills:` option, and `on_skill_call` / `on_skill_return` | all are removed |
 
-#### Skills
+### Skills
+
+**Skills have been removed.**
 
 A skill was a directory-backed capability that turned itself into a tool
 on every call - through `Class.new(LLM::Tool)`, closing over the skill and
@@ -279,6 +281,15 @@ reading `SKILL.md` from it.
   model does not see it. Before, a failure reported
   its class and its message only.
 
+### Console
+
+* **console: run tool calls on a Ractor by default** <br>
+  `llm.rb` defaults to the `:ractor` concurrency strategy
+  now, where it ran tool calls sequentially. A tool class
+  the console loads has to be Ractor-shareable, and `-c`
+  picks another strategy, so `-c sequential` restores the
+  old behavior.
+
 ### LLM::Transformer
 
 * **transformer: add `LLM::Transformer.multi`** <br>
@@ -340,6 +351,14 @@ reading `SKILL.md` from it.
 
 ### Registry
 
+* **registry: add `enso-auto` to the Hanzo registry** <br>
+  [`LLM::Hanzo`](https://r.uby.dev/api-docs/llm.rb/LLM/Hanzo.html)
+  ships its own registry entries because models.dev does not list
+  it, and `enso-auto` joins them now. The model routes each request
+  to an Enso tier by the reasoning depth the request asks for, it
+  takes text and images, it calls tools, and it has a 900,000 token
+  context window.
+
 * **refresh model metadata** <br>
   Update `data/` with current listings, limits,
   and pricing. OpenRouter adds Glimpse,
@@ -356,23 +375,6 @@ reading `SKILL.md` from it.
   adds cache pricing to GLM-4.5V and GLM-4.6V,
   and OpenRouter corrects prices and limits
   across its listings.
-
-* **registry: add `enso-auto` to the Hanzo registry** <br>
-  [`LLM::Hanzo`](https://r.uby.dev/api-docs/llm.rb/LLM/Hanzo.html)
-  ships its own registry entries because models.dev does not list
-  it, and `enso-auto` joins them now. The model routes each request
-  to an Enso tier by the reasoning depth the request asks for, it
-  takes text and images, it calls tools, and it has a 900,000 token
-  context window.
-
-### Console
-
-* **console: run tool calls on a Ractor by default** <br>
-  `llm.rb` defaults to the `:ractor` concurrency strategy
-  now, where it ran tool calls sequentially. A tool class
-  the console loads has to be Ractor-shareable, and `-c`
-  picks another strategy, so `-c sequential` restores the
-  old behavior.
 
 ## v17.0.1
 
