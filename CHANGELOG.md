@@ -23,6 +23,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `LLM::Function::Ractor::Mailbox`, and `LLM::Function::Ractor::Task#mailbox` | both are removed, and the task answers `#alive?`, `#wait`, and `#interrupt!` |
 | `llm.rb` runs tool calls sequentially | it runs them on a Ractor, and `-c` picks the strategy |
 | `LLM::Skill`, the `skills:` option, and `on_skill_call` / `on_skill_return` | all are removed |
+| `LLM::Tracer#provider_name`, `#provider_host`, and `#provider_port` | the provider answers `#name`, `#host`, and `#port` |
 
 ### Skills
 
@@ -65,8 +66,21 @@ reading `SKILL.md` from it.
   the
   [`LLM.debug_mode!`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_mode!-class_method)
   method or by setting
-  `LLRMB_DEBUG_MODE=1`
+  `LLMRB_DEBUG_MODE=1`
   in your shell.
+  <br><br>
+  It takes an optional `IO` as its second argument, and it writes
+  to `$stderr` by default. The default can be replaced with
+  [`LLM.debug_io=`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_io=-class_method),
+  and
+  [`LLM.debug_io`](https://r.uby.dev/api-docs/llm.rb/LLM.html#debug_io-class_method)
+  returns the IO that is in use, so debug output can be sent
+  to a file:
+
+  ```ruby
+  LLM.debug_io = File.open("llm.log", "w+")
+  LLM.debug_mode!
+  ```
 
 * **core: resolve `LLM.json` while `lib/llm.rb` loads** <br>
   The first call to
@@ -243,6 +257,15 @@ reading `SKILL.md` from it.
 
   > did you forget to set `$OPENAI_API_KEY?`
 
+* **provider: document `LLM::Provider#host` and `LLM::Provider#port`** <br>
+  [`LLM::Provider#host`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#host-instance_method)
+  returns the host a provider talks to, and
+  [`LLM::Provider#port`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#port-instance_method)
+  returns its port. Both were available before, but they are
+  documented now, and a tracer reports where a request went
+  through them rather than by reaching into the provider's
+  instance variables.
+
 ### LLM::Agent
 
 * **agent: `LLM.interrupt` returns the agent it interrupted** <br>
@@ -346,6 +369,21 @@ reading `SKILL.md` from it.
   transformer it is composed with, which is what
   keeps a stack trace out of a request and out of
   a saved conversation.
+
+### LLM::Tracer
+
+* **tracer: drop `#provider_name`, `#provider_host` and `#provider_port`** <br>
+  A [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
+  read the provider's name, host, and port through three helpers
+  of its own, and two of them reached into the provider's instance
+  variables. The provider answers `#name`, `#host`, and `#port`
+  itself now, and the bundled tracers read them from the provider
+  they were built with. A tracer of your own should do the same,
+  since `#provider_name`, `#provider_host`, and `#provider_port`
+  are gone.
+  [`LLM::Provider#name`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html#name-instance_method)
+  returns a Symbol, where the old `#provider_name` returned a
+  String, so cast it when you need a String.
 
 ### JSON
 
