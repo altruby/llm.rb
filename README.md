@@ -1255,7 +1255,10 @@ a chain. The message returned by
 the previous filter is forwarded
 to the next filter in the chain,
 and this continues until we reach
-the end of the chain:
+the end of the chain. The final
+message that the model receives
+could have been modified by multiple 
+filters:
 
 ```ruby
 require "llm"
