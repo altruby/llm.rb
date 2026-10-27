@@ -1237,46 +1237,6 @@ agent.talk "Run the skill"
 ```
 </details>
 
-<details>
-<summary>Skills</summary>
-<br>
-
-A skill turns a markdown file into a callable tool. When the model
-calls it, the runtime spawns a subagent with the skill's instructions
-as its system prompt and the skill's own tool set. The subagent runs
-one turn and returns the result, then is discarded. Each call
-is fresh and stateless.
-
-A [LLM::Stream](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html)
-can be notified as a skill starts and when it returns. The `on_skill_return`
-callback hands back the subagent that ran the skill, so you can inspect
-its conversation, measure its usage, track costs or add a verification
-step (eg `subagent.talk("verify your work")`).
-
-##### summary.md
-
-```markdown
----
-name: summary
-description: Reads recent git history and writes a summary
-tools: all
----
-
-Collect the recent git log, analyze each commit,
-and write a summary to summary.txt.
-```
-
-##### agent.rb
-
-```ruby
-require "llm"
-
-llm   = LLM.deepseek
-agent = LLM::Agent.new(llm, skills: ["summary.md"])
-agent.talk "Summarize the last week of work"
-```
-</details>
-
 ### Providers
 
 Each provider is constructed with a class-level factory method on
