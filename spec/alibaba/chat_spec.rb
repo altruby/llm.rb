@@ -15,10 +15,6 @@ RSpec.describe "LLM::Context: alibaba" do
     include_examples "LLM::Context: text stream", :alibaba
   end
 
-  context LLM::Agent do
-    include_examples "LLM::Agent: skill", :alibaba
-  end
-
   context "when given a tool call", vcr: {cassette_name: "alibaba/chat/llm_chat_stream_tool"} do
     let(:params) { {stream: true, tools: [tool]} }
     let(:tool) do

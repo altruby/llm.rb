@@ -155,27 +155,6 @@ RSpec.describe "acts_as_agent" do
     end
   end
 
-  context "when skills are declared with a block" do
-    let(:agent) do
-      skill_path = self.skill_path
-      Class.new(model) do
-        acts_as_agent do |agent|
-          agent.skills { [skill_path] }
-        end
-
-        private
-
-        def set_provider
-          LLM.openai(key: "secret")
-        end
-      end
-    end
-
-    it "forwards the block to the internal agent class" do
-      expect(agent.agent.skills).to be_a(Proc)
-    end
-  end
-
   context "when schema is declared with a block" do
     let(:agent) do
       schema = self.schema

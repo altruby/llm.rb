@@ -141,7 +141,6 @@ module LLM
     # @option params [Hash] :intercept_options
     #   Options passed to the intercept's `call` method. Defaults to `{}`.
     # @option params [Array<LLM::Function>, nil] :tools Defaults to nil
-    # @option params [Array<String>, nil] :skills Defaults to nil
     def initialize(llm, params = {})
       params = {}.merge!(params)
       @llm = llm
@@ -149,7 +148,7 @@ module LLM
       @id = params.delete(:id) || makeid
       raise LLM::Error, "an id must be a UUIDv7 string" unless LLM::Utils.uuidv7?(@id)
       @mode = params.delete(:mode) || (llm.name == :openai ? :responses : :completions)
-      tools = [*params.delete(:tools), *load_skills(params.delete(:skills))]
+      tools = [*params.delete(:tools)]
       @params = {model: llm.default_model, schema: nil}.compact.merge!(params)
       @params[:tools] = tools unless tools.empty?
       @params[:store] ||= false if @mode == :responses
@@ -653,13 +652,6 @@ module LLM
       else
         SecureRandom.uuid_v7
       end
-    end
-
-    ##
-    # Loads skill directories and adapts them into tools.
-    # @api private
-    def load_skills(skills)
-      [*skills].map { LLM::Skill.load(_1).to_tool(self) }
     end
 
     ##

@@ -22,6 +22,24 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `#deserialize` reads a payload from any version | it refuses a payload from a newer runtime, and one that carries no version |
 | `LLM::Function::Ractor::Mailbox`, and `LLM::Function::Ractor::Task#mailbox` | both are removed, and the task answers `#alive?`, `#wait`, and `#interrupt!` |
 | `llm.rb` runs tool calls sequentially | it runs them on a Ractor, and `-c` picks the strategy |
+| `LLM::Skill`, the `skills:` option, and `on_skill_call` / `on_skill_return` | all are removed |
+
+#### Skills
+
+A skill was a directory-backed capability that turned itself into a tool
+on every call - through `Class.new(LLM::Tool)`, closing over the skill and
+the context - and then spawned a subagent per invocation. Anonymous classes
+and closures do not survive the `:ractor` strategy, which supports
+class-based tools with shareable arguments only, and the feature carried a
+second agent lifecycle (nested agents, skill callbacks, inherited tool
+lists) that had to be maintained beside the core.
+
+`LLM::Skill`, `LLM::Skill.load`, the `skills:` option on `LLM::Context`,
+`LLM::Agent` and `LLM::Console`, `on_skill_call` and `on_skill_return` on
+`LLM::Stream`, and `LLM::Tool#skill?` are gone. Tool calling, the
+concurrency strategies and streaming do not depend on any of it. A skill
+directory can still be exposed as a tool by subclassing `LLM::Tool` and
+reading `SKILL.md` from it.
 
 ### Ruby
 
