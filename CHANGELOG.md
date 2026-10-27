@@ -39,12 +39,16 @@ class-based tools with shareable arguments only, and the feature carried a
 second agent lifecycle (nested agents, skill callbacks, inherited tool
 lists) that had to be maintained beside the core.
 
-`LLM::Skill`, `LLM::Skill.load`, the `skills:` option on `LLM::Context`,
-`LLM::Agent` and `LLM::Console`, `on_skill_call` and `on_skill_return` on
-`LLM::Stream`, and `LLM::Tool#skill?` are gone. Tool calling, the
-concurrency strategies and streaming do not depend on any of it. A skill
-directory can still be exposed as a tool by subclassing `LLM::Tool` and
-reading `SKILL.md` from it.
+`LLM::Skill`, `LLM::Skill.load`, the `skills:` option on
+[`LLM::Context`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html),
+[`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html) and
+[`LLM::Console`](https://r.uby.dev/api-docs/llm.rb/LLM/Console.html),
+`on_skill_call` and `on_skill_return` on
+[`LLM::Stream`](https://r.uby.dev/api-docs/llm.rb/LLM/Stream.html), and
+`LLM::Tool#skill?` are gone. Tool calling, the concurrency strategies
+and streaming do not depend on any of it. A skill directory can still be
+exposed as a tool by subclassing `LLM::Tool` and reading `SKILL.md` from
+it.
 
 ### Ruby
 
@@ -116,11 +120,11 @@ reading `SKILL.md` from it.
 * **context: bump schema_version to 2** <br>
   The
   [`LLM::Context.schema_version`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#schema_version-class_method)
-  returns 2 (previously 1) but it is backwards
-  compatible with earlier schemas as well. The schema
-  was changed to facilitate the feature mentioned
-  just above this changelog entry. The `original_tool_calls`
-  field has been dropped from the schema.
+  returns 2 (previously 1), and a payload that was
+  written under version 1 is still read. The schema
+  changed to store tool calls in the abstract form,
+  and the `original_tool_calls` field has been
+  dropped from it.
 
 * **context: add `LLM::Context#compactor_options`** <br>
   [`LLM::Context#compactor_options`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#compactor_options-instance_method)
@@ -171,14 +175,13 @@ reading `SKILL.md` from it.
   [`LLM::MCP#tools`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#tools-instance_method)
   builds is Ractor-shareable now, so the `:ractor`
   concurrency strategy can call it. The main Ractor
-  keeps the client the tool was built with. Another
-  Ractor builds a client of its own from
-  [`LLM::MCP#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#to_h-instance_method),
-  which returns the options the client was created
-  with. Two transports do not work this way:
-  `:net_http_persistent` wraps a `Monitor`, which is
-  not Ractor-shareable, and the stdio transport cannot
-  start its server from inside a Ractor on Windows.
+  keeps the client the tool was built with, and
+  another Ractor builds a client of its own from the
+  options it was created with. Two transports do not
+  work this way: `:net_http_persistent` wraps a
+  `Monitor`, which is not Ractor-shareable, and the
+  stdio transport cannot start its server from inside
+  a Ractor on Windows.
 
 * **tool: run A2A tools on a Ractor** <br>
   A tool that
@@ -203,6 +206,13 @@ reading `SKILL.md` from it.
   a hash, like the `inputSchema` of an MCP tool, no
   longer has to be wrapped in a block.
 
+### LLM::MCP
+
+* **mcp: add `LLM::MCP#to_h`** <br>
+  [`LLM::MCP#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#to_h-instance_method)
+  returns the options a client was created with, which is how an
+  MCP tool puts its client back together inside a ractor.
+
 ### LLM::A2A
 
 * **a2a: add `LLM::A2A#to_h`** <br>
@@ -219,8 +229,10 @@ reading `SKILL.md` from it.
 ### LLM::Message
 
 * **message: `LLM::Message#role` returns a normalized role** <br>
-  A message is saved with an abstract role (`assistant` for
-  a model reply, `tool` for a tool return) regardless of the
+  [`LLM::Message#role`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#role-instance_method)
+  returns the abstract role of a message now. A message is
+  saved with an abstract role (`assistant` for a model reply,
+  `tool` for a tool return) regardless of the
   provider, and each provider or model may have its own terms
   that are different to ours. For example, Google uses the term
   `model` instead of `assistant`. The runtime resolves these
@@ -243,6 +255,17 @@ reading `SKILL.md` from it.
   [`LLM::Message#tool_return?`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#tool_return?-instance_method)
   is built on it now.
 
+* **message: add `LLM::Message#contents`** <br>
+  [`LLM::Message#contents`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#contents-instance_method)
+  returns the content of a message as a flat array, so a caller can
+  iterate over every item without unwrapping the nested lists a
+  message can hold. A message that holds no content returns an empty
+  array, and
+  [`LLM::Message#image_urls`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#image_urls-instance_method)
+  and
+  [`LLM::Message#files`](https://r.uby.dev/api-docs/llm.rb/LLM/Message.html#files-instance_method)
+  are built on it now.
+
 ### LLM::Object
 
 * **object: add `LLM::Object#freeze` and `LLM::Object#frozen?`** <br>
@@ -251,6 +274,9 @@ reading `SKILL.md` from it.
   in its arrays, and makes the result Ractor-shareable, so a parsed
   response can be handed to a `:ractor` tool call. It returns self,
   and freezing it twice does nothing.
+  [`LLM::Object#frozen?`](https://r.uby.dev/api-docs/llm.rb/LLM/Object.html#frozen?-instance_method)
+  returns true once the object has been frozen, and a write to a frozen
+  object - through `#[]=`, `#merge!`, or `#delete` - raises `FrozenError`.
 
 ### LLM::Schema
 
@@ -275,7 +301,8 @@ reading `SKILL.md` from it.
   is still in beta.
 
 * **provider: improve error message that covers lack of API key** <br>
-  The methods that return an instance of LLM::Provider
+  The methods that return an instance of
+  [`LLM::Provider`](https://r.uby.dev/api-docs/llm.rb/LLM/Provider.html)
   (eg [`LLM.openai`](https://r.uby.dev/api-docs/llm.rb/LLM.html#openai-class_method))
   now include a helpful error message that indicates
   what key should be set. For OpenAI, the error message
@@ -353,11 +380,9 @@ reading `SKILL.md` from it.
   exception's `backtrace` in its value now, next
   to `error`, `type`, and `message`, so a caller
   can see where the tool failed. The trace is
-  captured under every concurrency strategy, and
-  [`LLM::MessageFilter::DeleteBacktrace`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter/DeleteBacktrace.html)
-  removes it before the message is sent, so the
-  model does not see it. Before, a failure reported
-  its class and its message only.
+  captured under every concurrency strategy.
+  Before, a failure reported its class and its
+  message only.
 
 ### Console
 
