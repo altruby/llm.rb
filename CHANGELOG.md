@@ -349,6 +349,16 @@ reading `SKILL.md` from it.
   consistent interrupt semantics otherwise the runtime
   provides a fragmented experience.
 
+* **transport: drop the process-wide client cache** <br>
+  The `:net_http_persistent` transport kept a class-level registry of
+  `Net::HTTP::Persistent` clients, and every transport instance that
+  served the same host, port, timeouts and scheme re-used one client
+  from it, including instances built by different providers,
+  [`LLM::MCP`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html) and
+  [`LLM::A2A`](https://r.uby.dev/api-docs/llm.rb/LLM/A2A.html) clients.
+  That registry was process-wide state that another Ractor cannot
+  reach, so each transport keeps a client and a lock of its own now.
+
 ### Registry
 
 * **registry: add `enso-auto` to the Hanzo registry** <br>
