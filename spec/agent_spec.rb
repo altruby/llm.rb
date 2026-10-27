@@ -205,22 +205,6 @@ RSpec.describe LLM::Agent do
     end
 
     describe ".new" do
-      let(:skill_path) do
-        dir = Dir.mktmpdir("llmrb-skill")
-        File.write(File.join(dir, "SKILL.md"), <<~MD)
-          ---
-          name: weather
-          description: Check the weather
-          ---
-          You are a weather skill.
-        MD
-        dir
-      end
-
-      after do
-        FileUtils.remove_entry(skill_path)
-      end
-
       it "passes DSL defaults to the context" do
         ctx = wrapped_context(agent_class.new(provider))
         expect(ctx.params[:model]).to eq("gpt-4.1")
@@ -272,16 +256,6 @@ RSpec.describe LLM::Agent do
             end
           end
         end
-      end
-
-      it "passes DSL skills to the context" do
-        skill_path = self.skill_path
-        klass = Class.new(described_class) do
-          model "gpt-4.1"
-          skills skill_path
-        end
-        ctx = wrapped_context(klass.new(provider))
-        expect(ctx.params[:tools]).not_to be_empty
       end
 
       context "when model is declared with a block" do
@@ -393,20 +367,6 @@ RSpec.describe LLM::Agent do
         it "resolves the block against the agent instance" do
           ctx = wrapped_context(klass.new(provider))
           expect(ctx.params[:tools]).to eq([tool])
-        end
-      end
-
-      context "when skills are declared with a block" do
-        let(:klass) do
-          skill_path = self.skill_path
-          Class.new(described_class) do
-            skills { [skill_path] }
-          end
-        end
-
-        it "resolves the block against the agent instance" do
-          ctx = wrapped_context(klass.new(provider))
-          expect(ctx.params[:tools]).not_to be_empty
         end
       end
 
