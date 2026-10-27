@@ -61,7 +61,8 @@ class LLM::Tool
   # @return [Class<LLM::Tool>]
   #  Returns a subclass of LLM::Tool
   def self.mcp(mcp, tool)
-    klass = Class.new(LLM::Tool)
+    klass  = Class.new(LLM::Tool)
+    client = Ractor.make_shareable(mcp.to_h)
     klass.class_eval <<~STR, __FILE__, 1
       def self.inspect
         "<#{LLM::Utils.object_id(self)} name=#{tool["name"]} (mcp)>"
@@ -73,12 +74,11 @@ class LLM::Tool
       end
     STR
     klass.instance_variable_set(:"@mcp", mcp)
-    klass = Ractor.make_shareable(klass)
-    client = Ractor.make_shareable(mcp.to_h)
-    tool = Ractor.make_shareable(tool)
+    Ractor.make_shareable(klass)
+    Ractor.make_shareable(tool)
     call = Ractor.shareable_proc do |**args|
       if Ractor.main?
-        klass.instance_variable_get(:@mcp).call_tool(tool["name"], args)
+        klass.instance_variable_get(:@mcp).call_tool(definition["name"], args)
       else
         LLM::MCP.new(**client).call_tool(tool["name"], args)
       end

@@ -238,7 +238,15 @@ RSpec.describe LLM::Tool do
         "description" => "Analyze data"
       )
     end
-    let(:tool) { described_class.a2a(Object.new, skill) }
+    let(:client) do
+      double("a2a client", to_h: {
+        binding: :rest,
+        base_path: "",
+        protocol_version: "1.0",
+        http: {"url" => "http://example.com"}
+      })
+    end
+    let(:tool) { described_class.a2a(client, skill) }
 
     it "inspects as an a2a tool" do
       expect(tool.inspect).to match(/\A<LLM::Tool:0x\h+ name=Returns-hello-world \(a2a\)>\z/)
