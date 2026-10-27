@@ -33,7 +33,7 @@ module LLM
   # The most common callback is {#on_content}, which also maps to `#<<`.
   # Providers may also call {#on_reasoning_content} and {#on_tool_call} when
   # that data is available. Runtime features such as context compaction may
-  # also emit lifecycle callbacks like {#on_transform} or {#on_compaction}.
+  # also emit lifecycle callbacks like {#on_filter} or {#on_compaction}.
   #
   # @see LLM::Agent Where streams are typically attached
   # @see LLM::Context Where streams are bound per-turn
@@ -186,18 +186,18 @@ module LLM
     end
 
     ##
-    # Called before a context transformer rewrites a prompt.
-    # @param [LLM::Transformer] transformer
+    # Called before a message filter rewrites a prompt.
+    # @param [LLM::MessageFilter] filter
     # @return [nil]
-    def on_transform(transformer)
+    def on_filter(filter)
       nil
     end
 
     ##
-    # Called after a context transformer finishes rewriting a prompt.
-    # @param [LLM::Transformer] transformer
+    # Called after a message filter finishes rewriting a prompt.
+    # @param [LLM::MessageFilter] filter
     # @return [nil]
-    def on_transform_finish(transformer)
+    def on_filter_finish(filter)
       nil
     end
 
