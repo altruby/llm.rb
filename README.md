@@ -226,6 +226,7 @@ can't use them in the scenarios where they work well:
 
 ```ruby
 require "llm"
+require "llm/tools"
 
 llm = LLM.deepseek
 mcp = LLM::MCP.http(
