@@ -426,6 +426,18 @@ class LLM::Function
   end
 
   ##
+  # @return [Boolean]
+  def mcp?
+    Class === @runner and @runner.mcp?
+  end
+
+  ##
+  # @return [Boolean]
+  def a2a?
+    Class === @runner and @runner.a2a?
+  end
+
+  ##
   # Builds an {LLM::Function::Return LLM::Function::Return} for this
   # function, using its own id and name. The given keywords become the
   # return's value.
