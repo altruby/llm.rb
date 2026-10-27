@@ -20,7 +20,7 @@ module LLM
   require "securerandom"
   require "time"
   require_relative "llm/compactor"
-  require_relative "llm/transformer"
+  require_relative "llm/message_filter"
   require_relative "llm/json_adapter"
   require_relative "llm/tracer"
   require_relative "llm/error"

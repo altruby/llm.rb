@@ -268,19 +268,19 @@ class Stream < LLM::Stream
 
   ##
   # @note
-  #  This method is called _before_ a transformer runs
-  # @param [LLM::Transformer] transformer
-  #  A transformer
-  def on_transform(transformer)
+  #  This method is called _before_ a filter runs
+  # @param [LLM::MessageFilter] filter
+  #  A filter
+  def on_filter(filter)
     nil
   end
 
   ##
   # @note
-  #  This method is called _after_ a transformer runs
-  # @param [LLM::Transformer] transformer
-  #  A transformer
-  def on_transform_finish(transformer)
+  #  This method is called _after_ a filter runs
+  # @param [LLM::MessageFilter] filter
+  #  A filter
+  def on_filter_finish(filter)
     nil
   end
 
@@ -1194,16 +1194,16 @@ agent.talk "Tell slack channel I'm AFK", stream: $stdout
 ```
 </details>
 <details>
-<summary>Transformers</summary>
+<summary>Filters</summary>
 <br>
 
 It is possible to rewrite outgoing messages before they reach the provider with
-[`LLM::Transformer`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer.html). Create a subclass and implement `call(message:)` to scrub sensitive data,
+[`LLM::MessageFilter`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter.html). Create a subclass and implement `call(message:)` to scrub sensitive data,
 inject context, or normalize content. The transform runs automatically
 on every turn, so you never have to change your prompt code.
 
 ```ruby
-class RedactEmails < LLM::Transformer
+class RedactEmails < LLM::MessageFilter
   def call(message:)
     content = message.content.to_s.gsub(/[\w.+-]+@[\w-]+\.[\w.]+/, "[EMAIL]")
     LLM::Message.new(message.role, content, message.extra)
@@ -1211,7 +1211,7 @@ class RedactEmails < LLM::Transformer
 end
 
 llm = LLM.deepseek
-agent = LLM::Agent.new(llm, transformer: RedactEmails)
+agent = LLM::Agent.new(llm, filter: RedactEmails)
 agent.talk "Contact support@example.com for help"
 ```
 </details>
@@ -1540,7 +1540,7 @@ the quick start. Each chapter is a topic of its own:
   [Compaction](docs/deepdive/advanced/compaction.md),
   [Cancellation](docs/deepdive/advanced/cancellation.md),
   [Intercept](docs/deepdive/advanced/intercept.md),
-  [Transformer](docs/deepdive/advanced/transformer.md),
+  [MessageFilter](docs/deepdive/advanced/message_filter.md),
   [Transports](docs/deepdive/advanced/transports.md)
 - **Media**:
   [Images](docs/deepdive/media/images.md),

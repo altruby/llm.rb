@@ -2,10 +2,10 @@
 
 require "setup"
 
-RSpec.describe LLM::Transformer::DeleteBacktrace,
+RSpec.describe LLM::MessageFilter::DeleteBacktrace,
                vcr: {cassette_name: "openai/chat/llm_function_class"} do
   let(:llm) { LLM.openai(key: "test") }
-  let(:transformer) { described_class }
+  let(:filter) { described_class }
   let(:tool) do
     Class.new(LLM::Tool) do
       name "system"
@@ -17,7 +17,7 @@ RSpec.describe LLM::Transformer::DeleteBacktrace,
       end
     end
   end
-  let(:agent) { LLM::Agent.new(llm, tools: [tool], transformer:) }
+  let(:agent) { LLM::Agent.new(llm, tools: [tool], filter:) }
   let(:ctx) { agent.instance_variable_get(:@ctx) }
   let(:returns) do
     ctx.messages
@@ -42,8 +42,8 @@ RSpec.describe LLM::Transformer::DeleteBacktrace,
     expect(error.value[:error]).to be(true)
   end
 
-  context "with the no-op transformer" do
-    let(:transformer) { LLM::Transformer::Null }
+  context "with the no-op filter" do
+    let(:filter) { LLM::MessageFilter::Null }
 
     it "strips the backtrace anyway" do
       expect(error.value).not_to have_key(:backtrace)

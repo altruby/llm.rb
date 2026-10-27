@@ -6,7 +6,7 @@ RSpec.describe LLM::Stream do
   let(:stream) { described_class.new }
   let(:ctx) { LLM::Context.new(LLM.openai(key: "test"), model: "gpt-5.4") }
   let(:compactor) { LLM::Compactor.new(ctx) }
-  let(:transformer) { LLM::Transformer::Null.new(ctx) }
+  let(:filter) { LLM::MessageFilter::Null.new(ctx) }
 
   let(:tool_class) do
     Class.new(LLM::Tool) do
@@ -61,15 +61,15 @@ RSpec.describe LLM::Stream do
     end
   end
 
-  describe "#on_transform" do
+  describe "#on_filter" do
     it "returns nil" do
-      expect(stream.on_transform(transformer)).to be_nil
+      expect(stream.on_filter(filter)).to be_nil
     end
   end
 
-  describe "#on_transform_finish" do
+  describe "#on_filter_finish" do
     it "returns nil" do
-      expect(stream.on_transform_finish(transformer)).to be_nil
+      expect(stream.on_filter_finish(filter)).to be_nil
     end
   end
 
@@ -128,7 +128,7 @@ RSpec.describe LLM::Stream do
   context "when a subclass overrides callbacks" do
     let(:stream) do
       Class.new(described_class) do
-        attr_reader :content, :reasoning_content, :calls, :returns, :compaction_events, :transform_events
+        attr_reader :content, :reasoning_content, :calls, :returns, :compaction_events, :filter_events
 
         def initialize
           @content = +""
@@ -136,7 +136,7 @@ RSpec.describe LLM::Stream do
           @calls = []
           @returns = []
           @compaction_events = []
-          @transform_events = []
+          @filter_events = []
         end
 
         def on_content(value)
@@ -155,12 +155,12 @@ RSpec.describe LLM::Stream do
           @returns << [fn, result]
         end
 
-        def on_transform(transformer)
-          @transform_events << [:start, transformer]
+        def on_filter(filter)
+          @filter_events << [:start, filter]
         end
 
-        def on_transform_finish(transformer)
-          @transform_events << [:finish, transformer]
+        def on_filter_finish(filter)
+          @filter_events << [:finish, filter]
         end
 
         def on_compaction(ctx, compactor)
@@ -194,14 +194,14 @@ RSpec.describe LLM::Stream do
       expect(stream.returns).to eq([[tool, result]])
     end
 
-    it "handles transform start" do
-      stream.on_transform(transformer)
-      expect(stream.transform_events).to eq([[:start, transformer]])
+    it "handles filtering start" do
+      stream.on_filter(filter)
+      expect(stream.filter_events).to eq([[:start, filter]])
     end
 
-    it "handles transform finish" do
-      stream.on_transform_finish(transformer)
-      expect(stream.transform_events).to eq([[:finish, transformer]])
+    it "handles filtering finish" do
+      stream.on_filter_finish(filter)
+      expect(stream.filter_events).to eq([[:finish, filter]])
     end
 
     it "handles compaction start" do

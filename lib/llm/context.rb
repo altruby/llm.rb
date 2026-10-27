@@ -79,7 +79,7 @@ module LLM
     # @api private
     # @return [Array<Symbol>]
     def self.params
-      %w[intercept retry_budget concurrency transformer compactor record id]
+      %w[intercept retry_budget concurrency filter compactor record id]
     end
 
     ##
@@ -131,11 +131,11 @@ module LLM
     #   {LLM::Compactor::Null}.
     # @option params [Hash] :compactor_options
     #   Options passed to the compactor's `call` method. Defaults to `{}`.
-    # @option params [Class<LLM::Transformer>, nil] :transformer
-    #   A transformer class to use for message transformation. Defaults to
-    #   {LLM::Transformer::Null}.
-    # @option params [Hash] :transformer_options
-    #   Options passed to the transformer's `call` method. Defaults to `{}`.
+    # @option params [Class<LLM::MessageFilter>, nil] :filter
+    #   A filter class to use for message filtering. Defaults to
+    #   {LLM::MessageFilter::Null}.
+    # @option params [Hash] :filter_options
+    #   Options passed to the filter's `call` method. Defaults to `{}`.
     # @option params [Class<LLM::Intercept>, nil] :intercept
     #   Defaults to {LLM::Intercept::Null LLM::Intercept::Null}.
     # @option params [Hash] :intercept_options
@@ -159,9 +159,9 @@ module LLM
         klass: params.delete(:compactor) || LLM::Compactor::Null,
         options: params.delete(:compactor_options) || {}
       }
-      @transformer = {
-        klass: params.delete(:transformer) || LLM::Transformer::Null,
-        options: params.delete(:transformer_options) || {}
+      @filter = {
+        klass: params.delete(:filter) || LLM::MessageFilter::Null,
+        options: params.delete(:filter_options) || {}
       }
       @intercept = {
         klass: params.delete(:intercept) || LLM::Intercept::Null,
@@ -219,14 +219,14 @@ module LLM
     end
 
     ##
-    # Returns the configured transformer class.
+    # Returns the configured filter class.
     #
-    # Transformers rewrite the most recent message before it is sent to the
+    # Filters rewrite the most recent message before it is sent to the
     # provider.
     #
-    # @return [Class<LLM::Transformer>]
-    def transformer
-      @transformer[:klass]
+    # @return [Class<LLM::MessageFilter>]
+    def filter
+      @filter[:klass]
     end
 
     # Interact with the context via the chat completions API.
@@ -655,23 +655,23 @@ module LLM
     end
 
     ##
-    # Rewrites a prompt and params through the configured transformer.
+    # Filters a prompt and params through the configured message filter.
     # @api private
-    def transform(prompt, params, key: :messages)
-      transformer = LLM::Transformer.multi(
+    def filter_messages(prompt, params, key: :messages)
+      filter = LLM::MessageFilter.multi(
         llm,
-        *(LLM::Transformer::Multi === @transformer[:klass] ?
-                                      @transformer[:klass].transformers :
-                                      @transformer[:klass].new(self))
+        *(LLM::MessageFilter::Multi === @filter[:klass] ?
+                                      @filter[:klass].filters :
+                                      @filter[:klass].new(self))
       )
       stream = params[:stream]
-      stream.on_transform(transformer)
+      stream.on_filter(filter)
       role = params[:role] || @llm.user_role
       messages = @llm.build_messages(prompt, params, role, key:)
-      messages[-1] = transformer.call(message: messages[-1], **@transformer[:options])
+      messages[-1] = filter.call(message: messages[-1], **@filter[:options])
       messages
     ensure
-      stream.on_transform_finish(transformer)
+      stream.on_filter_finish(filter)
     end
 
     ##
@@ -715,7 +715,7 @@ module LLM
         res_id = params[:store] == false ? nil : @messages.find(&:assistant?)&.response&.response_id
         input = res_id ? [] : history
         params[:input] = input
-        messages = transform(prompt, params, key: :input)
+        messages = filter_messages(prompt, params, key: :input)
         @stream = params[:stream]
         new_messages = messages[input.size..]
         params = params.merge(previous_response_id: res_id, input:).compact
@@ -733,7 +733,7 @@ module LLM
         params = @params.merge(params).reject { self.class.params.include?(_1.to_s) }
         extra = params.slice(:model, :tools).merge!(ctx: self, tracer:, intercept:)
         params[:stream] = LLM::Stream.try(params[:stream], extra:)
-        messages = transform(prompt, params)
+        messages = filter_messages(prompt, params)
         @stream = params[:stream]
         new_messages = messages[history.size..]
         [new_messages, params, @llm.complete(messages, params)]

@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-class LLM::Transformer
+class LLM::MessageFilter
   ##
-  # An {LLM::Transformer::Null LLM::Transformer::Null} is a
-  # transformer that does nothing. It is used as the default when
-  # no transformer strategy is configured.
+  # An {LLM::MessageFilter::Null LLM::MessageFilter::Null} is a
+  # filter that does nothing. It is used as the default when
+  # no filter strategy is configured.
   #
   # It returns the given message unchanged.
   class Null < self
     ##
     # @param [LLM::Message] message
-    #  The message to transform
+    #  The message to filter
     # @param [Hash] opts
     #  Ignored
     # @return [LLM::Message]

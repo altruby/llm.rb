@@ -660,17 +660,17 @@ RSpec.describe LLM::Context do
     end
   end
 
-  context "when configured with a transformer" do
+  context "when configured with a filter" do
     let(:provider) { LLM.openai(key: "test") }
     let(:model) { "gpt-5.4" }
-    let(:transformer_class) do
-      Class.new(LLM::Transformer) do
+    let(:filter_class) do
+      Class.new(LLM::MessageFilter) do
         def call(message:, suffix:)
           LLM::Message.new(message.role, "#{message.content} #{suffix}", message.extra)
         end
       end
     end
-    let(:ctx) { LLM::Context.new(provider, model:, transformer: transformer_class, transformer_options: {suffix: "[scrubbed]"}) }
+    let(:ctx) { LLM::Context.new(provider, model:, filter: filter_class, filter_options: {suffix: "[scrubbed]"}) }
     let(:responses) { provider.responses }
     let(:response) { double(choices: [LLM::Message.new("assistant", "hello")]) }
     let(:stream_class) do
@@ -681,12 +681,12 @@ RSpec.describe LLM::Context do
           @events = []
         end
 
-        def on_transform(transformer)
-          @events << [:start, transformer]
+        def on_filter(filter)
+          @events << [:start, filter]
         end
 
-        def on_transform_finish(transformer)
-          @events << [:finish, transformer]
+        def on_filter_finish(filter)
+          @events << [:finish, filter]
         end
       end
     end
@@ -698,27 +698,27 @@ RSpec.describe LLM::Context do
       ctx.talk("hello")
     end
 
-    it "stores the transformed prompt in message history" do
+    it "stores the filtered prompt in message history" do
       allow(provider).to receive(:responses).and_return(responses)
       allow(responses).to receive(:create).and_return(response)
       ctx.talk("hello")
       expect(ctx.messages.first.content).to eq("hello [scrubbed]")
     end
 
-    it "notifies the stream when transform starts" do
+    it "notifies the stream when filtering starts" do
       allow(provider).to receive(:responses).and_return(responses)
       allow(responses).to receive(:create).and_return(response)
       ctx.talk("hello", stream:)
       expect(stream.events.first.first).to eq(:start)
-      expect(stream.events.first.last.transformers).to include(an_instance_of(transformer_class))
+      expect(stream.events.first.last.filters).to include(an_instance_of(filter_class))
     end
 
-    it "notifies the stream when transform finishes" do
+    it "notifies the stream when filtering finishes" do
       allow(provider).to receive(:responses).and_return(responses)
       allow(responses).to receive(:create).and_return(response)
       ctx.talk("hello", stream:)
       expect(stream.events.last.first).to eq(:finish)
-      expect(stream.events.last.last.transformers).to include(an_instance_of(transformer_class))
+      expect(stream.events.last.last.filters).to include(an_instance_of(filter_class))
     end
   end
 

@@ -79,7 +79,7 @@ is the best place to start if you are new to llm.rb.
 - [Compaction](deepdive/advanced/compaction.md)
 - [Cancellation](deepdive/advanced/cancellation.md)
 - [Transports](deepdive/advanced/transports.md)
-- [Transformer](deepdive/advanced/transformer.md)
+- [MessageFilter](deepdive/advanced/message_filter.md)
 - [Intercept](deepdive/advanced/intercept.md)
 
 ## Media
