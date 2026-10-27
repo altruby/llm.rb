@@ -236,7 +236,7 @@ mcp = LLM::MCP.http(
 
 class Stream < LLM::Stream
   def on_tool_call(tool)
-    if tool.runner.mcp? 
+    if tool.mcp? 
       puts "spawn #{tool.name} on ractor" 
       queue << tool.task(:ractor)
     else
