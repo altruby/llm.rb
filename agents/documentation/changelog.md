@@ -52,7 +52,7 @@ An agent responsible for maintaining the
 ##### step 2c: links
 
 A reference to a class, module, or method must link  
-to the [https://r.uby.dev](https://r.uby.dev) website that hosts the API 
+to the [https://r.uby.dev](https://r.uby.dev) website that hosts the API  
 documentation for the  [llm.rb](https://github.com/r-uby-dev/llm) project.
 
 Only link the first mention of a class in each section.  
