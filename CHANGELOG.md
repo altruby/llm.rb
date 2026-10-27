@@ -17,14 +17,15 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `LLM.json = :yajl` | `LLM.json = :json` |
 | `LLM::Tool::Utils#wait` raises on a timeout | it throws `:kill` on a timeout |
 | `transport: :curb` | `transport: :net_http` or `transport: :net_http_persistent` |
-| `LLM::Message#role` answers the provider's spelling, eg `model` | it answers the abstract role, eg `assistant` |
+| `LLM::Message#role` returns the provider's spelling, eg `model` | it returns the abstract role, eg `assistant` |
 | a saved payload carries `schema_version: 1` and `original_tool_calls` | it carries `schema_version: 2`, and `original_tool_calls` is gone |
 | `#deserialize` reads a payload from any version | it refuses a payload from a newer runtime, and one that carries no version |
-| `LLM::Function::Ractor::Mailbox`, and `LLM::Function::Ractor::Task#mailbox` | both are removed, and the task answers `#alive?`, `#wait`, and `#interrupt!` |
+| `LLM::Function::Ractor::Mailbox`, and `LLM::Function::Ractor::Task#mailbox` | both are removed, and the task implements `#alive?`, `#wait`, and `#interrupt!` |
 | `llm.rb` runs tool calls sequentially | it runs them on a Ractor, and `-c` picks the strategy |
 | `LLM::Skill`, the `skills:` option, and `on_skill_call` / `on_skill_return` | all are removed |
-| `LLM::Tracer#provider_name`, `#provider_host`, and `#provider_port` | the provider answers `#name`, `#host`, and `#port` |
+| `LLM::Tracer#provider_name`, `#provider_host`, and `#provider_port` | the provider implements `#name`, `#host`, and `#port` |
 | `LLM::Transformer`, the `transformer:` and `transformer_options:` options, and `on_transform` / `on_transform_finish` | `LLM::MessageFilter`, `filter:` and `filter_options:`, and `on_filter` / `on_filter_finish` |
+| `LLM::Context#transformer`, and `LLM::Transformer::Multi#transformers` | `LLM::Context#filter`, and `LLM::MessageFilter::Multi#filters` |
 
 ### Skills
 
@@ -168,7 +169,7 @@ reading `SKILL.md` from it.
   keeps the client the tool was built with. Another
   Ractor builds a client of its own from
   [`LLM::MCP#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/MCP.html#to_h-instance_method),
-  which answers the options the client was created
+  which returns the options the client was created
   with. Two transports do not work this way:
   `:net_http_persistent` wraps a `Monitor`, which is
   not Ractor-shareable, and the stdio transport cannot
@@ -201,7 +202,7 @@ reading `SKILL.md` from it.
 
 * **a2a: add `LLM::A2A#to_h` and the `http:` keyword** <br>
   [`LLM::A2A#to_h`](https://r.uby.dev/api-docs/llm.rb/LLM/A2A.html#to_h-instance_method)
-  answers the options a client was created with, and
+  returns the options a client was created with, and
   [`LLM::A2A.new`](https://r.uby.dev/api-docs/llm.rb/LLM/A2A.html#initialize-instance_method)
   takes them back as `http:`, which builds the transport
   from them. That is how an A2A tool puts its client
@@ -335,7 +336,7 @@ reading `SKILL.md` from it.
   to `error`, `type`, and `message`, so a caller
   can see where the tool failed. The trace is
   captured under every concurrency strategy, and
-  [`LLM::Transformer::DeleteBacktrace`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer/DeleteBacktrace.html)
+  [`LLM::MessageFilter::DeleteBacktrace`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter/DeleteBacktrace.html)
   removes it before the message is sent, so the
   model does not see it. Before, a failure reported
   its class and its message only.
@@ -349,25 +350,40 @@ reading `SKILL.md` from it.
   picks another strategy, so `-c sequential` restores the
   old behavior.
 
-### LLM::Transformer
+### LLM::MessageFilter
 
-* **transformer: add `LLM::Transformer.multi`** <br>
-  [`LLM::Transformer.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer.html#multi-class_method)
-  composes several transformers into a single
-  [`LLM::Transformer::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer/Multi.html),
+* **filter: rename `LLM::Transformer` as `LLM::MessageFilter`** <br>
+  The class that rewrites a message before it is sent is
+  [`LLM::MessageFilter`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter.html)
+  now, and the subclasses it ships move with it. A filter takes a
+  message and it returns a message, so the name says what `#call`
+  does instead of naming a transformation the class never had to
+  perform. The `transformer:` and `transformer_options:` options a
+  context or agent takes are `filter:` and `filter_options:` now,
+  [`LLM::Context#transformer`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#transformer-instance_method)
+  is
+  [`LLM::Context#filter`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#filter-instance_method),
+  and the stream callbacks `on_transform` and `on_transform_finish`
+  are `on_filter` and `on_filter_finish`. No alias is left behind,
+  because the v18 series is a breaking release already.
+
+* **filter: add `LLM::MessageFilter.multi`** <br>
+  [`LLM::MessageFilter.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter.html#multi-class_method)
+  composes several filters into a single
+  [`LLM::MessageFilter::Multi`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter/Multi.html),
   so a message can be rewritten more than once
   before it is sent. It takes a provider and any
   mix of classes and instances, and the
-  [`#transformers`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer/Multi.html#transformers-instance_method)
-  it answers are the transformers it runs.
+  [`#filters`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter/Multi.html#filters-instance_method)
+  it returns are the filters it runs.
 
-* **transformer: drop a tool error's backtrace by default** <br>
-  [`LLM::Transformer::DeleteBacktrace`](https://r.uby.dev/api-docs/llm.rb/LLM/Transformer/DeleteBacktrace.html)
+* **filter: drop a tool error's backtrace by default** <br>
+  [`LLM::MessageFilter::DeleteBacktrace`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter/DeleteBacktrace.html)
   removes the `backtrace` from an error that a
   tool reported, and every message is composed
-  with it now, whether a `transformer:` was
+  with it now, whether a `filter:` was
   configured or not. It runs before the
-  transformer it is composed with, which is what
+  filter it is composed with, which is what
   keeps a stack trace out of a request and out of
   a saved conversation.
 
@@ -377,7 +393,7 @@ reading `SKILL.md` from it.
   A [`LLM::Tracer`](https://r.uby.dev/api-docs/llm.rb/LLM/Tracer.html)
   read the provider's name, host, and port through three helpers
   of its own, and two of them reached into the provider's instance
-  variables. The provider answers `#name`, `#host`, and `#port`
+  variables. The provider implements `#name`, `#host`, and `#port`
   itself now, and the bundled tracers read them from the provider
   they were built with. A tracer of your own should do the same,
   since `#provider_name`, `#provider_host`, and `#provider_port`
@@ -527,11 +543,11 @@ For everything else, keep reading.
 | Old | New |
 |-----|-----|
 | the default read timeout is 600 seconds | the default read timeout is 240 seconds |
-| `LLM::Tracer#on_interrupt` and `#on_exit` do nothing | both raise `NotImplementedError`, so a tracer answers for each |
+| `LLM::Tracer#on_interrupt` and `#on_exit` do nothing | both raise `NotImplementedError`, so a tracer implements each |
 | `LLM::Tracer#on_tool_finish(result:, span:)` and `#on_tool_error(ex:, span:)` | both also take `started_at:` and `finished_at:` |
 | `LLM::Tracer#on_tool_error` is given the `Exception` a tool raised | it is given the `LLM::Function::Return` that holds the error |
 | a tracer's tool callbacks run on the thread or fiber that ran the tool | they run on the agent's thread, like the other callbacks |
-| a cancelled `:ractor` call answers in band with `cancelled: true` | it raises `LLM::Interrupt` in the caller's thread |
+| a cancelled `:ractor` call returns in band with `cancelled: true` | it raises `LLM::Interrupt` in the caller's thread |
 | `LLM::Guard`, `LLM::Guard::Null` | `LLM::Intercept`, `LLM::Intercept::Null` |
 | `guard:` and `guard_options:` on a context or agent | `intercept:` and `intercept_options:` |
 | `LLM::Context#guard` | `LLM::Context#intercept` |
@@ -698,11 +714,11 @@ For everything else, keep reading.
   An intercept stops a tool call when it returns
   an
   [`LLM::Function::Return`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Return.html),
-  because that Return is the answer the model is
+  because that Return is what the model is
   given for the call. Any other value lets the call
   through, where only `nil` did that before, so a
   guard that returned anything else stopped a tool
-  call and answered the model with it.
+  call and returned it to the model instead.
   [`LLM::Function::Task#intercepted?`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Task.html#intercepted?-instance_method)
   is the predicate a task asks, and it is true only
   for a Return.
@@ -940,7 +956,7 @@ For everything else, keep reading.
   [`LLM::Utils.uuidv7?`](https://r.uby.dev/api-docs/llm.rb/LLM/Utils.html#uuidv7?-instance_method),
   the same predicate `LLM::Utils.timestamp` reads
   a time through, so an id this predicate accepts
-  is an id `created_at` can answer for.
+  is an id `created_at` can be computed from.
 
 ### Registry
 
@@ -976,7 +992,7 @@ For everything else, keep reading.
   2.7.3 or later, up from 2.7.1. Version 2.7.2
   fixes a race where `Process.wait` could claim a
   process another thread had spawned, so a tool
-  could answer with a status and a pid that
+  could return a status and a pid that
   belonged to another command, and 2.7.3 stops
   looking for `/bin/false` when a command is not
   found, which Windows does not have.
@@ -1035,9 +1051,9 @@ record-backed conversation after each request, and adds
   had not been spawned, and nothing at all on `:ractor`. It is now held until
   the call opens and delivered inside it, so the tool is entered, its own
   `rescue` sees the interrupt, and a caller that cancelled a task it had not
-  yet spawned is answered with the cancel rather than a return. On `:async`
+  yet spawned is given the cancel rather than a return. On `:async`
   and `:fiber` the raise is asked of the scheduler rather than issued, so a
-  tool that never yields still answers, and that caller sees a return with the
+  tool that never yields still returns, and that caller sees a return with the
   tool told it was asked about.
 
 * **interrupt: reach a turn that is between its requests** <br>
@@ -1046,7 +1062,7 @@ record-backed conversation after each request, and adds
   It now ends the turn where it is, raising `LLM::Interrupt` into the
   caller the turn runs under and announcing `scope: :agent` to the tracer
   first. `LLM::Agent#run_loop` records that caller for as long as the turn
-  lasts, and it answers `interrupt!` through
+  lasts, and it implements `interrupt!` through
   [`LLM::Agent::Interrupt`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent/Interrupt.html).
   The raise lands in the thread or fiber the turn runs on, so it unwinds out
   of the turn to whoever called it.
@@ -1068,7 +1084,7 @@ record-backed conversation after each request, and adds
   [`LLM::ActiveRecord#messages!`](https://r.uby.dev/api-docs/llm.rb/LLM/ActiveRecord.html#messages!-instance_method)
   returns the messages the runtime holds, including state that has not been
   saved, where `#messages` reads the column. Use it to reach the live
-  conversation of a `:jsonb` record. The Sequel plugin answers to
+  conversation of a `:jsonb` record. The Sequel plugin responds to
   `#messages!` too, where it is the same call as `#messages`.
 
 ### Agent
@@ -1116,9 +1132,9 @@ record-backed conversation after each request, and adds
   tool that never yields is one it cannot reach, and `:sequential` runs the tool
   in the caller's own thread, so it tells the tool through its hook alone.
 
-* **function: answer a task that has already answered** <br>
-  A second `#wait` is answered from what the first one took, which is what
-  `Thread#value` does, so a task that has answered answers again. That covers an
+* **function: a task that has returned returns again** <br>
+  A second `#wait` returns what the first one took, which is what
+  `Thread#value` does, so a task that has returned returns again. That covers an
   `:async` queue the first wait drained, a `:fork` channel the task closed, and
   a `:ractor` whose result is held by a ractor of the task's own rather than
   asked of the ractor that ran the tool and has gone. A group's cancel reaches
@@ -1126,14 +1142,14 @@ record-backed conversation after each request, and adds
   blocking. Before, a second wait blocked on a queue nothing would fill, or read
   a channel or ractor that had already closed.
 
-* **function: answer a forked call that ended without a result** <br>
+* **function: a forked call that died without a result returns** <br>
   A `:fork` tool that died before it wrote anything used to leave
   [`LLM::Function::Fork::Task#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Function/Fork/Task.html#wait-instance_method)
   blocked on a read that never ended, because this side still held the write
   end of the same channel and so never saw end of file. Each side now closes
   the end it does not use, which makes that ending an `EOFError`, and `#wait`
-  answers it in band rather than raising into the turn, the way the runtime
-  answers a tool that raised: `{error: true, type: "EOFError", message: "the
+  returns it in band rather than raising into the turn, the way the runtime
+  returns a tool that raised: `{error: true, type: "EOFError", message: "the
   tool exited unexpectedly"}`. A second wait is given the same return.
 
 * **function: refuse a `:fiber` scheduler that cannot hold a cancel** <br>
@@ -1221,12 +1237,12 @@ record-backed conversation after each request, and adds
 ### Tools
 
 * **tools: wait for a command's status, not only for it to stop running** <br>
-  Fix a bug where an exec-backed tool could answer `ok: nil` for a command
+  Fix a bug where an exec-backed tool could return `ok: nil` for a command
   that ran and printed its output.
   [`LLM::Tool::Utils#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils.html#wait-instance_method)
   left as soon as `running?` said the process was gone, and the status is not
-  decided at that moment, so `command.success?` was read before it had an
-  answer. It waits for the status now, and a command that was never found is
+  decided at that moment, so `command.success?` was read too early.
+  It waits for the status now, and a command that was never found is
   the exception, because there was nothing to reap.
 
 ### Tracers
