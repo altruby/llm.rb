@@ -1226,7 +1226,7 @@ class EmailFilter < LLM::MessageFilter
       # A user message that includes
       # PII that we will anonymize
       # before the model sees it.
-      message.content.gsub!(regexp, "[EMAIL]")
+      [*message.content].map { it.gsub!(regexp, "[EMAIL]") }
     end
     ##
     # Don't forget to return the message.
@@ -1243,7 +1243,7 @@ end
 
 llm   = LLM.deepseek
 agent = LLM::Agent.new(llm, filter: EmailFilter)
-agent.talk "reach me at robert@r.uby.dev"
+agent.talk ["hello", "reach me at robert@r.uby.dev"]
 ```
 
 
