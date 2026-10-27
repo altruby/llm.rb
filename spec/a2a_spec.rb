@@ -351,6 +351,36 @@ RSpec.describe LLM::A2A do
     end
   end
 
+  describe "#to_h" do
+    let(:client) do
+      described_class.rest(
+        url: "https://agent.example.com",
+        headers: {"Authorization" => "Bearer TOKEN"},
+        timeout: 10,
+        persistent: true,
+        base_path: "/tenant-1"
+      )
+    end
+
+    it "returns the state a client is rebuilt from" do
+      expect(client.to_h).to eq(
+        binding: :rest,
+        base_path: "/tenant-1",
+        protocol_version: "1.0",
+        http: {
+          url: "https://agent.example.com",
+          headers: {"Authorization" => "Bearer TOKEN"},
+          timeout: 10,
+          persistent: true
+        }
+      )
+    end
+
+    it "rebuilds a client" do
+      expect(described_class.new(**client.to_h)).to be_a(LLM::A2A)
+    end
+  end
+
   describe ".rest" do
     let(:client) do
       described_class.rest(url: "https://agent.example.com", transport: :net_http_persistent)

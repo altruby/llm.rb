@@ -73,34 +73,18 @@ class LLM::Tool
       end
     STR
     klass.instance_variable_set(:"@mcp", mcp)
-    ractorize(
-      Ractor.make_shareable(klass),
-      Ractor.make_shareable(mcp.to_h),
-      Ractor.make_shareable(tool)
-    )
-  end
-
-  ##
-  # This method closes over a limited
-  # scope (three locals) that are all
-  # Ractor-shareable.
-  # @api private
-  def self.ractorize(klass, mcp, tool)
+    klass = Ractor.make_shareable(klass)
+    client = Ractor.make_shareable(mcp.to_h)
+    tool = Ractor.make_shareable(tool)
     call = Ractor.shareable_proc do |**args|
       if Ractor.main?
-        client = klass.instance_variable_get(:@mcp)
-        client.call_tool(tool["name"], args)
+        klass.instance_variable_get(:@mcp).call_tool(tool["name"], args)
       else
-        LLM::MCP.new(**mcp).call_tool(tool["name"], **args)
+        LLM::MCP.new(**client).call_tool(tool["name"], args)
       end
     end
-    body = Ractor.shareable_proc { define_method(:call, &call) }
-    klass.name tool["name"]
-    klass.description tool["description"]
-    klass.params tool["inputSchema"] || {type: "object", properties: {}}
-    klass.tap { it.class_eval(&body) }
+    ractorize(klass, tool, call)
   end
-  private_class_method :ractorize
 
   ##
   # @param [LLM::A2A] a2a
@@ -110,28 +94,52 @@ class LLM::Tool
   # @return [Class<LLM::Tool>]
   #  Returns a subclass of LLM::Tool
   def self.a2a(a2a, skill)
-    name = skill.name.gsub(" ", "-")
-    Class.new(LLM::Tool) do
-      name(name)
-      description(skill.description)
-      parameter :input, String, "The input string"
-      required %i[input]
-
-      define_singleton_method(:inspect) do
+    name   = skill.name.gsub(" ", "-")
+    client = Ractor.make_shareable(a2a.to_h)
+    klass  = Ractor.make_shareable(Class.new(LLM::Tool))
+    klass.class_eval <<~STR, __FILE__, 1
+      def self.inspect
         "<#{LLM::Utils.object_id(self)} name=#{name} (a2a)>"
       end
       singleton_class.alias_method :to_s, :inspect
 
-      define_singleton_method(:a2a?) do
+      def self.a2a?
         true
       end
-
-      define_method(:call) do |input:|
-        res = a2a.send_message(input)
-        {task: res}
+    STR
+    klass.instance_variable_set(:"@a2a", a2a)
+    schema = LLM::Schema.new
+    inputs = schema.object(input: schema.string.description("The input string").required).to_h
+    tool = Ractor.make_shareable({
+      "name" => name,
+      "description" => skill.description,
+      "inputSchema" => inputs
+    })
+    call = Ractor.shareable_proc do |**args|
+      res = if Ractor.main?
+        klass.instance_variable_get(:@a2a).send_message(args[:input])
+      else
+        LLM::A2A.new(**client).send_message(args[:input])
       end
+      {task: res}
     end
+    ractorize(klass, tool, call)
   end
+
+  ##
+  # @param [Class<LLM::Tool>] klass
+  # @param [Hash] tool
+  # @param [Proc] call
+  # @return [Class<LLM::Tool>]
+  # @api private
+  def self.ractorize(klass, tool, call)
+    body = Ractor.shareable_proc { define_method(:call, &call) }
+    klass.name tool["name"]
+    klass.description tool["description"]
+    klass.params tool["inputSchema"] || {type: "object", properties: {}}
+    klass.tap { it.class_eval(&body) }
+  end
+  private_class_method :ractorize
 
   ##
   # Clear the registry

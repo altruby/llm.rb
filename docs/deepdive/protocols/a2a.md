@@ -61,6 +61,15 @@ a2a = LLM::A2A.rest(url: "https://agent.example.com", persistent: true)
 a2a = LLM::A2A.jsonrpc(url: "https://agent.example.com", persistent: true)
 ```
 
+##### Ractors
+
+A2A tools run under the `:ractor` concurrency strategy. The tool class
+is built from Ractor-shareable values, and the client it talks to is
+rebuilt inside the ractor from a shareable Hash instead of being
+shared across it, so each call opens its own connection. A
+`transport:` given as an instance cannot be rebuilt that way; pass a
+Symbol or Class shortcut instead when the tool will run on a ractor.
+
 ### JSON-RPC
 
 #### Overview

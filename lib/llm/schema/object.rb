@@ -37,7 +37,7 @@ class LLM::Schema
     ##
     # @return [Hash]
     def to_h
-      super.merge!({type: "object", properties:, required: required_items})
+      super.merge!({type: "object", properties: unwrap(properties), required: required_items})
     end
 
     ##
@@ -65,13 +65,33 @@ class LLM::Schema
 
     private
 
+    ##
+    # @api private
     def set!(key, val)
       val.index = @properties.size
       properties[key] = val
     end
 
+    ##
+    # @api private
     def required_items
       @properties.filter_map { _2.required? ? _1 : nil }
+    end
+
+    ##
+    # @api private
+    # @param [Object] node
+    #  A schema, an {LLM::Object} of properties,
+    #  or an Array of either
+    # @return [Hash, Array<Hash>]
+    def unwrap(node)
+      case node
+      when LLM::Schema::Leaf then unwrap(node.to_h)
+      when LLM::Object then node.to_h.transform_values { unwrap(_1) }
+      when ::Hash then node.to_h { |key, value| [key, unwrap(value)] }
+      when ::Array then node.map { unwrap(_1) }
+      else node
+      end
     end
   end
 end

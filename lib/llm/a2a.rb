@@ -36,21 +36,28 @@ class LLM::A2A
   require_relative "a2a/transport/http"
 
   ##
+  # @param [Object, nil] transport
+  #  The transport used to communicate with the remote A2A agent
+  # @param [Hash, nil] http
+  #  The HTTP options that {.http} keeps, so that a client can be
+  #  rebuilt from {#to_h}. Either this or `transport:` is required.
   # @param [Symbol] binding
   #  The protocol binding to use. One of `:rest` (HTTP+JSON/REST) or
   #  `:jsonrpc` (JSON-RPC 2.0). Defaults to `:rest`.
-  # @param [Object] transport
-  #  The transport used to communicate with the remote A2A agent
   # @param [String] base_path
   #  Optional base path prefix for REST endpoints
   # @param [String] protocol_version
   #  The expected A2A protocol version. Defaults to `"1.0"`.
+  # @raise [ArgumentError]
+  #  When neither `transport:` nor `http:` is given
   # @return [LLM::A2A]
-  def initialize(transport:, binding: :rest, base_path: "", protocol_version: "1.0")
+  def initialize(transport: nil, http: nil, binding: :rest, base_path: "", protocol_version: "1.0")
+    raise ArgumentError, "transport or http is required" unless transport || http
     @binding = binding
     @base_path = LLM::Utils.normalize_base_path(base_path)
     @protocol_version = protocol_version
-    @transport = transport
+    @http = http
+    @transport = transport || Transport::HTTP.new(**http, protocol_version:)
   end
 
   ##
@@ -74,17 +81,10 @@ class LLM::A2A
   # @return [LLM::A2A]
   def self.http(url:, headers: {}, timeout: 30, persistent: false, transport: nil, binding: :rest, base_path: "", protocol_version: "1.0")
     new(
+      http: {url:, headers:, timeout:, persistent:, transport:}.compact,
       binding:,
       base_path:,
-      protocol_version:,
-      transport: Transport::HTTP.new(
-        url:,
-        headers:,
-        timeout:,
-        persistent:,
-        transport:,
-        protocol_version:
-      )
+      protocol_version:
     )
   end
 
@@ -403,6 +403,15 @@ class LLM::A2A
     LLM::A2A::Card.new(res)
   end
   alias_method :get_extended_agent_card, :extended_card
+
+  ##
+  # @return [Hash]
+  def to_h
+    {binding: @binding,
+     base_path: @base_path,
+     protocol_version: @protocol_version,
+     http: @http}.compact
+  end
 
   ##
   # @return [String]
