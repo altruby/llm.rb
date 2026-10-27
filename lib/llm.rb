@@ -485,7 +485,7 @@ module LLM
   ##
   # @api private
   def self.lock(name, &b)
-    LLM::Lock.lock(name, &b)
+    LLM::Lock.synchronize(name, &b)
   end
 
   private
