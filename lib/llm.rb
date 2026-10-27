@@ -19,6 +19,7 @@ module LLM
   require "stringio"
   require "securerandom"
   require "time"
+  require_relative "llm/lock"
   require_relative "llm/compactor"
   require_relative "llm/message_filter"
   require_relative "llm/json_adapter"
@@ -60,14 +61,6 @@ module LLM
   ##
   # @api private
   UNDEFINED = ::Object.new.freeze
-
-  ##
-  # Thread-safe monitors for different contexts
-  @monitors = {debug: Monitor.new,
-               require: Monitor.new,
-               inherited: Monitor.new,
-               registry: Monitor.new,
-               mcp: Monitor.new}
 
   ##
   # Model registry
@@ -490,12 +483,9 @@ module LLM
   end
 
   ##
-  # Provides a thread-safe lock
-  # @param [Symbol] name The name of the lock
-  # @param [Proc] block The block to execute within the lock
-  # @return [void]
-  def lock(name, &block)
-    @monitors[name].synchronize(&block)
+  # @api private
+  def self.lock(name, &b)
+    LLM::Lock.lock(name, &b)
   end
 
   private

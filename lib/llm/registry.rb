@@ -8,7 +8,7 @@
 # and shipped with llm.rb.
 class LLM::Registry
   require_relative "registry/model"
-  @root = File.join(__dir__, "..", "..")
+  @root = File.join(__dir__, "..", "..").freeze
 
   ##
   # @raise [LLM::Error]
