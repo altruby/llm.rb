@@ -2,29 +2,29 @@
 
 module LLM
   ##
-  # {LLM::Transformer LLM::Transformer} is the superclass for
-  # message transformers in llm.rb.
+  # {LLM::MessageFilter LLM::MessageFilter} is the superclass for
+  # message filters in llm.rb.
   #
-  # A transformer is bound to a context and rewrites a single
+  # A filter is bound to a context and rewrites a single
   # message before it is sent to the provider. Each subclass
-  # implements a different transformation: it takes a message in
-  # {#call} and returns a message. {LLM::Transformer::Null} is a
+  # implements a different rewrite: it takes a message in
+  # {#call} and returns a message. {LLM::MessageFilter::Null} is a
   # no-op (the default).
   #
-  # A transformer may mutate the message in place or return a new
+  # A filter may mutate the message in place or return a new
   # one. Either way, the returned message is what gets sent.
-  class Transformer
-    require_relative "transformer/multi"
-    require_relative "transformer/null"
-    require_relative "transformer/delete_backtrace"
+  class MessageFilter
+    require_relative "message_filter/multi"
+    require_relative "message_filter/null"
+    require_relative "message_filter/delete_backtrace"
 
     ##
     # @param [LLM::Provider] llm
-    # @param [Array<LLM::Transformer>] transformers
-    # @return [LLM::Transformer::Multi]
-    def self.multi(llm, *transformers)
-      transformers = [LLM::Transformer::DeleteBacktrace, *transformers].uniq
-       Multi.new(*transformers.map { Class === it ? it.new(llm) : it })
+    # @param [Array<LLM::MessageFilter>] filters
+    # @return [LLM::MessageFilter::Multi]
+    def self.multi(llm, *filters)
+      filters = [LLM::MessageFilter::DeleteBacktrace, *filters].uniq
+      Multi.new(*filters.map { Class === it ? it.new(llm) : it })
     end
 
     ##
@@ -33,7 +33,7 @@ module LLM
 
     ##
     # @param ctx [LLM::Context, LLM::Agent]
-    # @return [LLM::Transformer]
+    # @return [LLM::MessageFilter]
     def initialize(ctx)
       @ctx = LLM::Agent === ctx ? ctx.instance_variable_get(:@ctx) : ctx
     end
@@ -41,7 +41,7 @@ module LLM
     ##
     # @abstract
     # @param [LLM::Message] message
-    #  The message to transform
+    #  The message to filter
     # @param [Hash] opts
     #  Per-call options
     # @return [LLM::Message]
