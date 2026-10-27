@@ -1226,7 +1226,7 @@ class EmailFilter < LLM::MessageFilter
       # A user message that includes
       # PII that we will anonymize
       # before the model sees it.
-      message.contents.map { it.gsub!(regexp, "[EMAIL]") }
+      message.contents.each { it.gsub!(regexp, "[EMAIL]") }
     end
     ##
     # Don't forget to return the message.
