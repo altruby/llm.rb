@@ -1197,23 +1197,75 @@ agent.talk "Tell slack channel I'm AFK", stream: $stdout
 <summary>Filters</summary>
 <br>
 
-It is possible to rewrite outgoing messages before they reach the provider with
-[`LLM::MessageFilter`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter.html). Create a subclass and implement `call(message:)` to scrub sensitive data,
-inject context, or normalize content. The transform runs automatically
-on every turn, so you never have to change your prompt code.
+The
+[`LLM::MessageFilter`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter.html)
+class receives a user message
+or tool return _before_ it is
+sent back to the model. A filter
+can modify a message in-place,
+return a new copy of the message
+and/or modify a tool return before
+the model sees it. The most common
+use-case for a filter might be the
+anonymization or redaction of personal
+data but it is the only use-case.
+
+A simple example: <br>
 
 ```ruby
-class RedactEmails < LLM::MessageFilter
+class EmailFilter < LLM::MessageFilter
   def call(message:)
-    content = message.content.to_s.gsub(/[\w.+-]+@[\w-]+\.[\w.]+/, "[EMAIL]")
-    LLM::Message.new(message.role, content, message.extra)
+    if message.tool_return?
+      ##
+      # 1+ tool returns that includes
+      # an 'email' field that we anonymize
+      # before the model sees it.
+      message.returns.each { it.value[:email].gsub!(regexp, "[EMAIL]") }
+    else
+      ##
+      # A user message that includes
+      # PII that we will anonymize
+      # before the model sees it.
+      message.content.gsub!(regexp, "[EMAIL]")
+    end
+    ##
+    # Don't forget to return the message.
+    # This is important.
+    message
+  end
+
+  private
+
+  def regexp
+    /[\w.+-]+@[\w-]+\.[\w.]+/
   end
 end
 
-llm = LLM.deepseek
-agent = LLM::Agent.new(llm, filter: RedactEmails)
-agent.talk "Contact support@example.com for help"
+llm   = LLM.deepseek
+agent = LLM::Agent.new(llm, filter: EmailFilter)
+agent.talk "reach me at robert@r.uby.dev"
 ```
+
+
+A multi-filter example. <br>
+
+Multiple filters can be combined
+into a single filter that run in
+a chain. The message returned by
+the previous filter is forwarded
+to the next filter in the chain,
+and this continues until we reach
+the end of the chain:
+
+```ruby
+require "llm"
+
+llm    = LLM.deepseek
+filter = LLM::MessageFilter.multi(llm, RedactEmail, RedactName, RedactLocation)
+agent  = LLM::Agent.new(llm, stream: $stdout, filter:)
+agent.talk "reach me at robert@r.uby.dev"
+```
+
 </details>
 
 <details>
