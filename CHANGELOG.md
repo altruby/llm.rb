@@ -401,14 +401,17 @@ it.
   now, and the subclasses it ships move with it. A filter takes a
   message and it returns a message, so the name says what `#call`
   does instead of naming a transformation the class never had to
-  perform. The `transformer:` and `transformer_options:` options a
-  context or agent takes are `filter:` and `filter_options:` now,
+  perform. No alias is left behind, because the v18 series is a
+  breaking release already.
+
+* **filter: rename the transformer options and stream callbacks** <br>
+  The `transformer:` and `transformer_options:` options a context or
+  agent takes are `filter:` and `filter_options:` now,
   [`LLM::Context#transformer`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#transformer-instance_method)
   is
   [`LLM::Context#filter`](https://r.uby.dev/api-docs/llm.rb/LLM/Context.html#filter-instance_method),
   and the stream callbacks `on_transform` and `on_transform_finish`
-  are `on_filter` and `on_filter_finish`. No alias is left behind,
-  because the v18 series is a breaking release already.
+  are `on_filter` and `on_filter_finish`.
 
 * **filter: add `LLM::MessageFilter.multi`** <br>
   [`LLM::MessageFilter.multi`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter.html#multi-class_method)
