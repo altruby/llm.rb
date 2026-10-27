@@ -56,7 +56,6 @@ is the best place to start if you are new to llm.rb.
 - [Tools](deepdive/fundamentals/tools.md)
 - [Stream](deepdive/fundamentals/stream.md)
 - [Schema](deepdive/fundamentals/schema.md)
-- [Skills](deepdive/fundamentals/skills.md)
 
 ## Protocols
 

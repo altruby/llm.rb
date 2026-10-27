@@ -289,26 +289,6 @@ class Stream < LLM::Stream
   def on_retry(error, attempt)
     nil
   end
-
-  ##
-  # @note
-  #  This method is called _before_ a skill runs
-  # @param [LLM::Skill] skill
-  #  A skill
-  def on_skill_call(skill)
-    nil
-  end
-
-  ##
-  # @note
-  #  This method is called _after_ a skill runs
-  # @param [LLM::Agent] agent
-  #  The agent who ran the skill
-  # @param [LLM::Skill] skill
-  # @param [LLM::Response] res
-  def on_skill_return(agent, skill, res)
-    nil
-  end
 end
 
 llm = LLM.deepseek
@@ -1550,8 +1530,7 @@ the quick start. Each chapter is a topic of its own:
   [Agents](docs/deepdive/fundamentals/agents.md),
   [Tools](docs/deepdive/fundamentals/tools.md),
   [Stream](docs/deepdive/fundamentals/stream.md),
-  [Schema](docs/deepdive/fundamentals/schema.md),
-  [Skills](docs/deepdive/fundamentals/skills.md)
+  [Schema](docs/deepdive/fundamentals/schema.md)
 - **Features**:
   [Built-in tools](docs/deepdive/features/builtin_tools.md),
   [Concurrency](docs/deepdive/features/concurrency.md),
