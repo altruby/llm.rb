@@ -14,19 +14,6 @@ class LLM::Transport
 
     INTERRUPT_ERRORS = [::IOError, ::EOFError, Errno::EBADF].freeze
     ActiveRequest = Struct.new(:client, :connection, keyword_init: true)
-    @registry = {}
-    @monitor = Monitor.new
-
-    ##
-    # Returns the process-wide connection pool registry.
-    # @return [Hash]
-    def self.registry
-      @registry
-    end
-
-    def self.lock(&)
-      @monitor.synchronize(&)
-    end
 
     ##
     # @param [String] host
@@ -61,7 +48,7 @@ class LLM::Transport
 
     ##
     # Interrupt an active request, if any.
-    # @param [Fiber] owner
+    # @param [Fiber, Async::Task] owner
     # @return [nil]
     def interrupt!(owner)
       req = request_for(owner) or return
@@ -82,8 +69,9 @@ class LLM::Transport
     end
 
     ##
-    # Performs a request on the current HTTP transport.
-    # Accepts both `Net::HTTPRequest` and {LLM::Transport::Request}.
+    # Performs a request on the current HTTP
+    # transport. Accepts both `Net::HTTPRequest`
+    # and {LLM::Transport::Request}.
     #
     # @param [Net::HTTPRequest, LLM::Transport::Request] request
     # @param [Fiber] owner
@@ -91,10 +79,11 @@ class LLM::Transport
     # @yieldparam [LLM::Transport::Response] response
     # @return [Object]
     def request(request, owner:, stream: nil, &b)
-      http_req = resolve_request(request)
-      client.connection_for(URI.join(base_uri, http_req.path)) do |connection|
+      req = resolve_request(request)
+      uri = URI.join(base_uri, req.path)
+      client.connection_for(uri) do |connection|
         set_request(ActiveRequest.new(client:, connection:), owner)
-        perform_request(connection.http, http_req, stream, &b)
+        perform_request(connection.http, req, stream, &b)
       end
     ensure
       clear_request(owner)
@@ -102,26 +91,35 @@ class LLM::Transport
 
     private
 
-    attr_reader :host, :port, :timeout, :connect_timeout, :ssl, :base_uri
+    ##
+    # @api private
+    attr_reader :host,
+                :port,
+                :timeout,
+                :connect_timeout,
+                :ssl,
+                :base_uri
 
+    ##
+    #  Returns the client
+    # @return [Net::HTTP::Persistent]
     def client
-      self.class.lock do
-        if self.class.registry[client_id]
-          self.class.registry[client_id]
-        else
-          LLM.require "net/http/persistent" unless defined?(Net::HTTP::Persistent)
-          client = Net::HTTP::Persistent.new(name: self.class.name)
-          client.read_timeout = timeout
-          client.open_timeout = connect_timeout
-          self.class.registry[client_id] = client
-        end
-      end
+      lock { @client ||= build_client }
     end
 
-    def client_id
-      "#{host}:#{port}:#{timeout}:#{connect_timeout}:#{ssl}"
+    ##
+    # @return [Net::HTTP::Persistent]
+    def build_client
+      LLM.require "net/http/persistent" unless defined?(Net::HTTP::Persistent)
+      client = Net::HTTP::Persistent.new(name: self.class.name)
+      client.read_timeout = timeout
+      client.open_timeout = connect_timeout
+      client
     end
 
+    ##
+    # @api private
+    # @return[void]
     def close_socket(http)
       socket = http&.instance_variable_get(:@socket) or return
       socket = socket.io if socket.respond_to?(:io)
@@ -130,6 +128,8 @@ class LLM::Transport
       nil
     end
 
+    ##
+    # @api private
     def request_for(owner)
       lock do
         @requests ||= {}
@@ -137,6 +137,8 @@ class LLM::Transport
       end
     end
 
+    ##
+    # @api private
     def set_request(req, owner)
       lock do
         @requests ||= {}
@@ -144,14 +146,20 @@ class LLM::Transport
       end
     end
 
+    ##
+    # @api private
     def clear_request(owner)
       lock { @requests&.delete(owner) }
     end
 
+    ##
+    # @api private
     def lock(&)
       @monitor.synchronize(&)
     end
 
+    ##
+    # @api private
     def optional_interrupt_errors
       defined?(::Async::Stop) ? [Async::Stop] : []
     end
