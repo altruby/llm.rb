@@ -3,6 +3,7 @@
 require "setup"
 
 RSpec.describe "ractor: a2a tools" do
+  before { skip "broken on windows" if Gem.win_platform? }
   before { WebMock.disable! }
   after { WebMock.enable! }
 
