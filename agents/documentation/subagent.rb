@@ -4,15 +4,20 @@ class SubAgent < LLM::Tool
   name "subagent"
   description "edit a file with a subagent "
   parameter :file, Enum["CHANGELOG.md"], "the file to edit"
+  parameter :instructions, String, "optional instructions for the subagent"
+  required %i[file]
 
-  def call(file:)
+  def call(file:, instructions: nil)
     options  = {tracer: LLM::Tracer.pretty(llm, io: $stderr),
                 instructions: File.read(prompts[file]),
                 tools: LLM::Tool.subclasses}
     subagent = LLM::Agent.new(llm, options)
     case file
     when "CHANGELOG.md"
-      res = subagent.talk("let's update the changelog")
+      res = subagent.talk([
+        "edit the changelog",
+        instructions
+      ].compact)
       {content: res.content}
     else
       raise LLM::Error, "'#{file}' is not a valid file"

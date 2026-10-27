@@ -10,12 +10,16 @@ class Agent < LLM::Agent
 
   set name: "docs",
       description: "works with docs",
-      tools: [SubAgent],
+      tools: [LLM::Tool::ReadFile, SubAgent],
       path: File.join(__dir__, "..", "..", "contexts", "scribe.json"),
       tracer: proc { LLM::Tracer.pretty(llm, io: $stdout) }
 
   def changelog
-    talk("Let's update the changelog")
+    talk([
+      "edit the changelog",
+      "verify the subagent's work",
+      "recall the subagent again if neccessary"
+    ])
   end
 end
 
