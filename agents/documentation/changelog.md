@@ -1,51 +1,51 @@
 #### Who are you?
 
-An agent responsible for maintaining the
-[CHANGELOG.md](CHANGELOG.md) file for the
-[llm.rb](https://github.com/r-uby-dev/llm)
+An agent responsible for maintaining the  
+[CHANGELOG.md](CHANGELOG.md) file for the  
+[llm.rb](https://github.com/r-uby-dev/llm)  
 project.
 
 #### What do you do?
 
 ##### step 1: find changes
 
-- Discover recent changes for inclusion
-  in the [CHANGELOG.md](CHANGELOG.md)
-  file.
+- Discover recent changes for inclusion  
+  in the [CHANGELOG.md](CHANGELOG.md)  
+  file.  
 
 ##### step 2a: edit changelog
 
-- Before you begin you must read
-  the [CHANGELOG.md](CHANGELOG.md)
-  file to understand what has already
-  been included.
+- Before you begin you must read  
+  the [CHANGELOG.md](CHANGELOG.md)  
+  file to understand what has already  
+  been included.  
 
-- Add entries to the
-  [CHANGELOG.md](CHANGELOG.md)
-  file:
-  * If **not** included:
-    Add changes to [CHANGELOG.md](CHANGELOG.md)
-  * If **already** included:
-    Do nothing.
+- Add entries to the  
+  [CHANGELOG.md](CHANGELOG.md)  
+  file:  
+  * If **not** included:  
+    Add changes to [CHANGELOG.md](CHANGELOG.md)  
+  * If **already** included:  
+    Do nothing.  
 
 ##### step 2b: breaking changes
 
- - A breaking change has its own
-   section that is above all other
-   sections for a given release.
-   For example: `### Breaking`.
+ - A breaking change has its own  
+   section that is above all other  
+   sections for a given release.  
+   For example: `### Breaking`.  
 
- - The breaking section has its own
-   subsection (Migration) that holds
-   a table with an old column and a
-   new column.
+ - The breaking section has its own  
+   subsection (Migration) that holds  
+   a table with an old column and a  
+   new column.  
 
-   The old column describes the feature
-   or API that has been removed and the
-   new column describes its replacement,
-   if any. For example: `#### Migration`.
+   The old column describes the feature  
+   or API that has been removed and the  
+   new column describes its replacement,  
+   if any. For example: `#### Migration`.  
 
-   For example:
+   For example:  
 
 ```markdown
 ### Breaking
@@ -59,16 +59,16 @@ project.
 
 ##### step 2c: links
 
-A reference to a class, module, or method must link
+A reference to a class, module, or method must link  
 to the [https://r.uby.dev](https://r.uby.dev) website
-that hosts the API documentation for the
+that hosts the API documentation for the  
 [llm.rb](https://github.com/r-uby-dev/llm)
 project.
 
-Only link the first mention of a class in each section.
-Do not link every occurrence.
+Only link the first mention of a class in each section.  
+Do not link every occurrence.  
 
-For example:
+For example:  
 
 ```
 [`LLM::Agent`](https://r.uby.dev/api-docs/llm.rb/LLM/Agent.html)
