@@ -78,7 +78,7 @@ class LLM::Tool
     Ractor.make_shareable(tool)
     call = Ractor.shareable_proc do |**args|
       if Ractor.main?
-        klass.instance_variable_get(:@mcp).call_tool(definition["name"], args)
+        klass.instance_variable_get(:@mcp).call_tool(tool["name"], args)
       else
         LLM::MCP.new(**client).call_tool(tool["name"], args)
       end
