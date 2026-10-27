@@ -66,6 +66,14 @@ reading `SKILL.md` from it.
   `LLRMB_DEBUG_MODE=1`
   in your shell.
 
+* **core: resolve `LLM.json` while `lib/llm.rb` loads** <br>
+  The first call to
+  [`LLM.json`](https://r.uby.dev/api-docs/llm.rb/LLM.html#json-class_method)
+  from a Ractor other than main raised `Ractor::IsolationError`,
+  because it set module state from where it was called. The adapter
+  is resolved once, on the main Ractor, at load time now, so a tool
+  call that runs on a Ractor can read it.
+
 ### LLM::Google
 
 * **google: keep a streamed thought signature with its part** <br>
@@ -348,6 +356,14 @@ reading `SKILL.md` from it.
   adds cache pricing to GLM-4.5V and GLM-4.6V,
   and OpenRouter corrects prices and limits
   across its listings.
+
+* **registry: add `enso-auto` to the Hanzo registry** <br>
+  [`LLM::Hanzo`](https://r.uby.dev/api-docs/llm.rb/LLM/Hanzo.html)
+  ships its own registry entries because models.dev does not list
+  it, and `enso-auto` joins them now. The model routes each request
+  to an Enso tier by the reasoning depth the request asks for, it
+  takes text and images, it calls tools, and it has a 900,000 token
+  context window.
 
 ### Console
 
