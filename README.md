@@ -119,7 +119,7 @@ interrupt the agent, or give up trying:
 
 ```ruby
 require "llm"
-require "llm/tools"
+require "llm/tools/read_file"
 
 llm         = LLM.deepseek
 concurrency = LLM::VERSION[0..1].to_i >= 18 ? :ractor : :thread
@@ -227,7 +227,7 @@ can't use them in the scenarios where they work well:
 
 ```ruby
 require "llm"
-require "llm/tools"
+require "llm/tools/read_file"
 
 llm = LLM.deepseek
 mcp = LLM::MCP.http(

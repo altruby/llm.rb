@@ -11,7 +11,9 @@ class LLM::Tool
   # {LLM::Context LLM::Context}.
   class Exec < self
     require_relative "utils"
+    require_relative "utils/process"
     include Utils
+    include Utils::Process
 
     name "exec"
     description "Run a command without a shell"
@@ -82,11 +84,5 @@ class LLM::Tool
     ##
     # @return [Hash]
     attr_reader :env
-
-    ##
-    # @return [Float]
-    def now
-      Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    end
   end
 end
