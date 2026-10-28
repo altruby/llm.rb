@@ -76,6 +76,7 @@ deepseek for any of the other 14 providers as well
 
 ```ruby
 require "llm"
+require "stringio"
 
 class GetTime < LLM::Tool
   name "get-time"
@@ -88,7 +89,7 @@ end
 
 llm     = LLM.deepseek
 options = {
-  tracer: LLM::Tracer.multi(llm, *[:Logger, :Telemetry].map { LLM::Tracer.const_get(it) }),
+  tracer: LLM::Tracer.multi(llm, LLM::Tracer::Logger),
   tools:  [GetTime],
   stream: StringIO.new,
   concurrency: LLM::VERSION[0..1].to_i >= 18 ? :ractor : :thread
