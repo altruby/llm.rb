@@ -15,7 +15,7 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 |-----|-----|
 | Ruby 3.4 or later | Ruby 4.0 or later |
 | `LLM.json = :yajl` | `LLM.json = :json` |
-| `LLM::Tool::Utils#wait` raises on a timeout | it throws `:kill` on a timeout |
+| `LLM::Tool::Utils::Process#wait` raises on a timeout | it throws `:kill` on a timeout |
 | `transport: :curb` | `transport: :net_http` or `transport: :net_http_persistent` |
 | `LLM::Message#role` returns the provider's spelling, eg `model` | it returns the abstract role, eg `assistant` |
 | a saved payload carries `schema_version: 1` and `original_tool_calls` | it carries `schema_version: 2`, and `original_tool_calls` is gone |
@@ -26,6 +26,8 @@ before) can be seen in [changelog/old.md](changelog/old.md).
 | `LLM::Tracer#provider_name`, `#provider_host`, and `#provider_port` | the provider implements `#name`, `#host`, and `#port` |
 | `LLM::Transformer`, the `transformer:` and `transformer_options:` options, and `on_transform` / `on_transform_finish` | `LLM::MessageFilter`, `filter:` and `filter_options:`, and `on_filter` / `on_filter_finish` |
 | `LLM::Context#transformer`, and `LLM::Transformer::Multi#transformers` | `LLM::Context#filter`, and `LLM::MessageFilter::Multi#filters` |
+| `LLM::Transport::PersistentHTTP.registry` and `.lock` | each transport keeps a client and a lock of its own |
+| `LLM::Tool::Utils#wait`, `#spawn` and `#now`, and `LLM::Tool::Utils::Command` | they are `LLM::Tool::Utils::Process#wait`, `#spawn` and `#now`, and `LLM::Tool::Utils::Process::Command` |
 
 ### Skills
 
@@ -148,7 +150,7 @@ it.
 
 * **tools: wait throws** <br>
   The
-  [`LLM::Tool::Utils#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils.html#wait-instance_method)
+  [`LLM::Tool::Utils::Process#wait`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils/Process.html#wait-instance_method)
   method now uses the `Kernel.throw`
   method instead of `Kernel.raise`
   when a command times out. The
@@ -205,6 +207,18 @@ it.
   block they already took, so a schema that arrives as
   a hash, like the `inputSchema` of an MCP tool, no
   longer has to be wrapped in a block.
+
+* **tools: move process helpers into `LLM::Tool::Utils::Process`** <br>
+  The `#wait`, `#spawn` and `#now` methods moved out of
+  `LLM::Tool::Utils` and into the new
+  [`LLM::Tool::Utils::Process`](https://r.uby.dev/api-docs/llm.rb/LLM/Tool/Utils/Process.html)
+  module, and `LLM::Tool::Utils::Command` is
+  `LLM::Tool::Utils::Process::Command` now. `#wait` still
+  throws `:kill` when a command exceeds its timeout, exactly
+  as it did in its old home, and `LLM::Tool::Exec` includes
+  `Process` now. `LLM::Tool::ReadFile` includes `Utils`
+  alone, so the read-file tool no longer pulls in
+  `test-cmd` as a transitive dependency.
 
 ### LLM::MCP
 
@@ -431,6 +445,23 @@ it.
   filter it is composed with, which is what
   keeps a stack trace out of a request and out of
   a saved conversation.
+
+* **filter: add `LLM::MessageFilter::Rescue`** <br>
+  The
+  [`LLM::MessageFilter::Rescue`](https://r.uby.dev/api-docs/llm.rb/LLM/MessageFilter/Rescue.html)
+  module rescues the exception that a filter's `#call`
+  method raises, so a filter that raises no longer takes
+  the turn down with it.
+  `LLM::MessageFilter.inherited` prepends it to every
+  subclass, so every filter is covered.
+  `LLM::Interrupt` is re-raised, and an interrupt still
+  travels up the stack. Any other `StandardError` or
+  `ScriptError` goes to `Rescue.crash`, which writes the
+  report to `$stderr`: the filter's class, the exception's
+  class, its message, and the first ten lines of its
+  backtrace. The return value of `crash` is what `#call`
+  returns, so a call that crashes returns `nil` rather
+  than a message.
 
 ### LLM::Tracer
 
