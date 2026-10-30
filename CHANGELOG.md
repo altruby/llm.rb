@@ -536,21 +536,34 @@ it.
   context window.
 
 * **refresh model metadata** <br>
-  Update `data/` with current listings, limits,
-  and pricing. OpenRouter adds Glimpse,
-  Pareto 26.10, Mercury 3, DeepSeek V4.1 Flash
-  1017, and a free MiniMax M3.1 Flash, and it
-  drops DeepSeek-R1, Llama 3.3 Euryale 70B,
-  and WizardLM-2 8x22B. Mistral drops its three
-  open-weights models, OpenAI drops the GPT-5.2
-  and GPT-5.3 chat aliases, and DeepInfra adds
-  DeepSeek V4.1 Flash 1017. DeepSeek raises the
-  context window of four models to 1,048,576
-  tokens, Alibaba adds context tiers to six
-  Qwen models and re-prices two others, Z.AI
-  adds cache pricing to GLM-4.5V and GLM-4.6V,
-  and OpenRouter corrects prices and limits
-  across its listings.
+  Update `data/` with current listings, limits, and pricing. OpenRouter adds
+  Glimpse, Pareto 26.10, Mercury 3, DeepSeek V4.1 Flash 1017, and a free
+  MiniMax M3.1 Flash, and it drops DeepSeek-R1, Llama 3.3 Euryale 70B, and
+  WizardLM-2 8x22B. Mistral drops its three open-weights models, OpenAI drops
+  the GPT-5.2 and GPT-5.3 chat aliases, and DeepInfra adds DeepSeek V4.1
+  Flash 1017. DeepSeek raises the context window of four models to 1,048,576
+  tokens, Alibaba adds context tiers to six Qwen models and re-prices two
+  others, Z.AI adds cache pricing to GLM-4.5V and GLM-4.6V, and OpenRouter
+  corrects prices and limits across its listings. Bedrock adds GPT-6.1 Terra
+  in its default, US and Global variants, with a 1,050,000 token context
+  window, a 272,000 token context tier, and cache-write pricing, and Mistral
+  adds Mistral Large 4.0.8 and DeepSeek V4.1 Flash 1017. Mistral halves the
+  price of Mistral Large 4, to 0.70 input and 2.10 output per million tokens,
+  and widens its reasoning efforts to low, medium, and high. Google drops
+  Nano Banana Pro and Nano Banana 2 and deprecates Nano Banana, OpenAI drops
+  `gpt-image-1` and deprecates `gpt-image-1.5`, `gpt-image-1-mini` and
+  `chatgpt-image-latest`, and DeepInfra deprecates Step 5 Preview. OpenRouter
+  adds Particle-1 and Ternary Bonsai 2 9B, and it drops ten listings, among
+  them GPT-4 Turbo, o1, o3-mini, o4-mini and GPT-5.2 Chat. It raises the
+  output limit of DeepSeek V4 Flash and DeepSeek V4.1 Flash to 943,717 and
+  943,718 tokens, and of DeepSeek V3.1 and V3.2 to 147,456, and the context
+  window of Ling 3.1 Flash to 1,000,000 tokens and of Nemotron 3 Super 120B
+  A12B to 1,048,576. It cuts the Llama 4 Scout context window to 327,680 and
+  the output limit of Qwen3.8 2.4T A95B, Muse Spark Open and GLM-5.3-Flash to
+  131,072. Prices move as well: DeepSeek V4 Flash roughly doubles,
+  GLM-5.3-Flash falls by three quarters, DeepSeek V4.1 Flash input drops to
+  0.045, DeepSeek Pro Latest output halves to 4, DeepSeek V3.2 cache reads
+  rise from 0.028 to 0.13, and GLM-5.1 rises by 45%.
 
 ## v17.0.1
 
