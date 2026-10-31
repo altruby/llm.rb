@@ -66,24 +66,9 @@ end
 namespace :'models.dev' do
   desc "Download models.dev metadata"
   task :download do
-    require "net/http"
-    require "json"
-    client = Net::HTTP.new "models.dev", 443
-    client.use_ssl = true
-    res = client.request Net::HTTP::Get.new("/api.json")
-    case res
-    when Net::HTTPOK
-      models = JSON.parse(res.body)
-      providers = %w[openai google anthropic xai zai deepseek deepinfra mistral alibaba openrouter].to_h { [_1, _1] }
-      providers["bedrock"] = "amazon-bedrock"
-      providers["moonshot"] = "moonshotai"
-      providers.each do |target, source|
-        File.binwrite "data/#{target}.json", JSON.pretty_generate(models[source])
-      end
-    else
-      warn("error: #{res.class}")
-      exit 1
-    end
+    Process.wait Process.spawn(RbConfig.ruby,
+                               File.join(__dir__, "bin", "llm.rb"),
+                               "models.dev:download")
   end
 end
 

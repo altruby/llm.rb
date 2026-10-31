@@ -13,8 +13,8 @@ def providers
     .select { File.file?(_1) }
     .map { File.basename(_1, ".rb") }
     .sort_by { |provider|
-      # <3 DeepSeek
       case provider
+      # cheapest first: DeepSeek
       when "deepseek" then -1
       when "ollama", "llamacpp" then 1
       else 0
@@ -22,13 +22,11 @@ def providers
     }
 end
 
-def warn_title(text)
-  wrap(text, 51).each_with_index { |chunk, i| warn(i.zero? ? "  ✖  #{chunk}" : "     #{chunk}") }
-end
-
-def wrapped(text, prefix)
-  line = "#{prefix}#{text}"
-  line.length <= 58 ? warn(line) : wrap(text, 51).each { |chunk| warn "#{prefix}#{chunk}" }
+def warn!(title)
+  wrap(title, 51)
+  .each_with_index do |chunk, i|
+    warn(i.zero? ? "  ✖  #{chunk}" : "     #{chunk}")
+  end
 end
 
 def wrap(text, width)
@@ -42,6 +40,11 @@ def wrap(text, width)
   end
 end
 
+def wrapped(text, prefix)
+  line = "#{prefix}#{text}"
+  line.length <= 58 ? warn(line) : wrap(text, 51).each { |chunk| warn "#{prefix}#{chunk}" }
+end
+
 def version
   warn "llm.rb v#{LLM::VERSION}"
 end
@@ -49,17 +52,21 @@ end
 def help
   prog = File.basename($PROGRAM_NAME)
   warn ""
-  warn "Usage: #{prog} [options]"
+  warn "Usage: #{prog} [command] [options]"
+  warn ""
+  warn "Commands:"
+  warn ""
+  warn "models.dev:download         Download the models.dev registry"
   warn ""
   warn "Options:"
-  warn "  -p PROVIDER    Choose a provider"
-  warn "  -m MODEL       Choose a model"
-  warn "  -c STRATEGY    Concurrency strategy for tool calls (eg thread, async, fork)"
-  warn "  -n TRANSPORT   HTTP transports - net-http (default), and net-http-persistent"
-  warn "  -x TIMEOUT     The default read timeout (in seconds)"
-  warn "  -t             Temporary session that doesn't persist to disk"
-  warn "  -v             Print version information"
-  warn "  -h             Show this help"
+  warn "  -p PROVIDER               Choose a provider"
+  warn "  -m MODEL                  Choose a model"
+  warn "  -c STRATEGY               Concurrency strategy for tool calls (eg thread, async, fork)"
+  warn "  -n TRANSPORT              HTTP transports - net-http (default), and net-http-persistent"
+  warn "  -x TIMEOUT                The default read timeout (in seconds)"
+  warn "  -t                        Temporary session that doesn't persist to disk"
+  warn "  -v                        Print version information"
+  warn "  -h                        Show this help"
   warn ""
   warn "Examples:"
   warn "  #{prog}                         # auto-detect provider from $PROVIDER_API_KEY"
@@ -72,23 +79,23 @@ def help
   warn ""
 end
 
-def loaderror(ex)
+def requirements_not_met!(ex)
   gem, = ex.message.split(" is an optional runtime dependency")
-  warn ""
-  warn "  ── llm.rb ──────────────────────────────────────────────"
-  warn ""
-  warn_title "Missing dependency: #{gem}"
-  warn ""
-  warn "     The console needs this gem, but it's not installed."
-  warn ""
-  wrapped "Fix:  gem install #{gem}", "     "
-  wrapped "Or:   bundle add #{gem}", "     "
-  warn ""
-  warn "     Tip:  If you don't need the console, you can use the"
-  wrapped "library directly with:  require \"llm\"", "           "
-  warn ""
-  warn "  ───────────────────────────────────────────────────────"
-  warn ""
+  warn      ""
+  warn      "  ── llm.rb ──────────────────────────────────────────────"
+  warn      ""
+  warn!     "Missing dependency: #{gem}"
+  warn      ""
+  warn      "     The console needs this gem, but it's not installed."
+  warn      ""
+  wrapped   "Fix:  gem install #{gem}", "     "
+  wrapped   "Or:   bundle add #{gem}", "     "
+  warn      ""
+  warn      "     Tip:  If you don't need the console, you can use the"
+  wrapped   "library directly with:  require \"llm\"", "           "
+  warn      ""
+  warn      "  ───────────────────────────────────────────────────────"
+  warn      ""
 end
 
 def fatal(ex)
@@ -97,16 +104,14 @@ def fatal(ex)
   warn ""
   warn "  ── llm.rb ──────────────────────────────────────────────"
   warn ""
-  warn_title "#{ex.class}: #{title}"
+  warn! "#{ex.class}: #{title}"
   if detail
     warn ""
     wrapped detail, "     "
   end
   warn ""
   warn "     Backtrace:"
-  ex.backtrace.drop(1).first(3).each do |line|
-    wrapped line, "       "
-  end
+  ex.backtrace.drop(1).first(3).each { wrapped it, "       " }
   warn ""
   warn "     This is an unexpected error. If it keeps happening,"
   warn "     consider opening an issue at"
@@ -117,17 +122,61 @@ def fatal(ex)
   exit 1
 end
 
+def modelsdev_download
+  ##
+  # Requirements
+  require "net/http"
+  require "json"
+
+  ##
+  # Build the client
+  client = Net::HTTP.new "models.dev", 443
+  client.use_ssl = true
+
+  ##
+  # Fire request
+  req = Net::HTTP::Get.new("/api.json")
+  res = client.request(req)
+  case res
+  when Net::HTTPOK
+    models = JSON.parse(res.body)
+    providers = %w[openai google
+                   anthropic xai
+                   zai deepseek
+                   deepinfra mistral
+                   alibaba openrouter].to_h { [_1, _1] }
+    providers["bedrock"] = "amazon-bedrock"
+    providers["moonshot"] = "moonshotai"
+    parent = File.join(__dir__, "..", "data")
+    providers.each do |target, source|
+      File.binwrite File.join(parent, "#{target}.json"),
+                    JSON.pretty_generate(models[source])
+      print "ok: ", File.join(File.basename(parent), "#{target}.json"), "\n"
+    end
+  else
+    raise RuntimeError, "bad response (#{res.class})"
+    exit 1
+  end
+rescue => ex
+  fatal(ex)
+end
+
 ##
 # main
 
 def main(argv)
+  case argv[0]
+  when "models.dev:download"
+    return modelsdev_download
+  end
+
   ##
   # Make sure the dependencies are satisified first
   begin
     require "llm/tools"
     require "llm/console"
   rescue LLM::LoadError => ex
-    loaderror(ex)
+    requirements_not_met!(ex)
     exit 1
   end
 
