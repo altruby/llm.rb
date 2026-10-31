@@ -43,8 +43,8 @@ The _optional_ dependencies ActiveRecord and Sequel
 must be updated to their latest version(s). The major
 [json](https://github.com/ruby/json) 
 version bump (v2 => v3) often requires changes and not
-all gems have caught up yet. [r-uby-dev/llm](https://github.com/r-uby-dev/llm) 
-is an early adopter of json v3.
+all gems have caught up yet. The [r-uby-dev/llm](https://github.com/r-uby-dev/llm)
+gem is an early adopter of json v3.
 
 ```bash
 gem install llm.rb --pre
