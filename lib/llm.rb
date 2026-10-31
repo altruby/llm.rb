@@ -191,9 +191,8 @@ module LLM
   # @return [Class]
   #  Returns a class that responds to `dump` and `load`
   def json
-    @json ||= JSONAdapter::JSON
+    @json
   end
-  json
 
   ##
   # Sets the JSON adapter used by the library
@@ -217,6 +216,7 @@ module LLM
       end
     end
   end
+  self.json = "json"
 
   ##
   # @param (see LLM::Provider#initialize)
