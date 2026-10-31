@@ -42,7 +42,7 @@ Ruby 4.1.0+ is recommended.
 The _optional_ dependencies ActiveRecord and Sequel
 must be updated to their latest version(s). The major
 [json](https://github.com/ruby/json) 
-version bump (v2 => v3) often requires changes and not
+version bump (v2 => v3) can require changes and not
 all gems have caught up yet. The [r-uby-dev/llm](https://github.com/r-uby-dev/llm)
 gem is an early adopter of json v3.
 
