@@ -108,16 +108,7 @@ module LLM
                       Ractor.main? ? "yes" : "no",
                       Ractor.count.to_s)
     end
-    ##
-    # FIXME:
-    # `@monitors` (Monitor) and Mutex are not Ractor-shareable.
-    # We can't use a lock on a Ractor other than main until this
-    # is fixed.
-    if Ractor.main?
-      lock(:debug, &log)
-    else
-      log.call
-    end
+    lock(:debug, &log)
   end
 
   ##
