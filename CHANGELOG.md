@@ -62,6 +62,14 @@ it.
   in Ruby 4.0.0, and `Ractor#value` replaces it in
   llm.rb, though the two are not equivalent.
 
+* **ruby: declare the stdlib gems as runtime dependencies** <br>
+  The gemspec declares `net-http` (`~> 0.10`), `json`
+  (`~> 3.1`), `securerandom` (`~> 0.4`), `time` (`~> 0.5`),
+  `stringio` (`~> 3.2`), `digest` (`~> 3.3`) and `openssl`
+  (`~> 4.0`) as runtime dependencies. The v17 series declared
+  none, which left each gem implicit, and each one is now
+  declared, so a fresh `bundle install` installs it.
+
 ### LLM
 
 * **core: add `LLM.debug`** <br>
@@ -415,6 +423,14 @@ it.
   credentials and it takes no options, and a response that is not
   HTTP 200 aborts the command. The files it writes are overwritten in
   place, so it refreshes a checkout rather than an installed gem.
+
+* **console: `-n` takes only the http transports** <br>
+  The `-n` switch takes the name of an HTTP transport, `net-http`
+  (the default) or `net-http-persistent`, in the dashed or the
+  underscored spelling. The `curb` transport is gone, so `-n curb`
+  raises `LLM::Error` with `:curb is not a recognized transport`,
+  and the console exits 1. The help text lists the two transports
+  that remain, and its example is `-n net-http-persistent`.
 
 ### LLM::MessageFilter
 
