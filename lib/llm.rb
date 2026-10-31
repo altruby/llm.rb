@@ -18,9 +18,10 @@ module LLM
 
   begin
     stderr = $stderr
-    $stderr.reopen(File::NULL)
-    (Ractor.new{})
+    $stderr = File.open File::NULL, "w"
+    (Ractor.new{}.value)
   ensure
+    $stderr.close
     $stderr = stderr
   end
 
