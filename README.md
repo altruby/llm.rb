@@ -27,6 +27,7 @@ tracks what has changed between releases.
 ##### v17
 
 The v17 series requires Ruby 3.4 or later. <br>
+This version works with older rubies and dependencies (ie: json v2).
 
 ```bash
 gem install llm.rb
@@ -35,7 +36,10 @@ gem install llm.rb
 ##### v18
 
 The v18 series is available as a prerelease. <br>
-It requires Ruby 4.0.0 or later. Ruby 4.1.0+ is recommended.
+It requires Ruby 4.0.0 or later. <br>
+Ruby 4.1.0+ is recommended. <br>
+Latest versions of ActiveRecord or Sequel are also required. <br>
+Those dependencies are optional and must be updated separately.
 
 ```bash
 gem install llm.rb --pre
