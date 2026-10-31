@@ -17,12 +17,15 @@ module LLM
   extend self
 
   begin
-    stderr = $stderr
+    stderr  = $stderr
+    restore = -> { [$stderr.close, $stderr = stderr] }
     $stderr = File.open File::NULL, "w"
     (Ractor.new{}.value)
+  rescue
+    restore.()
+    raise $!
   ensure
-    $stderr.close
-    $stderr = stderr
+    restore.() unless $stderr.closed?
   end
 
   require "stringio"
