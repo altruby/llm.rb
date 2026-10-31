@@ -17,15 +17,11 @@ module LLM
   extend self
 
   begin
-    stderr  = $stderr
-    restore = -> { [$stderr.close, $stderr = stderr] }
-    $stderr = File.open File::NULL, "w"
+    old = Warning[:experimental]
+    Warning[:experimental] = false
     (Ractor.new{}.value)
-  rescue Exception
-    restore.()
-    raise $!
   ensure
-    restore.() unless $stderr.closed?
+    Warning[:experimental] = old
   end
 
   require "stringio"
