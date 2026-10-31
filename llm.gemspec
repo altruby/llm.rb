@@ -52,6 +52,8 @@ DESCRIPTION
   spec.add_runtime_dependency "net-http", "~> 0.10"
   spec.add_runtime_dependency "json", "~> 3.1"
   spec.add_runtime_dependency "securerandom", "~> 0.4"
+  spec.add_runtime_dependency "time", "~> 0.5"
+  spec.add_runtime_dependency "stringio", "~> 3.2"
 
   ##
   # Optional dependencies

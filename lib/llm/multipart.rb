@@ -4,7 +4,6 @@
 ##
 # @private
 class LLM::Multipart
-  require "securerandom"
   require_relative "multipart/enumerator_io"
   CHUNK_SIZE = 16 * 1024
 
