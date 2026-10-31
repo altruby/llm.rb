@@ -407,6 +407,15 @@ it.
   picks another strategy, so `-c sequential` restores the
   old behavior.
 
+* **console: add `llm.rb models.dev:download`** <br>
+  `llm.rb models.dev:download` fetches `https://models.dev/api.json`
+  and writes a pretty-printed `data/<provider>.json` file for each
+  provider it knows, in a source checkout of llm.rb. It prints
+  `ok: data/<provider>.json` for each file it writes. It needs no
+  credentials and it takes no options, and a response that is not
+  HTTP 200 aborts the command. The files it writes are overwritten in
+  place, so it refreshes a checkout rather than an installed gem.
+
 ### LLM::MessageFilter
 
 * **filter: rename `LLM::Transformer` as `LLM::MessageFilter`** <br>
