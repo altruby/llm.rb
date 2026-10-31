@@ -40,11 +40,11 @@ It requires Ruby 4.0.0 or later. <br>
 Ruby 4.1.0+ is recommended. 
 
 The _optional_ dependencies ActiveRecord and Sequel
-have to be updated to their latest version(s). The major 
+must be updated to their latest version(s). The major
 [json](https://github.com/ruby/json) 
-version bump (v2 => v3) is where the major difference
-were found but there might be other incompatibilities 
-that require other gem updates too.
+version bump (v2 => v3) often requires changes and not
+all gems have caught up yet. [r-uby-dev/llm](https://github.com/r-uby-dev/llm) 
+is an early adopter of json v3.
 
 ```bash
 gem install llm.rb --pre
