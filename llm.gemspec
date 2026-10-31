@@ -54,6 +54,8 @@ DESCRIPTION
   spec.add_runtime_dependency "securerandom", "~> 0.4"
   spec.add_runtime_dependency "time", "~> 0.5"
   spec.add_runtime_dependency "stringio", "~> 3.2"
+  spec.add_runtime_dependency "digest", "~> 3.3"
+  spec.add_runtime_dependency "openssl", "~> 4.0"
 
   ##
   # Optional dependencies
