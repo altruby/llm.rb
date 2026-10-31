@@ -21,7 +21,7 @@ module LLM
     restore = -> { [$stderr.close, $stderr = stderr] }
     $stderr = File.open File::NULL, "w"
     (Ractor.new{}.value)
-  rescue
+  rescue Exception
     restore.()
     raise $!
   ensure
