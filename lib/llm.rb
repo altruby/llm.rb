@@ -16,6 +16,14 @@
 module LLM
   extend self
 
+  begin
+    stderr = $stderr
+    $stderr.reopen(File::NULL)
+    (Ractor.new{})
+  ensure
+    $stderr = stderr
+  end
+
   require "stringio"
   require "securerandom"
   require "time"
