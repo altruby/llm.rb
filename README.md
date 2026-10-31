@@ -37,7 +37,6 @@ gem install llm.rb
 
 The v18 series is available as a prerelease. It requires 
 Ruby 4.0.0 or later. Ruby 4.1.0+ is recommended.
-
 The _optional_ dependencies ActiveRecord and Sequel
 must be updated to their latest version(s). The major
 [json](https://github.com/ruby/json) 
